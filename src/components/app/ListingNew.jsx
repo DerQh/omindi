@@ -8,6 +8,35 @@ const Container = styled.div`
   min-height: 100vh;
   background: #f7fbff;
 `;
+const BackButton = styled.button`
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-right: 16px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: #245026;
+  }
+`;
+
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+`;
 
 const FormCard = styled.div`
   max-width: 700px;
@@ -19,11 +48,11 @@ const FormCard = styled.div`
 `;
 
 const Title = styled.h1`
-  margin: 0 0 24px;
+  margin: 0;
   color: #2f5a2a;
+  flex: 1;
   text-align: center;
 `;
-
 const Field = styled.div`
   margin-bottom: 18px;
 
@@ -78,6 +107,10 @@ const NewListing = () => {
   });
   const navigate = useNavigate();
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -88,13 +121,16 @@ const NewListing = () => {
     // For now, just navigate back to the listings page after creating.
     navigate("/list");
   };
-
   return (
     <>
       <AppNavbar />
       <Container>
-        <FormCard>
+        <Header>
+          <BackButton onClick={handleBack}>← </BackButton>
           <Title>Create a New Listing</Title>
+        </Header>
+        <FormCard>
+          {/* <Title>Create a New Listing</Title> */}
           <form onSubmit={handleSubmit}>
             <Field>
               <label htmlFor="name">Item Name</label>

@@ -169,8 +169,8 @@ const ListingBody = styled.div`
 `;
 
 const profileInfo = {
-  name: "Amina Soro",
-  location: "Kilimani, Nairobi, Kenya",
+  name: "Okello Farm",
+  location: "Nyamware, Kisumu, Kenya",
   followers: 182,
   listingsCount: 8,
   bio: "Local farm owner specializing in fresh produce, honey, and dairy. Committed to sustainable sourcing and fair pricing for buyers and markets.",
@@ -181,25 +181,25 @@ const profileInfo = {
       id: 1,
       title: "Organic Cherry Tomatoes",
       price: "$12 / kg",
-      image: "/salepic.png",
+      image: "/tomatoes.jpg",
     },
     {
       id: 2,
       title: "Free-Range Eggs",
       price: "$6 / dozen",
-      image: "/farm logo.png",
+      image: "/eggs.jpg",
     },
     {
       id: 3,
       title: "Raw Wildflower Honey",
       price: "$18",
-      image: "/market.png",
+      image: "/honeyfarm.jpg",
     },
     {
       id: 4,
       title: "Fresh Kale Bundle",
       price: "$9 / bundle",
-      image: "/farming.jpg",
+      image: "/kales.jpg",
     },
   ],
 };

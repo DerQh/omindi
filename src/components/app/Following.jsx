@@ -8,10 +8,31 @@ const Container = styled.div`
 `;
 
 const PageTitle = styled.h1`
-  margin: 0 0 24px;
+  margin: 0;
   color: #264a28;
   font-size: 2.4rem;
+  flex: 1;
   text-align: center;
+`;
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+`;
+
+const BackButton = styled.button`
+  background: #264a28;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 16px;
+
+  &:hover {
+    background: #1e3a20;
+  }
 `;
 
 const Section = styled.section`
@@ -20,8 +41,8 @@ const Section = styled.section`
 
 const SectionHeader = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   margin-bottom: 18px;
 
@@ -122,7 +143,7 @@ const followData = {
       location: "Nairobi",
       rating: 4.8,
       reviews: 42,
-      image: "/farm logo.png",
+      image: "/amina.jpg",
     },
     {
       id: 2,
@@ -131,7 +152,7 @@ const followData = {
       location: "Kiambu",
       rating: 4.6,
       reviews: 30,
-      image: "/farming.jpg",
+      image: "/maziwa.png",
     },
     {
       id: 3,
@@ -140,7 +161,7 @@ const followData = {
       location: "Nanyuki",
       rating: 4.9,
       reviews: 55,
-      image: "/salepic.png",
+      image: "/honeyfarm.jpg",
     },
   ],
   events: [
@@ -151,7 +172,7 @@ const followData = {
       location: "Kasarani Grounds",
       description:
         "Browse fresh produce, meet followed sellers, and save favorite market finds.",
-      image: "/market.png",
+      image: "/market.jpg",
     },
     {
       id: 2,
@@ -160,7 +181,7 @@ const followData = {
       location: "Nairobi Showground",
       description:
         "Discover new growing tips and join experts from the local farming community.",
-      image: "/howtouse1.png",
+      image: "/workshop.jpg",
     },
   ],
   favorites: [
@@ -171,7 +192,7 @@ const followData = {
       location: "Nairobi",
       rating: 4.7,
       reviews: 18,
-      image: "/market.png",
+      image: "/pepper.png",
     },
     {
       id: 2,
@@ -180,7 +201,7 @@ const followData = {
       location: "Kiambu",
       rating: 4.9,
       reviews: 26,
-      image: "/salepic.png",
+      image: "/honeyjar.jpeg",
     },
   ],
 };
@@ -197,8 +218,6 @@ const Following = () => {
     <>
       <AppNavbar />
       <Container>
-        <PageTitle>Following</PageTitle>
-
         <Section>
           <SectionHeader>
             <h2>Followed Sellers</h2>

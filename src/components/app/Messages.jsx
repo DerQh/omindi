@@ -198,7 +198,7 @@ const initialConversations = [
     id: 1,
     name: "Amina's Farm",
     role: "Seller",
-    avatar: "/farm logo.png",
+    avatar: "/amina.jpg",
     latest: "Yes, I can deliver tomorrow morning.",
     unread: 2,
     messages: [
@@ -223,7 +223,7 @@ const initialConversations = [
     id: 3,
     name: "Honey Harvest",
     role: "Seller",
-    avatar: "/salepic.png",
+    avatar: "/honeyfarm.jpg",
     latest: "The new batch is ready for inspection.",
     unread: 1,
     messages: [
