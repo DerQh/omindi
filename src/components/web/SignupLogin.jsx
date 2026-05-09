@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import styled from "styled-components";
 
 const MainContainer = styled.div`
@@ -401,9 +401,9 @@ function SignupLogin() {
 
   return (
     <MainContainer>
-      <LogoContainer to="/">
+      <LogoContainer to="/mobile">
         <Logo src="/logo1.jpg" alt="Logo" />
-        <Title >AFARMER</Title>
+        <Title>AFARMER</Title>
       </LogoContainer>
 
       <AuthContainer>
