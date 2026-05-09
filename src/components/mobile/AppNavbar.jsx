@@ -65,7 +65,7 @@ const ToggleIcons = styled.div`
   }
 `;
 
-export default function AppNavbar() {
+export default function AppNavbar({ pageOne }) {
   const [isOpen, setisOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -86,13 +86,17 @@ export default function AppNavbar() {
 
   return (
     <Nav>
-      <LogoContainer onClick={() => handleNavigation("/")}>
+      <LogoContainer onClick={() => handleNavigation("/mobile")}>
         <img loading="lazy" src="/logo1.jpg" alt="logo" />
         <h1>AFARMER</h1>
       </LogoContainer>
       <MenuContainer>
         <ToggleIcons onClick={toggleMenu}>
-          <img src="/founder.jpg" alt="profile image" />
+          {pageOne ? (
+            <button>List & Sell </button>
+          ) : (
+            <img src="/founder.jpg" alt="profile image" />
+          )}
         </ToggleIcons>
       </MenuContainer>
       <DropDownApp isOpen={isOpen} toggleMenu={closeNav}></DropDownApp>

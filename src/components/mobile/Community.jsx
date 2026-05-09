@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
 
@@ -26,6 +27,12 @@ const PostCard = styled.div`
   box-shadow: 0 12px 30px rgba(34, 79, 38, 0.08);
   margin-bottom: 20px;
   overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
 `;
 
 const PostHeader = styled.div`
@@ -128,16 +135,16 @@ const ActionButton = styled.button`
   gap: 8px;
   border: none;
   background: none;
-  color: #5b6d57;
+  color: ${({ liked }) => (liked ? '#e74c3c' : '#5b6d57')};
   cursor: pointer;
   font-size: 0.95rem;
   padding: 8px 12px;
   border-radius: 12px;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 
   &:hover {
     background: #f4faf4;
-    color: #2f5a2a;
+    color: ${({ liked }) => (liked ? '#c0392b' : '#2f5a2a')};
   }
 
   svg {
@@ -201,6 +208,8 @@ const communityPosts = [
     image: "/salepic.png",
     likes: 24,
     comments: 8,
+    shares: 3,
+    liked: false,
     time: "2 hours ago",
   },
   {
@@ -213,6 +222,8 @@ const communityPosts = [
     image: "/howtouse1.png",
     likes: 42,
     comments: 15,
+    shares: 7,
+    liked: false,
     time: "5 hours ago",
   },
   {
@@ -225,6 +236,8 @@ const communityPosts = [
     image: "/howtouse2.png",
     likes: 31,
     comments: 12,
+    shares: 5,
+    liked: false,
     time: "1 day ago",
   },
   {
@@ -237,6 +250,8 @@ const communityPosts = [
     image: "/grow.png",
     likes: 18,
     comments: 6,
+    shares: 2,
+    liked: false,
     time: "2 days ago",
   },
   {
@@ -249,19 +264,50 @@ const communityPosts = [
     image: "/farm logo.png",
     likes: 35,
     comments: 22,
+    shares: 9,
+    liked: false,
     time: "3 days ago",
   },
 ];
 
 const Community = () => {
   const [posts, setPosts] = useState(communityPosts);
+  const navigate = useNavigate();
 
   const handleLike = (postId) => {
     setPosts(posts.map(post => 
       post.id === postId 
-        ? { ...post, likes: post.likes + 1 }
+        ? { 
+            ...post, 
+            likes: post.liked ? post.likes - 1 : post.likes + 1,
+            liked: !post.liked
+          }
         : post
     ));
+  };
+
+  const handleComment = (postId) => {
+    setPosts(posts.map(post => 
+      post.id === postId 
+        ? { ...post, comments: post.comments + 1 }
+        : post
+    ));
+  };
+
+  const handleShare = (postId) => {
+    setPosts(posts.map(post => 
+      post.id === postId 
+        ? { ...post, shares: post.shares + 1 }
+        : post
+    ));
+  };
+
+  const handlePostClick = (postId) => {
+    navigate(`/post/${postId}`);
+  };
+
+  const handleShareUpdate = () => {
+    navigate('/update');
   };
 
   return (
@@ -274,12 +320,12 @@ const Community = () => {
             <NewPostContent>
               <h3>Share What's New</h3>
               <p>Post updates about your farm, share market tips, or announce upcoming events with the community.</p>
-              <ShareButton>Share Update</ShareButton>
+              <ShareButton onClick={handleShareUpdate}>Share Update</ShareButton>
             </NewPostContent>
           </NewPostCard>
 
           {posts.map((post) => (
-            <PostCard key={post.id}>
+            <PostCard key={post.id} onClick={() => handlePostClick(post.id)}>
               <PostHeader>
                 <Avatar src={post.avatar} alt={post.author} />
                 <PostInfo>
@@ -301,19 +347,22 @@ const Community = () => {
               )}
               
               <PostActions>
-                <ActionButton onClick={() => handleLike(post.id)}>
+                <ActionButton 
+                  liked={post.liked} 
+                  onClick={(e) => { e.stopPropagation(); handleLike(post.id); }}
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                   </svg>
                   Like
                 </ActionButton>
-                <ActionButton>
+                <ActionButton onClick={(e) => { e.stopPropagation(); handleComment(post.id); }}>
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
                   </svg>
                   Comment
                 </ActionButton>
-                <ActionButton>
+                <ActionButton onClick={(e) => { e.stopPropagation(); handleShare(post.id); }}>
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
                   </svg>
@@ -322,6 +371,7 @@ const Community = () => {
                 <PostStats>
                   <span>{post.likes} likes</span>
                   <span>{post.comments} comments</span>
+                  <span>{post.shares} shares</span>
                 </PostStats>
               </PostActions>
             </PostCard>

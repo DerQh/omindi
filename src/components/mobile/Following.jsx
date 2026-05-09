@@ -1,5 +1,6 @@
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -14,6 +15,7 @@ const PageTitle = styled.h1`
   flex: 1;
   text-align: center;
 `;
+
 const Header = styled.div`
   display: flex;
   align-items: center;
@@ -71,6 +73,12 @@ const Card = styled.div`
   box-shadow: 0 12px 30px rgba(34, 79, 38, 0.08);
   overflow: hidden;
   min-height: 220px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
 `;
 
 const CardTop = styled.div`
@@ -214,6 +222,16 @@ const renderStars = (rating) => {
 };
 
 const Following = () => {
+  const navigate = useNavigate();
+
+  const handleSellerClick = (id) => {
+    navigate(`/follower/${id}`);
+  };
+
+  const handleFavoriteClick = (id) => {
+    navigate(`/listing/${id}`);
+  };
+
   return (
     <>
       <AppNavbar />
@@ -227,7 +245,7 @@ const Following = () => {
           </SectionHeader>
           <CardsGrid>
             {followData.sellers.map((seller) => (
-              <Card key={seller.id}>
+              <Card key={seller.id} onClick={() => handleSellerClick(seller.id)}>
                 <CardTop>
                   <img src={seller.image} alt={seller.name} />
                 </CardTop>
@@ -281,7 +299,7 @@ const Following = () => {
           </SectionHeader>
           <CardsGrid>
             {followData.favorites.map((item) => (
-              <Card key={item.id}>
+              <Card key={item.id} onClick={() => handleFavoriteClick(item.id)}>
                 <CardTop>
                   <img src={item.image} alt={item.title} />
                 </CardTop>

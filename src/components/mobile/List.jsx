@@ -1,6 +1,8 @@
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   padding: 20px 30px;
@@ -21,6 +23,26 @@ const Header = styled.div`
     margin: 0;
     font-size: 2rem;
     color: #2f5a2a;
+  }
+`;
+
+const SearchContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+
+  input {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    min-width: 300px;
+    font-size: 1rem;
+
+    &:focus {
+      outline: none;
+      border-color: #2f5a2a;
+      box-shadow: 0 0 4px rgba(47, 90, 42, 0.2);
+    }
   }
 `;
 
@@ -53,6 +75,12 @@ const ListingCard = styled.div`
   box-shadow: 0 9px 25px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
 `;
 
 const ImageWrapper = styled.div`
@@ -166,6 +194,20 @@ const goods = [
 ];
 
 const List = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
+  const filteredGoods = goods.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleCardClick = (id) => {
+    navigate(`/listing/${id}`);
+  };
+
   return (
     <>
       <AppNavbar />
@@ -174,9 +216,17 @@ const List = () => {
           <h1>List & Sell</h1>
           <Button to="/newlist">Add a New Listing</Button>
         </Header>
+        <SearchContainer>
+          <input
+            type="text"
+            placeholder="Search listings..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </SearchContainer>
         <ListingsGrid>
-          {goods.map((item) => (
-            <ListingCard key={item.id}>
+          {filteredGoods.map((item) => (
+            <ListingCard key={item.id} onClick={() => handleCardClick(item.id)}>
               <ImageWrapper>
                 <img src={item.image} alt={item.name} />
               </ImageWrapper>

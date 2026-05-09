@@ -26,6 +26,10 @@ import Messages from "./components/mobile/Messages";
 import Profile from "./components/mobile/Profile";
 import Community from "./components/mobile/Community";
 import NewListing from "./components/mobile/ListingNew";
+import ListingDetail from "./components/mobile/ListingDetail";
+import Follower from "./components/mobile/Follower";
+import Post from "./components/mobile/Post";
+import Update from "./components/mobile/Update";
 
 function App() {
   return (
@@ -40,6 +44,10 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/community" element={<Community />} />
           <Route path="/newlist" element={<NewListing />} />
+          <Route path="/listing/:id" element={<ListingDetail />} />
+          <Route path="/follower/:id" element={<Follower />} />
+          <Route path="/post/:id" element={<Post />} />
+          <Route path="/update" element={<Update />} />
 
           {/* WEB ROUTES */}
           <Route path="/" element={<MainBody />} />
