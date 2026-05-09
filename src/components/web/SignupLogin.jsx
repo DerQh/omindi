@@ -403,7 +403,7 @@ function SignupLogin() {
     <MainContainer>
       <LogoContainer to="/">
         <Logo src="/logo1.jpg" alt="Logo" />
-        <Title>AFARMER</Title>
+        <Title >AFARMER</Title>
       </LogoContainer>
 
       <AuthContainer>

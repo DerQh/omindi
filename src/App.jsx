@@ -19,13 +19,13 @@ import AboutUs from "./components/web/AboutUs";
 import FAQ from "./components/web/FaQ";
 import Merchandise from "./components/web/Merchandise";
 import ErrorDisplay from "./components/web/Error";
-import Map from "./components/app/Map";
-import Following from "./components/app/Following";
-import List from "./components/app/List";
-import Messages from "./components/app/Messages";
-import Profile from "./components/app/Profile";
-import Community from "./components/app/Community";
-import NewListing from "./components/app/ListingNew";
+import Map from "./components/mobile/Map";
+import Following from "./components/mobile/Following";
+import List from "./components/mobile/List";
+import Messages from "./components/mobile/Messages";
+import Profile from "./components/mobile/Profile";
+import Community from "./components/mobile/Community";
+import NewListing from "./components/mobile/ListingNew";
 
 function App() {
   return (
@@ -33,7 +33,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* APP ROUTES */}
-          <Route path="/app" element={<Map />} />
+          <Route path="/mobile" element={<Map />} />
           <Route path="/following" element={<Following />} />
           <Route path="/list" element={<List />} />
           <Route path="/messages" element={<Messages />} />
