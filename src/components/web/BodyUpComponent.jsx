@@ -1,16 +1,18 @@
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
 const BodyComponent = ({ heading, subheading, description, bgcolor }) => {
+  const navigate = useNavigate();
   return (
     <MainContainer bgcolor={bgcolor}>
       <p>{subheading}</p>
       <h1>{heading}</h1>
       <p>{description}</p>
       <DownloadContainer>
-        <a href="">
+        <a onClick={() => navigate("/sign-up")}>
           <img src="/app store.png" alt="google play logo" />
         </a>
-        <a href="">
+        <a onClick={() => navigate("/sign-up")}>
           <img src="/google store.png" alt="app store logo" />
         </a>
       </DownloadContainer>

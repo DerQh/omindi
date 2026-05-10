@@ -2,6 +2,7 @@ import styled from "styled-components";
 import BodyComponent from "./BodyUpComponent";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
+import { useNavigate } from "react-router-dom";
 
 const ImageContainer = styled.div`
   background-image: url("/farming.jpg");
@@ -298,6 +299,7 @@ const FeedbackContainer = styled.div`
 `;
 
 function Body() {
+  const navigate = useNavigate();
   const heading = "THE MARKETPLACE APP FOR LOCAL FOOD & FARMS";
   const subheading = "DIRECT FROM THE FARM";
   const description =
@@ -356,7 +358,9 @@ function Body() {
         </BuySellGrowContainers>
 
         <div>
-          <LearnButton>LEARN MORE </LearnButton>
+          <LearnButton onClick={() => navigate("/agritourism")}>
+            LEARN MORE{" "}
+          </LearnButton>
         </div>
       </HowItWorksContainer>
       <InquiryContainer>

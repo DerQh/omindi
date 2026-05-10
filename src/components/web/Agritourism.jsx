@@ -2,6 +2,7 @@ import styled from "styled-components";
 import BodyComponent from "./BodyUpComponent";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
+import { useNavigate } from "react-router-dom";
 
 const BuySellGrowContainers = styled.div`
   display: flex;
@@ -152,6 +153,7 @@ const Heading = styled.h2`
 `;
 
 const Agritourism = () => {
+  const navigate = useNavigate();
   const heading = "DISCOVER THE WORLD OF AGRITOURISM";
   const subheading =
     "EXPERIENCE THE CHARM OF RURAL LIFE AND CONNECT WITH NATURE";
@@ -203,7 +205,7 @@ const Agritourism = () => {
             </p>
           </BuySellGrowContainer>
           <div>
-            <LearnButton>GET STARTED </LearnButton>
+            <LearnButton onClick={() => navigate("/sign-up")}>GET STARTED </LearnButton>
           </div>
         </BuySellGrowContainers>
       </HowitWorks>

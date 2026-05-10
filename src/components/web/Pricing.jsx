@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
+import { useNavigate } from "react-router-dom";
 
 const PricingContainer = styled.div`
   padding: 20px 40px;
@@ -84,6 +85,7 @@ const SpanItem = styled.span`
   }
 `;
 const Pricing = () => {
+  const navigate = useNavigate();
   return (
     <>
       <Navbar />
@@ -96,7 +98,9 @@ const Pricing = () => {
             Establish a brand, cultivate a following, and generate sales on
             Farmish.
           </Subheading>
-          <UpgradeButton>Set Up Your Listing</UpgradeButton>
+          <UpgradeButton onClick={() => navigate("/sign-up")}>
+            Set Up Your Listing
+          </UpgradeButton>
         </div>
         <div>
           <p>
@@ -158,7 +162,9 @@ const Pricing = () => {
                 <SpanItem>Upgrade Now </SpanItem> for Kes10/month or Kes99/year
               </a>
             </div>
-            <UpgradeButton>Upgrade Now</UpgradeButton>
+            <UpgradeButton onClick={() => navigate("/sign-up")}>
+              Upgrade Now
+            </UpgradeButton>
           </UpgradeContainer>
         </div>
       </PricingContainer>

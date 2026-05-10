@@ -28,11 +28,13 @@ const InnerContainer = styled.div`
   border-radius: 10px;
   margin-top: 20px;
 
-  opacity: 0;
+  /* opacity: 0;
   transform: translateY(40px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease; */
 
-  &.visible {
+  /* &.visible {
     opacity: 1;
     transform: translateY(0);
   }
@@ -41,7 +43,7 @@ const InnerContainer = styled.div`
     opacity: 1;
     transform: translateY(0);
     transition: none;
-  }
+  } */
 
   h2 {
     font-size: 24px;
@@ -125,20 +127,22 @@ const FounderContainer = styled.div`
   background-color: #e5f4ff;
   color: #5c9132;
 
-  opacity: 0;
+  /* opacity: 0;
   transform: translateY(40px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease; */
+/* 
   &.visible {
     opacity: 1;
     transform: translateY(0);
-  }
+  } */
 
-  &.initial {
+  /* &.initial {
     opacity: 1;
     transform: translateY(0);
     transition: none;
-  }
+  } */
 
   img {
     width: 180px;
@@ -170,11 +174,13 @@ const ImageContainer = styled.div`
   justify-content: center;
   margin-top: 20px;
 
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  /* opacity: 0; */
+  /* transform: translateY(40px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease; */
 
-  &.visible {
+  /* &.visible {
     opacity: 1;
     transform: translateY(0);
   }
@@ -183,44 +189,42 @@ const ImageContainer = styled.div`
     opacity: 1;
     transform: translateY(0);
     transition: none;
-  }
+  } */
 
   img {
     margin: 40px 80px;
     max-width: 100%;
-    height: auto;
   }
 `;
 
 const AboutUs = () => {
-  useEffect(() => {
-    const revealElements = document.querySelectorAll(".reveal");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
+  // useEffect(() => {
+  //   const revealElements = document.querySelectorAll(".reveal");
+  //   const observer = new IntersectionObserver(
+  //     (entries) => {
+  //       entries.forEach((entry) => {
+  //         if (entry.isIntersecting) {
+  //           entry.target.classList.add("visible");
+  //           observer.unobserve(entry.target);
+  //         }
+  //       });
+  //     },
+  //     { threshold: 0.3 },
+  //   );
 
-    revealElements.forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      const isVisibleOnLoad =
-        rect.top < window.innerHeight && rect.bottom > 0;
+  //   revealElements.forEach((el) => {
+  //     const rect = el.getBoundingClientRect();
+  //     const isVisibleOnLoad = rect.top < window.innerHeight && rect.bottom > 0;
 
-      if (isVisibleOnLoad) {
-        el.classList.add("initial", "visible");
-      } else {
-        observer.observe(el);
-      }
-    });
+  //     if (isVisibleOnLoad) {
+  //       el.classList.add("initial", "visible");
+  //     } else {
+  //       observer.observe(el);
+  //     }
+  //   });
 
-    return () => observer.disconnect();
-  }, []);
+  //   return () => observer.disconnect();
+  // }, []);
 
   return (
     <>
@@ -230,7 +234,7 @@ const AboutUs = () => {
           <Heading>About Us</Heading>
         </div>
         <div>
-          <InnerContainer className="reveal">
+          <InnerContainer>
             <BuySellGrowContainers>
               <BuySellGrowContainer>
                 <img src="/objective.png" alt="buy image" />
@@ -264,12 +268,19 @@ const AboutUs = () => {
           </InnerContainer>
         </div>
       </AboutUsContainer>
-      <FounderContainer className="reveal">
-        <img src="/founder.jpg" alt="founder picture" />
-        <h4>HI ! I'M FRED</h4>
-        <p>...</p>
+      <FounderContainer className="">
+        <img src="/founder1.jpg" alt="founder picture" />
+        <h4>HI, I'M OMINDI</h4>
+        <p>
+          I’m the founder of an organic farm in a village near Kisumu. I grow
+          healthy crops by using sustainable methods like composting and natural
+          soil improvement, without harmful chemicals. I work closely with
+          neighbors, share simple farming practices, and encourage responsible
+          agriculture so our community can secure better harvests, enjoy cleaner
+          land, and build a stronger future.
+        </p>
       </FounderContainer>
-      <ImageContainer className="reveal">
+      <ImageContainer className="">
         <img src="/food-chain.png" alt="" />
       </ImageContainer>
       <FooterContainer />

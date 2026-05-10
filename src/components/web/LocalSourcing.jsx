@@ -2,7 +2,7 @@ import styled from "styled-components";
 import React, { useState } from "react";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 
 const MainContainer = styled.div`
   padding: 20px 40px;
@@ -205,6 +205,7 @@ const LearnButton = styled.button`
 `;
 
 function LocalSourcing() {
+  const navigate = useNavigate();
   return (
     <>
       {/* // This is where the nested routes will be rendered */}
@@ -217,7 +218,7 @@ function LocalSourcing() {
           track local produce through one streamlined platform
         </p>
         <DownloadContainer>
-          <button>Get Started</button>
+          <button onClick={() => navigate("/sign-up")}>Get Started</button>
         </DownloadContainer>
       </MainContainer>
 
@@ -257,7 +258,9 @@ function LocalSourcing() {
         </BuySellGrowContainers>
 
         <div>
-          <LearnButton>LEARN MORE </LearnButton>
+          <LearnButton onClick={() => navigate("/agritourism")}>
+            LEARN MORE
+          </LearnButton>
         </div>
       </HowItWorksContainer>
       <FooterContainer></FooterContainer>

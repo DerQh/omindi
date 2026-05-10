@@ -2,6 +2,7 @@ import styled from "styled-components";
 import BodyComponent from "./BodyUpComponent";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
+import { useNavigate } from "react-router-dom";
 
 const MainContainer = styled.div`
   /* display: flex;
@@ -151,6 +152,7 @@ const FeedbackContainer = styled.div`
 `;
 
 const ForMarketers = () => {
+  const navigate = useNavigate();
   const subheading = "FOR EVERYONE IN THE FARMERS MARKET COMMUNITY";
   const heading = "GROW YOUR FARMERS MARKET";
   const description =
@@ -180,7 +182,9 @@ const ForMarketers = () => {
             you require additional listings, upgrade to unlimited for only $10
             per month.
           </p>
-          <button>Get Started Today </button>
+          <button onClick={() => navigate("/sign-up")}>
+            Get Started Today{" "}
+          </button>
         </Container>
       </MainContainer>
 
