@@ -27,48 +27,59 @@ import Profile from "./components/mobile/Profile";
 import Community from "./components/mobile/Community";
 import NewListing from "./components/mobile/ListingNew";
 import ListingDetail from "./components/mobile/ListingDetail";
+import BuyNow from "./components/mobile/BuyNow";
+import Inquiry from "./components/mobile/Inquiry";
+import Cart from "./components/mobile/Cart";
+import Checkout from "./components/mobile/Checkout";
 import Follower from "./components/mobile/Follower";
 import Post from "./components/mobile/Post";
 import Update from "./components/mobile/Update";
+import { CartProvider } from "./context/CartContext";
 
 function App() {
   return (
     <>
-      <BrowserRouter>
-        <Routes>
-          {/* APP ROUTES */}
-          <Route path="/mobile" element={<Map />} />
-          <Route path="/following" element={<Following />} />
-          <Route path="/list" element={<List />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/newlist" element={<NewListing />} />
-          <Route path="/listing/:id" element={<ListingDetail />} />
-          <Route path="/follower/:id" element={<Follower />} />
-          <Route path="/post/:id" element={<Post />} />
-          <Route path="/update" element={<Update />} />
+      <CartProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* APP ROUTES */}
+            <Route path="/mobile" element={<Map />} />
+            <Route path="/following" element={<Following />} />
+            <Route path="/list" element={<List />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/newlist" element={<NewListing />} />
+            <Route path="/listing/:id" element={<ListingDetail />} />
+            <Route path="/buy-now" element={<BuyNow />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/inquire" element={<Inquiry />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/follower/:id" element={<Follower />} />
+            <Route path="/post/:id" element={<Post />} />
+            <Route path="/update" element={<Update />} />
 
-          {/* WEB ROUTES */}
-          <Route path="/" element={<MainBody />} />
-          <Route path="/forfarms" element={<ForFarms />} />
-          <Route path="/for farmersmarket" element={<ForMarketers />} />
-          <Route path="/agritourism" element={<Agritourism />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/wholesale" element={<Wholesale />} />
-          <Route path="/localsourcing" element={<LocalSourcing />}>
-            <Route path="test" element={<h1>TEST PAGE</h1>} />
-          </Route>
-          <Route path="/contactus" element={<ContactUs />} />
-          <Route path="/sign-up" element={<SignupLogin />} />
-          <Route path="/news" element={<News />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/aboutus" element={<AboutUs />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/shop/item" element={<Merchandise />} />
-          <Route path="*" element={<ErrorDisplay />} />
-        </Routes>
-      </BrowserRouter>
+            {/* WEB ROUTES */}
+            <Route path="/" element={<MainBody />} />
+            <Route path="/forfarms" element={<ForFarms />} />
+            <Route path="/for farmersmarket" element={<ForMarketers />} />
+            <Route path="/agritourism" element={<Agritourism />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/wholesale" element={<Wholesale />} />
+            <Route path="/localsourcing" element={<LocalSourcing />}>
+              <Route path="test" element={<h1>TEST PAGE</h1>} />
+            </Route>
+            <Route path="/contactus" element={<ContactUs />} />
+            <Route path="/sign-up" element={<SignupLogin />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/aboutus" element={<AboutUs />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/shop/item" element={<Merchandise />} />
+            <Route path="*" element={<ErrorDisplay />} />
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
     </>
   );
 }

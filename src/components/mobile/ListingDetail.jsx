@@ -1,5 +1,7 @@
+import { useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
+import { CartContext } from "../../context/CartContext";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -168,11 +170,27 @@ const SellerInfo = styled.div`
 
 const ActionButtons = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
 
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
+  }
+`;
+
+const CartButton = styled.button`
+  background-color: #ffc107;
+  color: #2f5a2a;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #e0a800;
   }
 `;
 
@@ -285,6 +303,7 @@ const goods = [
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addToCart } = useContext(CartContext);
 
   const listing = goods.find((item) => item.id === parseInt(id));
 
@@ -293,7 +312,11 @@ const ListingDetail = () => {
   };
 
   const handleBuy = () => {
-    navigate("/checkout", { state: { listing } });
+    navigate("/buy-now", { state: { listing } });
+  };
+
+  const handleAddToCart = () => {
+    addToCart(listing);
   };
 
   const handleInquire = () => {
@@ -370,6 +393,7 @@ const ListingDetail = () => {
 
             <ActionButtons>
               <BuyButton onClick={handleBuy}>Buy Now</BuyButton>
+              <CartButton onClick={handleAddToCart}>Add to Cart</CartButton>
               <InquireButton onClick={handleInquire}>
                 Send Inquiry
               </InquireButton>
