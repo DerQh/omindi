@@ -34,6 +34,7 @@ import Checkout from "./components/mobile/Checkout";
 import Follower from "./components/mobile/Follower";
 import Post from "./components/mobile/Post";
 import Update from "./components/mobile/Update";
+import ProtectedRoutes from "./components/mobile/ProtectedRoutes";
 import { CartProvider } from "./context/CartContext";
 
 function App() {
@@ -43,21 +44,30 @@ function App() {
         <BrowserRouter>
           <Routes>
             {/* APP ROUTES */}
-            <Route path="/mobile" element={<Map />} />
-            <Route path="/following" element={<Following />} />
-            <Route path="/list" element={<List />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/newlist" element={<NewListing />} />
-            <Route path="/listing/:id" element={<ListingDetail />} />
-            <Route path="/buy-now" element={<BuyNow />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/inquire" element={<Inquiry />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/follower/:id" element={<Follower />} />
-            <Route path="/post/:id" element={<Post />} />
-            <Route path="/update" element={<Update />} />
+            {/* PROTECTED APP ROUTES */}
+            <Route
+              element={
+                <ProtectedRoutes>
+                  <></>
+                </ProtectedRoutes>
+              }
+            >
+              <Route path="/mobile" element={<Map />} />
+              <Route path="/following" element={<Following />} />
+              <Route path="/list" element={<List />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/newlist" element={<NewListing />} />
+              <Route path="/listing/:id" element={<ListingDetail />} />
+              <Route path="/buy-now" element={<BuyNow />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/inquire" element={<Inquiry />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/follower/:id" element={<Follower />} />
+              <Route path="/post/:id" element={<Post />} />
+              <Route path="/update" element={<Update />} />
+            </Route>
 
             {/* WEB ROUTES */}
             <Route path="/" element={<MainBody />} />
