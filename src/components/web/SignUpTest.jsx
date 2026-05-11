@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../../supabase";
 
 const MainContainer = styled.div`
   display: flex;
@@ -300,7 +300,6 @@ const Divider = styled.div`
 `;
 
 function SignupLogin() {
-  const { login, signup } = useAuth();
   const navigate = useNavigate();
 
   const [isLogin, setIsLogin] = useState(true);
@@ -364,9 +363,8 @@ function SignupLogin() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  // HAMDLE FORM SUBMISSION
   const handleSubmit = async (e) => {
+    // const navigate = useNavigate();
     e.preventDefault();
     setErrors({});
 
@@ -376,18 +374,48 @@ function SignupLogin() {
 
     try {
       if (isLogin) {
-        await login(formData.email, formData.password);
+        // LOGIN
+        console.log("Attempting login with:", formData.email);
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) throw error;
+
+        // Optional: user info
+        console.log("Login success:", data);
         navigate("/mobile");
+
+        alert("Login successful!");
+        // You can redirect here if you want:
+        // navigate("/dashboard");
       } else {
-        await signup(formData.email, formData.password, formData.username);
+        // SIGNUP
 
-        alert("Account created! Check your email if confirmation is enabled.");
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            // If you want, you can store username in user metadata:
+            data: { username: formData.username },
+          },
+        });
 
-        setIsLogin(true);
+        if (error) throw error;
+
+        console.log("Signup success:", data);
+
+        alert(
+          data?.user
+            ? "Account created successfully!"
+            : "Check your email to confirm your account (if email confirmation is enabled).",
+        );
       }
     } catch (err) {
       setErrors({
-        submit: err?.message || "Something went wrong.",
+        submit: err?.message || "Something went wrong. Please try again.",
       });
     } finally {
       setIsLoading(false);

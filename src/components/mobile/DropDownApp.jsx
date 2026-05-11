@@ -1,9 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useContext } from "react";
 import { CartContext } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 
 function DropDownApp({ isOpen, toggleMenu }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await logout();
+    navigate("/"); // or "/login"
+  };
   const { cartCount } = useContext(CartContext);
   // console.log("DropDownApp rendered with isOpen:", isOpen);
 
@@ -44,7 +52,14 @@ function DropDownApp({ isOpen, toggleMenu }) {
       </Link>
       <Link to="/">
         <li>
-          <h4 onClick={() => toggleMenu()}>Sign Out</h4>
+          <h4
+            onClick={() => {
+              toggleMenu();
+              handleSignOut();
+            }}
+          >
+            Sign Out
+          </h4>
         </li>
       </Link>
     </DropDown>
