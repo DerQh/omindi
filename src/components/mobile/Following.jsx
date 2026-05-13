@@ -245,7 +245,10 @@ const Following = () => {
           </SectionHeader>
           <CardsGrid>
             {followData.sellers.map((seller) => (
-              <Card key={seller.id} onClick={() => handleSellerClick(seller.id)}>
+              <Card
+                key={seller.id}
+                onClick={() => handleSellerClick(seller.id)}
+              >
                 <CardTop>
                   <img src={seller.image} alt={seller.name} />
                 </CardTop>
@@ -269,7 +272,12 @@ const Following = () => {
 
         <Section>
           <SectionHeader>
-            <h2>Upcoming Events</h2>
+            <h2
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate("/events")}
+            >
+              Upcoming Events
+            </h2>
             <p>Never miss the next community market or workshop.</p>
           </SectionHeader>
           <CardsGrid>

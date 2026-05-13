@@ -146,6 +146,7 @@ const SellerInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
+  cursor: pointer;
 
   img {
     width: 60px;
@@ -379,7 +380,7 @@ const ListingDetail = () => {
 
             <SellerSection>
               <h3>Seller Information</h3>
-              <SellerInfo>
+              <SellerInfo onClick={() => navigate(`/follower/${listing.id}`)}>
                 <img src={listing.seller.image} alt={listing.seller.name} />
                 <div>
                   <p>{listing.seller.name}</p>

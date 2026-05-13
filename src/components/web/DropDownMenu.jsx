@@ -62,7 +62,7 @@ function DropDownMenu({ isOpen, toggleMenu }) {
       </Link>
       <Link to="/sign-up">
         <li>
-          <h4 onClick={() => toggleMenu()}>Sign Up</h4>
+          <h4 onClick={() => toggleMenu()}>Sign Up/Log In</h4>
         </li>
       </Link>
     </DropDown>

@@ -74,20 +74,30 @@ const PostType = styled.span`
   text-transform: uppercase;
   background: ${({ type }) => {
     switch (type) {
-      case 'update': return '#e8f5e8';
-      case 'news': return '#fff3cd';
-      case 'event': return '#d1ecf1';
-      case 'market': return '#f8d7da';
-      default: return '#f4f4f4';
+      case "update":
+        return "#e8f5e8";
+      case "news":
+        return "#fff3cd";
+      case "event":
+        return "#d1ecf1";
+      case "market":
+        return "#f8d7da";
+      default:
+        return "#f4f4f4";
     }
   }};
   color: ${({ type }) => {
     switch (type) {
-      case 'update': return '#2f5a2a';
-      case 'news': return '#856404';
-      case 'event': return '#0c5460';
-      case 'market': return '#721c24';
-      default: return '#6c757d';
+      case "update":
+        return "#2f5a2a";
+      case "news":
+        return "#856404";
+      case "event":
+        return "#0c5460";
+      case "market":
+        return "#721c24";
+      default:
+        return "#6c757d";
     }
   }};
 `;
@@ -135,16 +145,18 @@ const ActionButton = styled.button`
   gap: 8px;
   border: none;
   background: none;
-  color: ${({ liked }) => (liked ? '#e74c3c' : '#5b6d57')};
+  color: ${({ liked }) => (liked ? "#e74c3c" : "#5b6d57")};
   cursor: pointer;
   font-size: 0.95rem;
   padding: 8px 12px;
   border-radius: 12px;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 
   &:hover {
     background: #f4faf4;
-    color: ${({ liked }) => (liked ? '#c0392b' : '#2f5a2a')};
+    color: ${({ liked }) => (liked ? "#c0392b" : "#2f5a2a")};
   }
 
   svg {
@@ -204,7 +216,8 @@ const communityPosts = [
     avatar: "/farm logo.png",
     type: "update",
     title: "Fresh Harvest This Week!",
-    content: "Just harvested our first batch of organic cherry tomatoes this season. They're sweet, juicy, and ready for pickup! Available at the Saturday market or direct from the farm.",
+    content:
+      "Just harvested our first batch of organic cherry tomatoes this season. They're sweet, juicy, and ready for pickup! Available at the Saturday market or direct from the farm.",
     image: "/salepic.png",
     likes: 24,
     comments: 8,
@@ -218,7 +231,8 @@ const communityPosts = [
     avatar: "/market.png",
     type: "news",
     title: "New Organic Certification Program",
-    content: "Exciting news! We're launching a new organic certification program for small farmers. This will help you reach more customers and get premium pricing for your certified organic produce.",
+    content:
+      "Exciting news! We're launching a new organic certification program for small farmers. This will help you reach more customers and get premium pricing for your certified organic produce.",
     image: "/howtouse1.png",
     likes: 42,
     comments: 15,
@@ -232,7 +246,8 @@ const communityPosts = [
     avatar: "/farming.jpg",
     type: "event",
     title: "Beekeeping Workshop - June 15th",
-    content: "Join us for a hands-on beekeeping workshop! Learn about hive management, honey extraction, and sustainable beekeeping practices. Perfect for new and experienced beekeepers.",
+    content:
+      "Join us for a hands-on beekeeping workshop! Learn about hive management, honey extraction, and sustainable beekeeping practices. Perfect for new and experienced beekeepers.",
     image: "/howtouse2.png",
     likes: 31,
     comments: 12,
@@ -246,7 +261,8 @@ const communityPosts = [
     avatar: "/chat.png",
     type: "market",
     title: "Weekend Market Specials",
-    content: "This weekend's market features special deals on seasonal produce! Don't miss out on discounted prices for bulk purchases and farmer-direct deals.",
+    content:
+      "This weekend's market features special deals on seasonal produce! Don't miss out on discounted prices for bulk purchases and farmer-direct deals.",
     image: "/grow.png",
     likes: 18,
     comments: 6,
@@ -260,7 +276,8 @@ const communityPosts = [
     avatar: "/salepic.png",
     type: "update",
     title: "New Delivery Service Available",
-    content: "We're excited to announce our new home delivery service! Now you can get fresh, locally-grown produce delivered right to your door. Minimum order $25, free delivery over $50.",
+    content:
+      "We're excited to announce our new home delivery service! Now you can get fresh, locally-grown produce delivered right to your door. Minimum order $25, free delivery over $50.",
     image: "/farm logo.png",
     likes: 35,
     comments: 22,
@@ -275,31 +292,60 @@ const Community = () => {
   const navigate = useNavigate();
 
   const handleLike = (postId) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { 
-            ...post, 
-            likes: post.liked ? post.likes - 1 : post.likes + 1,
-            liked: !post.liked
-          }
-        : post
-    ));
+    setPosts(
+      posts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              likes: post.liked ? post.likes - 1 : post.likes + 1,
+              liked: !post.liked,
+            }
+          : post,
+      ),
+    );
   };
 
   const handleComment = (postId) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, comments: post.comments + 1 }
-        : post
-    ));
+    setPosts(
+      posts.map((post) =>
+        post.id === postId ? { ...post, comments: post.comments + 1 } : post,
+      ),
+    );
   };
 
-  const handleShare = (postId) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, shares: post.shares + 1 }
-        : post
-    ));
+  // const handleShare = (postId) => {
+  //   setPosts(
+  //     posts.map((post) =>
+  //       post.id === postId ? { ...post, shares: post.shares + 1 } : post,
+  //     ),
+  //   );
+  // };
+
+  // SHARE FUNCTION USING NATIVE SHARE API
+  const handleShare = async () => {
+    setPosts(
+      posts.map((post) =>
+        post.id === postId ? { ...post, shares: post.shares + 1 } : post,
+      ),
+    );
+    const shareData = {
+      title: post.title || "Check out this post",
+      text: post.description || "Take a look at this post!",
+      url: `${window.location.origin}/post/${post.id}`,
+    };
+
+    try {
+      // ✅ Use Native Share API if supported (mobile-friendly)
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // ✅ Fallback: Copy link to clipboard
+        await navigator.clipboard.writeText(shareData.url);
+        alert("Link copied to clipboard!");
+      }
+    } catch (error) {
+      console.error("Sharing failed:", error);
+    }
   };
 
   const handlePostClick = (postId) => {
@@ -307,7 +353,7 @@ const Community = () => {
   };
 
   const handleShareUpdate = () => {
-    navigate('/update');
+    navigate("/update");
   };
 
   return (
@@ -319,8 +365,13 @@ const Community = () => {
           <NewPostCard>
             <NewPostContent>
               <h3>Share What's New</h3>
-              <p>Post updates about your farm, share market tips, or announce upcoming events with the community.</p>
-              <ShareButton onClick={handleShareUpdate}>Share Update</ShareButton>
+              <p>
+                Post updates about your farm, share market tips, or announce
+                upcoming events with the community.
+              </p>
+              <ShareButton onClick={handleShareUpdate}>
+                Share Update
+              </ShareButton>
             </NewPostContent>
           </NewPostCard>
 
@@ -334,44 +385,57 @@ const Community = () => {
                 </PostInfo>
                 <PostType type={post.type}>{post.type}</PostType>
               </PostHeader>
-              
+
               <PostContent>
                 <h4>{post.title}</h4>
                 <p>{post.content}</p>
               </PostContent>
-              
+
               {post.image && (
                 <PostImage>
                   <img src={post.image} alt={post.title} />
                 </PostImage>
               )}
-              
+
               <PostActions>
-                <ActionButton 
-                  liked={post.liked} 
-                  onClick={(e) => { e.stopPropagation(); handleLike(post.id); }}
+                <ActionButton
+                  liked={post.liked}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLike(post.id);
+                  }}
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                   </svg>
                   Like
                 </ActionButton>
-                <ActionButton onClick={(e) => { e.stopPropagation(); handleComment(post.id); }}>
+                <ActionButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleComment(post.id);
+                  }}
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                    <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
                   </svg>
                   Comment
                 </ActionButton>
-                <ActionButton onClick={(e) => { e.stopPropagation(); handleShare(post.id); }}>
+                <ActionButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleShare(post.id);
+                  }}
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
                   </svg>
                   Share
                 </ActionButton>
                 <PostStats>
                   <span>{post.likes} likes</span>
                   <span>{post.comments} comments</span>
-                  <span>{post.shares} shares</span>
+                  <span onClick={handleShare}>{post.shares} shares</span>
                 </PostStats>
               </PostActions>
             </PostCard>

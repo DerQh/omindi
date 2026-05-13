@@ -379,10 +379,41 @@ const Post = () => {
     }
   };
 
-  const handleShare = () => {
-    setPosts(
-      posts.map((p) => (p.id === post.id ? { ...p, shares: p.shares + 1 } : p)),
-    );
+  // const handleShare = () => {
+  //   setPosts(
+  //     posts.map((p) => (p.id === post.id ? { ...p, shares: p.shares + 1 } : p)),
+  //   );
+  // };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: post.title || "Check out this post",
+      text: post.description || "Take a look at this post!",
+      url: `${window.location.origin}/post/${post.id}`,
+    };
+
+    try {
+      // ✅ Use Native Share API if supported (mobile-friendly)
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setPosts(
+          posts.map((p) =>
+            p.id === post.id ? { ...p, shares: p.shares + 1 } : p,
+          ),
+        );
+      } else {
+        // ✅ Fallback: Copy link to clipboard
+        await navigator.clipboard.writeText(shareData.url);
+        setPosts(
+          posts.map((p) =>
+            p.id === post.id ? { ...p, shares: p.shares + 1 } : p,
+          ),
+        );
+        alert("Link copied to clipboard!");
+      }
+    } catch (error) {
+      console.error("Sharing failed:", error);
+    }
   };
 
   if (!post) {
@@ -449,7 +480,7 @@ const Post = () => {
             <PostStats>
               <span>{post.likes} likes</span>
               <span>{post.comments} comments</span>
-              <span>{post.shares} shares</span>
+              <span onClick={handleShare}> {post.shares} shares</span>
             </PostStats>
           </PostActions>
         </PostCard>
@@ -461,7 +492,11 @@ const Post = () => {
           <CommentList>
             {post.commentsList.map((comment) => (
               <Comment key={comment.id}>
-                <CommentAvatar src={comment.avatar} alt={comment.author} />
+                <CommentAvatar
+                  onClick={() => navigate(`/follower/${comment.id}`)}
+                  src={comment.avatar}
+                  alt={comment.author}
+                />
                 <CommentContent>
                   <div className="author">{comment.author}</div>
                   <div className="text">{comment.text}</div>

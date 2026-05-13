@@ -8,6 +8,7 @@ const Container = styled.div`
   min-height: 100vh;
   background: #f7fbff;
 `;
+
 const BackButton = styled.button`
   background: #2f5a2a;
   color: white;
@@ -27,7 +28,6 @@ const BackButton = styled.button`
     background: #245026;
   }
 `;
-
 
 const Header = styled.div`
   display: flex;
@@ -53,6 +53,7 @@ const Title = styled.h1`
   flex: 1;
   text-align: center;
 `;
+
 const Field = styled.div`
   margin-bottom: 18px;
 
@@ -80,6 +81,39 @@ const Field = styled.div`
   }
 `;
 
+const ImageUpload = styled.div`
+  margin-bottom: 20px;
+
+  input {
+    display: none;
+  }
+
+  label {
+    display: inline-block;
+    background: #2f5a2a;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+`;
+
+const PreviewGrid = styled.div`
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+`;
+
+const PreviewImage = styled.img`
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #dbe5d8;
+`;
+
 const SubmitButton = styled.button`
   width: 100%;
   margin-top: 12px;
@@ -105,6 +139,8 @@ const NewListing = () => {
     location: "",
     description: "",
   });
+
+  const [images, setImages] = useState([]);
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -116,21 +152,33 @@ const NewListing = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageChange = (event) => {
+    const files = Array.from(event.target.files);
+
+    const imagePreviews = files.map((file) => URL.createObjectURL(file));
+
+    setImages(imagePreviews);
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    // For now, just navigate back to the listings page after creating.
+
+    console.log("Form Data:", formData);
+    console.log("Images:", images);
+
     navigate("/list");
   };
+
   return (
     <>
       <AppNavbar />
       <Container>
         <Header>
-          <BackButton onClick={handleBack}>← </BackButton>
+          <BackButton onClick={handleBack}>←</BackButton>
           <Title>Create a New Listing</Title>
         </Header>
+
         <FormCard>
-          {/* <Title>Create a New Listing</Title> */}
           <form onSubmit={handleSubmit}>
             <Field>
               <label htmlFor="name">Item Name</label>
@@ -142,6 +190,7 @@ const NewListing = () => {
                 placeholder="e.g. Organic Tomatoes"
               />
             </Field>
+
             <Field>
               <label htmlFor="price">Price</label>
               <input
@@ -152,6 +201,7 @@ const NewListing = () => {
                 placeholder="e.g. $12 / kg"
               />
             </Field>
+
             <Field>
               <label htmlFor="category">Category</label>
               <input
@@ -162,6 +212,7 @@ const NewListing = () => {
                 placeholder="e.g. Produce"
               />
             </Field>
+
             <Field>
               <label htmlFor="location">Location</label>
               <input
@@ -172,6 +223,7 @@ const NewListing = () => {
                 placeholder="e.g. Nairobi"
               />
             </Field>
+
             <Field>
               <label htmlFor="description">Description</label>
               <textarea
@@ -182,6 +234,25 @@ const NewListing = () => {
                 placeholder="Describe the item and any pickup/delivery details."
               />
             </Field>
+
+            {/* ✅ Image Upload Section */}
+            <ImageUpload>
+              <label htmlFor="imageUpload">Upload Images</label>
+              <input
+                id="imageUpload"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+              />
+
+              <PreviewGrid>
+                {images.map((img, index) => (
+                  <PreviewImage key={index} src={img} alt="preview" />
+                ))}
+              </PreviewGrid>
+            </ImageUpload>
+
             <SubmitButton type="submit">Create New Listing</SubmitButton>
           </form>
         </FormCard>

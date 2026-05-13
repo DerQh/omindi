@@ -96,6 +96,7 @@ const RatingSection = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
+  cursor: pointer;
 
   .rating {
     display: flex;
@@ -357,7 +358,9 @@ const Follower = () => {
 
           <StatsGrid>
             <StatItem>
-              <span className="number">{seller.followers}</span>
+              <span onClick={() => navigate("/followers")} className="number">
+                {seller.followers}
+              </span>
               <span className="label">Followers</span>
             </StatItem>
             <StatItem>

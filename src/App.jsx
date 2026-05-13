@@ -36,6 +36,9 @@ import Post from "./components/mobile/Post";
 import Update from "./components/mobile/Update";
 import ProtectedRoutes from "./components/mobile/ProtectedRoutes";
 import { CartProvider } from "./context/CartContext";
+import UpcomingEvents from "./components/mobile/UpcomingEvent";
+import EventDetail from "./components/mobile/EventDetail";
+import Followers from "./components/mobile/Followers";
 
 function App() {
   return (
@@ -67,6 +70,9 @@ function App() {
               <Route path="/follower/:id" element={<Follower />} />
               <Route path="/post/:id" element={<Post />} />
               <Route path="/update" element={<Update />} />
+              <Route path="/events" element={<UpcomingEvents />} />
+              <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/followers" element={<Followers />} />
             </Route>
 
             {/* WEB ROUTES */}

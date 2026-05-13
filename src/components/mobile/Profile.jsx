@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
 
@@ -205,6 +206,7 @@ const profileInfo = {
 };
 
 const Profile = () => {
+  const navigate = useNavigate();
   return (
     <>
       <AppNavbar />
@@ -217,11 +219,11 @@ const Profile = () => {
               <p>{profileInfo.bio}</p>
             </ProfileHeader>
             <StatsRow>
-              <div>
+              <div onClick={() => navigate("/followers")}>
                 <h3>{profileInfo.followers}</h3>
                 <p>Followers</p>
               </div>
-              <div>
+              <div onClick={() => navigate("/list")}>
                 <h3>{profileInfo.listingsCount}</h3>
                 <p>Listings</p>
               </div>
