@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
 
@@ -207,6 +208,22 @@ const ListingContent = styled.div`
   }
 `;
 
+const FollowButton = styled.button`
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: ${(props) => (props.following ? "#d9e6d5" : "#2f5a2a")};
+  color: ${(props) => (props.following ? "#2f5a2a" : "white")};
+  border: 2px solid #2f5a2a;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover {
+    opacity: 0.85;
+  }
+`;
+
 // Sample sellers data (matching Following.jsx)
 const sellers = [
   {
@@ -306,10 +323,26 @@ const Follower = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // Find the seller based on the ID from the URL
   const seller = sellers.find((s) => s.id === parseInt(id));
+  // State to manage follow status and followers count
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(
+    seller ? seller.followers : 0,
+  );
 
   const handleBack = () => {
     navigate(-1);
+  };
+
+  // Toggle follow status and update followers count
+  const handleFollowToggle = () => {
+    if (!isFollowing) {
+      setFollowersCount((prev) => prev + 1);
+    } else {
+      setFollowersCount((prev) => prev - 1);
+    }
+    setIsFollowing(!isFollowing);
   };
 
   const handleListingClick = (listingId) => {
@@ -341,7 +374,10 @@ const Follower = () => {
           <ProfileHeader>
             <ProfileImage src={seller.image} alt={seller.name} />
             <ProfileInfo>
-              <h2>{seller.name}</h2>
+              <h2>
+                {seller.name}
+                <span></span>
+              </h2>
               <p>
                 {seller.category} • {seller.location}
               </p>
@@ -359,7 +395,7 @@ const Follower = () => {
           <StatsGrid>
             <StatItem>
               <span onClick={() => navigate("/followers")} className="number">
-                {seller.followers}
+                {followersCount}
               </span>
               <span className="label">Followers</span>
             </StatItem>
@@ -371,6 +407,9 @@ const Follower = () => {
               <span className="number">{seller.joined}</span>
               <span className="label">Joined</span>
             </StatItem>
+            <FollowButton following={isFollowing} onClick={handleFollowToggle}>
+              {isFollowing ? "Following" : "Follow"}
+            </FollowButton>
           </StatsGrid>
         </ProfileCard>
 

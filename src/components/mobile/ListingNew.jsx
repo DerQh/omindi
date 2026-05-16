@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
+import { useCreateListing } from "../../hooks/useCreateListing";
 
 const Container = styled.div`
   padding: 20px 30px;
@@ -124,49 +125,61 @@ const SubmitButton = styled.button`
   border-radius: 14px;
   font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
 
-  &:hover {
-    background: #245026;
+  &:disabled {
+    background: #9db79b;
+    cursor: not-allowed;
   }
 `;
 
 const NewListing = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    price: "",
-    category: "",
-    location: "",
-    description: "",
-  });
-
-  const [images, setImages] = useState([]);
+  // mutate is the function to call to create a new listing, isPending indicates if the creation is in progress
+  const { mutate, isPending } = useCreateListing();
   const navigate = useNavigate();
 
-  const handleBack = () => {
-    navigate(-1);
-  };
+  const [name, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [minimumOrder, setMinimumOrder] = useState("");
+  const [location, setLocation] = useState("");
+  const [category, setCategory] = useState("");
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [unit, setUnit] = useState("");
+  const [seller_name, setSellerName] = useState("");
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleBack = () => navigate(-1);
 
   const handleImageChange = (event) => {
-    const files = Array.from(event.target.files);
-
-    const imagePreviews = files.map((file) => URL.createObjectURL(file));
-
-    setImages(imagePreviews);
+    const file = event.target.files[0];
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    console.log("Form Data:", formData);
-    console.log("Images:", images);
-
-    navigate("/list");
+    mutate(
+      {
+        title: name,
+        description,
+        price,
+        minimumOrder,
+        location,
+        category,
+        image,
+        unit,
+        seller_name,
+      },
+      {
+        // After successfully creating a listing, navigate back to the listing page
+        onSuccess: () => {
+          navigate("/list");
+        },
+      },
+    );
   };
 
   return (
@@ -181,79 +194,84 @@ const NewListing = () => {
         <FormCard>
           <form onSubmit={handleSubmit}>
             <Field>
-              <label htmlFor="name">Item Name</label>
+              <label>Item Name</label>
               <input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="e.g. Organic Tomatoes"
+                value={name}
+                onChange={(e) => setTitle(e.target.value)}
+                required
               />
             </Field>
 
             <Field>
-              <label htmlFor="price">Price</label>
+              <label>Price</label>
               <input
-                id="price"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                placeholder="e.g. $12 / kg"
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+              />
+            </Field>
+            <Field>
+              <label>/Unit</label>
+              <input
+                placeholder="Price per ?"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                required
               />
             </Field>
 
             <Field>
-              <label htmlFor="category">Category</label>
+              <label>Minimum Order</label>
               <input
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                placeholder="e.g. Produce"
+                value={minimumOrder}
+                onChange={(e) => setMinimumOrder(e.target.value)}
+                placeholder="e.g. 1 kg, 5 pieces"
               />
             </Field>
 
             <Field>
-              <label htmlFor="location">Location</label>
+              <label>Category</label>
               <input
-                id="location"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="e.g. Nairobi"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
               />
             </Field>
 
             <Field>
-              <label htmlFor="description">Description</label>
+              <label>Location</label>
+              <input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </Field>
+
+            <Field>
+              <label>Description</label>
               <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe the item and any pickup/delivery details."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </Field>
 
-            {/* ✅ Image Upload Section */}
             <ImageUpload>
-              <label htmlFor="imageUpload">Upload Images</label>
+              <label htmlFor="imageUpload">Upload Image</label>
               <input
                 id="imageUpload"
                 type="file"
                 accept="image/*"
-                multiple
                 onChange={handleImageChange}
               />
-
-              <PreviewGrid>
-                {images.map((img, index) => (
-                  <PreviewImage key={index} src={img} alt="preview" />
-                ))}
-              </PreviewGrid>
+              {preview && (
+                <PreviewGrid>
+                  <PreviewImage src={preview} alt="preview" />
+                </PreviewGrid>
+              )}
             </ImageUpload>
 
-            <SubmitButton type="submit">Create New Listing</SubmitButton>
+            <SubmitButton type="submit" disabled={isPending}>
+              {isPending ? "Creating..." : "Create New Listing"}
+            </SubmitButton>
           </form>
         </FormCard>
       </Container>

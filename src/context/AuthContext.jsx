@@ -44,11 +44,13 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ SIGNUP
   const signup = async (email, password, username) => {
+    // We can store the username as full_name  in the user's metadata for later retrieval
+    const full_name = username;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { username },
+        data: { full_name },
       },
     });
 

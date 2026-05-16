@@ -3,6 +3,106 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useListings } from "../../hooks/useListings";
+import { formatSmartDate } from "../../hooks/dateFormat";
+import LoadingComponent from "./Loading";
+
+const List = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
+  // Fetch  listings from subapase and replace the hardcoded goods with real data
+  const { data, isLoading, error } = useListings();
+  if (isLoading)
+    return (
+      <>
+        <LoadingComponent />
+      </>
+    );
+
+  if (error)
+    return (
+      <>
+        <AppNavbar />
+        <StateContainer>
+          <StateCard>
+            <ErrorText>Something went wrong loading listings.</ErrorText>
+          </StateCard>
+        </StateContainer>
+      </>
+    );
+
+  // Filter listings based on search term, checking title, description, category and location for matches
+  const filteredGoods = data?.filter((listingItem) => {
+    const search = searchTerm.toLowerCase();
+
+    return (
+      listingItem.title?.toLowerCase().includes(search) ||
+      listingItem.description?.toLowerCase().includes(search) ||
+      listingItem.category?.toLowerCase().includes(search) ||
+      listingItem.location?.toLowerCase().includes(search)
+    );
+  });
+
+  const handleCardClick = (listingItem) => {
+    navigate(`/listing/${listingItem.id}`, { state: { listing: listingItem } });
+  };
+
+  return (
+    <>
+      <AppNavbar />
+      <Container>
+        <Header>
+          <h1>List & Sell</h1>
+          <Button to="/newlist">Add a New Listing</Button>
+        </Header>
+        <SearchContainer>
+          <input
+            type="text"
+            placeholder="Search listings..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </SearchContainer>
+        <ListingsGrid>
+          {filteredGoods.map((listingItem) => (
+            <ListingCard
+              key={listingItem.id}
+              onClick={() => handleCardClick(listingItem)}
+            >
+              <ImageWrapper>
+                <img src={listingItem.image_url} alt={listingItem.name} />
+              </ImageWrapper>
+              <Content>
+                <h2>{listingItem.title}</h2>
+                <p>
+                  Kes {listingItem.price}
+                  {listingItem.unit ? ` / ${listingItem.unit}` : ""}
+                </p>
+                <p>{listingItem.description}</p>
+                <p>
+                  <strong>Category:</strong> {listingItem.category} •{" "}
+                  <strong>Location:</strong> {listingItem.location}
+                </p>
+                <Meta>
+                  <div className="stats">
+                    <span>{listingItem.inquiries || 0} inquiries</span>
+                    <span>{listingItem.favourites || 0} favourites</span>
+                  </div>
+                  <div className="updated">
+                    Updated {formatSmartDate(listingItem.created_at)}
+                  </div>
+                </Meta>
+              </Content>
+            </ListingCard>
+          ))}
+        </ListingsGrid>
+      </Container>
+    </>
+  );
+};
+
+export default List;
 
 const Container = styled.div`
   padding: 20px 30px;
@@ -152,106 +252,70 @@ const Meta = styled.div`
   }
 `;
 
-const goods = [
-  {
-    id: 1,
-    name: "Organic Cherry Tomatoes",
-    price: "$12 / kg",
-    description:
-      "Fresh locally grown cherry tomatoes, sweet and ready for market.",
-    category: "Produce",
-    location: "Nairobi",
-    inquiries: 3,
-    favourites: 9,
-    updated: "05/02/2026",
-    image: "/tomatoes.jpg",
-  },
-  {
-    id: 2,
-    name: "Raw Honey Jar",
-    price: "$18",
-    description: "Cold-pressed wildflower honey in a 500g glass jar.",
-    category: "Honey",
-    location: "Kiambu",
-    inquiries: 6,
-    favourites: 12,
-    updated: "04/30/2026",
-    image: "/honey.jpg",
-  },
-  {
-    id: 3,
-    name: "Free-Range Eggs",
-    price: "$5 / dozen",
-    description:
-      "Fresh free-range eggs from local farms, rich in flavor and nutrients.",
-    category: "Dairy",
-    location: "Nanyuki",
-    inquiries: 9,
-    favourites: 18,
-    updated: "05/01/2026",
-    image: "/eggs.jpg",
-  },
-];
+const StateContainer = styled.div`
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
 
-const List = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const navigate = useNavigate();
+const StateCard = styled.div`
+  background: white;
+  padding: 40px 60px;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(20, 57, 32, 0.08);
+  text-align: center;
+`;
 
-  const filteredGoods = goods.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+const LoadingText = styled.p`
+  font-size: 1.2rem;
+  color: #2f5a2a;
+  font-weight: 600;
+`;
 
-  const handleCardClick = (id) => {
-    navigate(`/listing/${id}`);
-  };
+const ErrorText = styled.p`
+  font-size: 1.1rem;
+  color: #b42318;
+  font-weight: 600;
+`;
 
-  return (
-    <>
-      <AppNavbar />
-      <Container>
-        <Header>
-          <h1>List & Sell</h1>
-          <Button to="/newlist">Add a New Listing</Button>
-        </Header>
-        <SearchContainer>
-          <input
-            type="text"
-            placeholder="Search listings..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </SearchContainer>
-        <ListingsGrid>
-          {filteredGoods.map((item) => (
-            <ListingCard key={item.id} onClick={() => handleCardClick(item.id)}>
-              <ImageWrapper>
-                <img src={item.image} alt={item.name} />
-              </ImageWrapper>
-              <Content>
-                <h2>{item.name}</h2>
-                <p>{item.price}</p>
-                <p>{item.description}</p>
-                <p>
-                  <strong>Category:</strong> {item.category} •{" "}
-                  <strong>Location:</strong> {item.location}
-                </p>
-                <Meta>
-                  <div className="stats">
-                    <span>{item.inquiries} inquiries</span>
-                    <span>{item.favourites} favourites</span>
-                  </div>
-                  <div className="updated">Updated {item.updated}</div>
-                </Meta>
-              </Content>
-            </ListingCard>
-          ))}
-        </ListingsGrid>
-      </Container>
-    </>
-  );
-};
-
-export default List;
+// const goods_mock = [
+//   {
+//     id: 1,
+//     title: "Organic Cherry Tomatoes",
+//     price: "$12 / kg",
+//     description:
+//       "Fresh locally grown cherry tomatoes, sweet and ready for market.",
+//     category: "Produce",
+//     location: "Nairobi",
+//     inquiries: 3,
+//     favourites: 9,
+//     updated: "05/02/2026",
+//     image_url: "/tomatoes.jpg",
+//   },
+//   {
+//     id: 2,
+//     title: "Raw Honey Jar",
+//     price: "$18",
+//     description: "Cold-pressed wildflower honey in a 500g glass jar.",
+//     category: "Honey",
+//     location: "Kiambu",
+//     inquiries: 6,
+//     favourites: 12,
+//     updated: "04/30/2026",
+//     image_url: "/honey.jpg",
+//   },
+//   {
+//     id: 3,
+//     title: "Free-Range Eggs",
+//     price: "$5 / dozen",
+//     description:
+//       "Fresh free-range eggs from local farms, rich in flavor and nutrients.",
+//     category: "Dairy",
+//     location: "Nanyuki",
+//     inquiries: 9,
+//     favourites: 18,
+//     updated: "05/01/2026",
+//     image_url: "/eggs.jpg",
+//   },
+// ];

@@ -95,7 +95,7 @@ export default function AppNavbar({ pageOne }) {
           {pageOne ? (
             <button>List & Sell </button>
           ) : (
-            <img src="/founder1.jpg" alt="profile image" />
+            <img src="https://picsum.photos/200/200" alt="profile image" />
           )}
         </ToggleIcons>
       </MenuContainer>

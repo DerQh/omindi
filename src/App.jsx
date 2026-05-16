@@ -39,10 +39,13 @@ import { CartProvider } from "./context/CartContext";
 import UpcomingEvents from "./components/mobile/UpcomingEvent";
 import EventDetail from "./components/mobile/EventDetail";
 import Followers from "./components/mobile/Followers";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 function App() {
+  // Create a client
+const queryClient = new QueryClient()
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <CartProvider>
         <BrowserRouter>
           <Routes>
@@ -96,7 +99,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </CartProvider>
-    </>
+    </QueryClientProvider>
   );
 }
 

@@ -1,8 +1,12 @@
-import { useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import { CartContext } from "../../context/CartContext";
 import styled from "styled-components";
+import { useUser } from "../../hooks/useUser";
+import { useDeleteListing } from "../../hooks/useDeleteListing";
+import LoadingComponent from "./Loading";
+import ConfirmModule from "./ConfirmModule";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -228,102 +232,71 @@ const InquireButton = styled.button`
   }
 `;
 
-// Sample listings data
-const goods = [
-  {
-    id: 1,
-    name: "Organic Cherry Tomatoes",
-    price: "Kes 12 / kg",
-    description:
-      "Fresh locally grown cherry tomatoes, sweet and ready for market. These tomatoes are grown without any chemical pesticides and are perfect for salads, cooking, or canning. Harvested fresh daily and available year-round.",
-    category: "Produce",
-    location: "Alendu",
-    inquiries: 3,
-    favourites: 9,
-    updated: "05/02/2026",
-    image: "/tomatoes.jpg",
-    seller: {
-      name: "Kevin  Otieno",
-      rating: 4.8,
-      reviews: 24,
-      image: "https://picsum.photos/200",
-    },
-    fullDescription:
-      "We specialize in organic farming practices. Our cherry tomatoes are grown in rich, nutrient-dense soil without synthetic fertilizers. Each batch is carefully monitored and harvested at peak ripeness to ensure maximum flavor and nutrition.",
-    availability: "Year-round",
-    minOrder: "1 kg",
-  },
-  {
-    id: 2,
-    name: "Raw Honey Jar",
-    price: "Kes 18",
-    description:
-      "Cold-pressed wildflower honey in a 500g glass jar. Pure, unfiltered, and unpasteurized to retain all natural enzymes and nutrients.",
-    category: "Honey",
-    location: "Nyamasaria",
-    inquiries: 6,
-    favourites: 12,
-    updated: "04/30/2026",
-    image: "/honey.jpg",
-    seller: {
-      name: "Sarah Kipchoge",
-      rating: 4.9,
-      reviews: 42,
-      image: "https://picsum.photos/200",
-    },
-    fullDescription:
-      "Our honey comes from beehives located in pristine wildflower fields. We practice sustainable beekeeping and never use antibiotics or chemicals. The honey is raw, unheated, and retains all its beneficial properties.",
-    availability: "Available",
-    minOrder: "1 jar",
-  },
-  {
-    id: 3,
-    name: "Free-Range Eggs",
-    price: "Kes 5 / dozen",
-    description:
-      "Fresh free-range eggs from local farms, rich in flavor and nutrients.",
-    category: "Dairy",
-    location: "NanyNyamware",
-    inquiries: 9,
-    favourites: 18,
-    updated: "05/01/2026",
-    image: "/eggs.jpg",
-    seller: {
-      name: "Steven Odhiambo",
-      rating: 4.7,
-      reviews: 56,
-      image: "https://picsum.photos/200",
-    },
-    fullDescription:
-      "Our hens are raised on open pasture with access to natural grasses and insects. No cage confinement or artificial supplements. The eggs have deep orange yolks and superior taste due to the hens' natural diet.",
-    availability: "Daily",
-    minOrder: "1 dozen",
-  },
-];
-
+// COMPONENT STARTS HERE
 const ListingDetail = () => {
-  const { id } = useParams();
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // GET USER INFO
+  const { data: user, isLoading } = useUser();
+  // GET LISTING INFO FROM NAVIGATION STATE
+  const location = useLocation();
+  const listing = location.state?.listing;
+  // console.log("Card clicked:", listing);
+  // DELETE AN ITEM
+  const { mutate: deleteListing, isLoading: isDeleting } = useDeleteListing();
   const navigate = useNavigate();
   const { addToCart } = useContext(CartContext);
 
-  const listing = goods.find((item) => item.id === parseInt(id));
+  // const listing = goods.find((item) => item.id === parseInt(id));
 
   const handleBack = () => {
     navigate(-1);
   };
 
-  const handleBuy = () => {
-    navigate("/buy-now", { state: { listing } });
+  const handleGreenBtn = () => {
+    if (user?.id === listing.seller_id) {
+      // navigate("/edit-listing", { state: { listing } });
+      alert("Edit functionality coming soon!");
+    } else {
+      // navigate("/buy-now", { state: { listing } });
+    }
   };
 
-  const handleAddToCart = () => {
-    addToCart(listing);
+  const handleOrangeBtn = () => {
+    if (user?.id === listing.seller_id) {
+      // CONFIRM BEFORE DELETING
+      setShowConfirm(true); // Replaces window.confirm
+    } else {
+      addToCart(listing);
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    deleteListing({ id: listing?.id });
+    setShowConfirm(false);
   };
 
   const handleInquire = () => {
     navigate("/inquire", { state: { listing } });
   };
 
+  const handleEdit = () => {
+    // navigate("/edit-listing", { state: { listing } });
+  };
+
+  // console.log(
+  //   "Current user:",
+  //   user?.id === listing?.seller_id ? "Seller" : "Buyer",
+  //   user?.profile?.full_name,
+  // );
+
+  if (isLoading) {
+    return (
+      <>
+        <LoadingComponent />
+      </>
+    );
+  }
   if (!listing) {
     return (
       <Container>
@@ -338,6 +311,14 @@ const ListingDetail = () => {
 
   return (
     <>
+      {/* CONFIRMATION MODAL */}
+      {showConfirm && (
+        <ConfirmModule
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
+
       <AppNavbar />
       <Container>
         <Header>
@@ -347,12 +328,15 @@ const ListingDetail = () => {
 
         <DetailCard>
           <ImageSection>
-            <img src={listing.image} alt={listing.name} />
+            <img src={listing.image_url} alt={listing.image_url} />
           </ImageSection>
 
           <ContentSection>
-            <ProductName>{listing.name}</ProductName>
-            <Price>{listing.price}</Price>
+            <ProductName>{listing.title}</ProductName>
+            <Price>
+              Kes {listing.price}
+              {listing.unit ? ` / ${listing.unit}` : ""}
+            </Price>
 
             <InfoGrid>
               <InfoItem>
@@ -365,39 +349,53 @@ const ListingDetail = () => {
               </InfoItem>
               <InfoItem>
                 <p>Availability</p>
-                <span>{listing.availability}</span>
+                <span>Yes</span>
               </InfoItem>
               <InfoItem>
                 <p>Minimum Order</p>
-                <span>{listing.minOrder}</span>
+                <span>{listing.minimumOrder}</span>
               </InfoItem>
             </InfoGrid>
 
             <DescriptionSection>
               <h3>Description</h3>
-              <p>{listing.fullDescription}</p>
+              <p>{listing.description}</p>
             </DescriptionSection>
 
             <SellerSection>
               <h3>Seller Information</h3>
               <SellerInfo onClick={() => navigate(`/follower/${listing.id}`)}>
-                <img src={listing.seller.image} alt={listing.seller.name} />
+                <img
+                  src="https://picsum.photos/200/200"
+                  alt={listing.image_url}
+                />
                 <div>
-                  <p>{listing.seller.name}</p>
+                  <p>{listing.seller_name}</p>
                   <span>
-                    ⭐ {listing.seller.rating} ({listing.seller.reviews}{" "}
-                    reviews)
+                    {/* ⭐ {listing.seller.rating} ({listing.seller.reviews}
+                    reviews) */}
+                    ⭐ 4.8 (24 reviews)
                   </span>
                 </div>
               </SellerInfo>
             </SellerSection>
 
             <ActionButtons>
-              <BuyButton onClick={handleBuy}>Buy Now</BuyButton>
-              <CartButton onClick={handleAddToCart}>Add to Cart</CartButton>
-              <InquireButton onClick={handleInquire}>
-                Send Inquiry
-              </InquireButton>
+              <BuyButton onClick={handleGreenBtn}>
+                {user?.id === listing.seller_id ? "Edit" : "Buy Now"}
+              </BuyButton>
+
+              <CartButton onClick={handleOrangeBtn} disabled={isDeleting}>
+                {user?.id === listing.seller_id ? "Delete" : "Add to Cart"}
+              </CartButton>
+              {/* IF SELLER , DO NOT SHOW INQUIRY BUTTON */}
+              {user?.id === listing.seller_id ? (
+                ""
+              ) : (
+                <InquireButton onClick={handleInquire}>
+                  Send Inquiry
+                </InquireButton>
+              )}
             </ActionButtons>
           </ContentSection>
         </DetailCard>
@@ -407,3 +405,76 @@ const ListingDetail = () => {
 };
 
 export default ListingDetail;
+
+// // Sample listings data
+// const goods = [
+//   {
+//     id: 1,
+//     name: "Organic Cherry Tomatoes",
+//     price: "Kes 12 / kg",
+//     description:
+//       "Fresh locally grown cherry tomatoes, sweet and ready for market. These tomatoes are grown without any chemical pesticides and are perfect for salads, cooking, or canning. Harvested fresh daily and available year-round.",
+//     category: "Produce",
+//     location: "Alendu",
+//     inquiries: 3,
+//     favourites: 9,
+//     updated: "05/02/2026",
+//     image: "/tomatoes.jpg",
+//     seller: {
+//       name: "Kevin  Otieno",
+//       rating: 4.8,
+//       reviews: 24,
+//       image: "https://picsum.photos/200",
+//     },
+//     fullDescription:
+//       "We specialize in organic farming practices. Our cherry tomatoes are grown in rich, nutrient-dense soil without synthetic fertilizers. Each batch is carefully monitored and harvested at peak ripeness to ensure maximum flavor and nutrition.",
+//     availability: "Year-round",
+//     minOrder: "1 kg",
+//   },
+//   {
+//     id: 2,
+//     name: "Raw Honey Jar",
+//     price: "Kes 18",
+//     description:
+//       "Cold-pressed wildflower honey in a 500g glass jar. Pure, unfiltered, and unpasteurized to retain all natural enzymes and nutrients.",
+//     category: "Honey",
+//     location: "Nyamasaria",
+//     inquiries: 6,
+//     favourites: 12,
+//     updated: "04/30/2026",
+//     image: "/honey.jpg",
+//     seller: {
+//       name: "Sarah Kipchoge",
+//       rating: 4.9,
+//       reviews: 42,
+//       image: "https://picsum.photos/200",
+//     },
+//     fullDescription:
+//       "Our honey comes from beehives located in pristine wildflower fields. We practice sustainable beekeeping and never use antibiotics or chemicals. The honey is raw, unheated, and retains all its beneficial properties.",
+//     availability: "Available",
+//     minOrder: "1 jar",
+//   },
+//   {
+//     id: 3,
+//     name: "Free-Range Eggs",
+//     price: "Kes 5 / dozen",
+//     description:
+//       "Fresh free-range eggs from local farms, rich in flavor and nutrients.",
+//     category: "Dairy",
+//     location: "NanyNyamware",
+//     inquiries: 9,
+//     favourites: 18,
+//     updated: "05/01/2026",
+//     image: "/eggs.jpg",
+//     seller: {
+//       name: "Steven Odhiambo",
+//       rating: 4.7,
+//       reviews: 56,
+//       image: "https://picsum.photos/200",
+//     },
+//     fullDescription:
+//       "Our hens are raised on open pasture with access to natural grasses and insects. No cage confinement or artificial supplements. The eggs have deep orange yolks and superior taste due to the hens' natural diet.",
+//     availability: "Daily",
+//     minOrder: "1 dozen",
+//   },
+// ];
