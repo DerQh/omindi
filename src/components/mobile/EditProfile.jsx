@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
-import { useCreateListing } from "../../hooks/useCreateListing";
+import { useEditProfile } from "../../hooks/useEditProfile";
 
 const Container = styled.div`
   padding: 20px 30px;
@@ -132,21 +132,17 @@ const SubmitButton = styled.button`
   }
 `;
 
-const NewListing = () => {
+const EditProfile = () => {
   // mutate is the function to call to create a new listing, isPending indicates if the creation is in progress
-  const { mutate, isPending } = useCreateListing();
+  const { mutate, isPending } = useEditProfile();
   const navigate = useNavigate();
 
-  const [name, setTitle] = useState("");
+  const [farm_name, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [minimumOrder, setMinimumOrder] = useState("");
   const [location, setLocation] = useState("");
-  const [category, setCategory] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [unit, setUnit] = useState("");
-  const [seller_name, setSellerName] = useState("");
+  const [location_link, setLocationLink] = useState("");
 
   const handleBack = () => navigate(-1);
 
@@ -160,23 +156,26 @@ const NewListing = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    console.log("Submitting profile with:", {
+      farm_name,
+      description,
+      location,
+      location_link,
+      image,
+    });
 
     mutate(
       {
-        title: name,
+        farm_name,
         description,
-        price,
-        minimumOrder,
         location,
-        category,
+        location_link,
         image,
-        unit,
-        seller_name,
       },
       {
-        // After successfully creating a listing, navigate back to the listing page
+        // After successfully editing a profile, navigate back to the profile page
         onSuccess: () => {
-          navigate("/list");
+          navigate("/profile");
         },
       },
     );
@@ -188,69 +187,44 @@ const NewListing = () => {
       <Container>
         <Header>
           <BackButton onClick={handleBack}>←</BackButton>
-          <Title>Create a New Listing</Title>
+          <Title>Edit Profile</Title>
         </Header>
 
         <FormCard>
           <form onSubmit={handleSubmit}>
             <Field>
-              <label>Item Name</label>
+              <label>Farm Name</label>
               <input
-                value={name}
+                value={farm_name}
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
             </Field>
 
             <Field>
-              <label>Price</label>
+              <label>Past Location Link </label>
               <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                required
-              />
-            </Field>
-            <Field>
-              <label>/Unit</label>
-              <input
-                placeholder="Price per ?"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
+                value={location_link}
+                onChange={(e) => setLocationLink(e.target.value)}
                 required
               />
             </Field>
 
             <Field>
-              <label>Minimum Order</label>
-              <input
-                value={minimumOrder}
-                onChange={(e) => setMinimumOrder(e.target.value)}
-                placeholder="e.g. 1 kg, 5 pieces"
-              />
-            </Field>
-
-            <Field>
-              <label>Category</label>
-              <input
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
-            </Field>
-
-            <Field>
-              <label>Location</label>
+              <label> Location </label>
               <input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
+                required
               />
             </Field>
 
             <Field>
-              <label>Description</label>
+              <label>Farm Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                required
               />
             </Field>
 
@@ -261,6 +235,7 @@ const NewListing = () => {
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
+                required
               />
               {preview && (
                 <PreviewGrid>
@@ -270,7 +245,7 @@ const NewListing = () => {
             </ImageUpload>
 
             <SubmitButton type="submit" disabled={isPending}>
-              {isPending ? "Creating..." : "Create New Listing"}
+              {isPending ? "Saving..." : "Edit Profile"}
             </SubmitButton>
           </form>
         </FormCard>
@@ -279,4 +254,4 @@ const NewListing = () => {
   );
 };
 
-export default NewListing;
+export default EditProfile;

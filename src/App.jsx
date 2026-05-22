@@ -40,10 +40,11 @@ import UpcomingEvents from "./components/mobile/UpcomingEvent";
 import EventDetail from "./components/mobile/EventDetail";
 import Followers from "./components/mobile/Followers";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import EditProfile from "./components/mobile/EditProfile";
 
 function App() {
   // Create a client
-const queryClient = new QueryClient()
+  const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>
       <CartProvider>
@@ -76,6 +77,7 @@ const queryClient = new QueryClient()
               <Route path="/events" element={<UpcomingEvents />} />
               <Route path="/events/:id" element={<EventDetail />} />
               <Route path="/followers" element={<Followers />} />
+              <Route path="/edit-profile" element={<EditProfile />} />
             </Route>
 
             {/* WEB ROUTES */}

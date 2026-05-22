@@ -320,7 +320,8 @@ const renderStars = (rating) => {
 };
 
 const Follower = () => {
-  const { id } = useParams();
+  // const { id } = useParams();
+  const id = 1; // For testing, we can hardcode the ID to 1 (Amina's Farm)
   const navigate = useNavigate();
 
   // Find the seller based on the ID from the URL

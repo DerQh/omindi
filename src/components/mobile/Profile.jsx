@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
+import { useAuth } from "../../context/AuthContext";
+import { useProfile } from "../../hooks/useProfile";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -34,9 +36,15 @@ const ProfileCard = styled.div`
 
 const ProfileHeader = styled.div`
   padding: 28px 24px 18px;
-  display: grid;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 16px;
-  text-align: center;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
   h2 {
     margin: 0;
@@ -45,13 +53,12 @@ const ProfileHeader = styled.div`
   }
 
   p {
-    margin: 0;
+    margin: 8px 0 0;
     color: #586956;
     font-size: 1rem;
     line-height: 1.6;
   }
 `;
-
 const StatsRow = styled.div`
   display: flex;
   justify-content: space-around;
@@ -169,6 +176,20 @@ const ListingBody = styled.div`
   }
 `;
 
+const EditButton = styled.button`
+  background-color: #2f5a2a;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: 0.2s ease;
+
+  &:hover {
+    background-color: #244a22;
+  }
+`;
 const profileInfo = {
   name: "Okello Farm",
   location: "Nyamware, Kisumu, Kenya",
@@ -207,6 +228,12 @@ const profileInfo = {
 
 const Profile = () => {
   const navigate = useNavigate();
+
+  // get user id from auth context or supabase auth
+  const { user } = useAuth();
+  const { data: profileData, isLoading } = useProfile(user?.id);
+  console.log("Fetched profile data:", profileData, user?.id);
+
   return (
     <>
       <AppNavbar />
@@ -215,8 +242,14 @@ const Profile = () => {
         <ProfileGrid>
           <ProfileCard>
             <ProfileHeader>
-              <h2>{profileInfo.name}</h2>
-              <p>{profileInfo.bio}</p>
+              <div>
+                <h2>{profileData?.farm_name}</h2>
+                <p>{profileData?.description}</p>
+              </div>
+
+              <EditButton onClick={() => navigate("/edit-profile")}>
+                ✏️ Edit
+              </EditButton>
             </ProfileHeader>
             <StatsRow>
               <div onClick={() => navigate("/followers")}>
@@ -228,14 +261,16 @@ const Profile = () => {
                 <p>Listings</p>
               </div>
               <div>
-                <h3>{profileInfo.location.split(",")[0]}</h3>
-                <p>Location</p>
+                <h3>Location</h3>
+              <p>{profileData?.location.split(",")[0]}</p>
               </div>
             </StatsRow>
+
             <MapHeader>
               <h3>Current Location</h3>
-              <p>{profileInfo.location}</p>
+              <p>{profileData?.location}</p>
             </MapHeader>
+
             <MapFrame>
               <iframe
                 title="Profile location map"

@@ -372,7 +372,7 @@ const ListingDetail = () => {
                 <div>
                   <p>{listing.seller_name}</p>
                   <span>
-                    {/* ⭐ {listing.seller.rating} ({listing.seller.reviews}
+                    {/* ⭐ {listing.rating} ({listing.reviews}
                     reviews) */}
                     ⭐ 4.8 (24 reviews)
                   </span>
