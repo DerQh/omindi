@@ -1,6 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 import { use } from "react";
+
+
+
+
+
 export function useEditProfile() {
   const queryClient = useQueryClient();
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
+import { useCreatePost } from "../../hooks/usePosts";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -67,7 +68,7 @@ const FormGroup = styled.div`
   input,
   textarea,
   select {
-    width: 100%;
+    min-width: 90%;
     padding: 12px 16px;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -88,7 +89,7 @@ const FormGroup = styled.div`
 `;
 
 const FileInput = styled.input`
-  width: 100%;
+  width: 90%;
   padding: 12px 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -123,6 +124,8 @@ const SubmitButton = styled.button`
 `;
 
 const Update = () => {
+  const { mutate, isPending } = useCreatePost();
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
@@ -146,10 +149,24 @@ const Update = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
+    // Here you would typically send the data to your backend - supabase
     console.log("New post:", formData);
-    // For now, just navigate back to community
-    navigate("/community");
+
+    mutate(
+      {
+        title: formData?.title,
+        content: formData?.content,
+        type: formData?.type,
+        image: formData?.image,
+      },
+      {
+        // After successfully creating a listing, navigate back to the listing page
+        onSuccess: () => {
+          // For now, just navigate back to community
+          navigate("/community");
+        },
+      },
+    );
   };
 
   return (

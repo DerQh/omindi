@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
+import { useLikeStatus, usePosts } from "../../hooks/usePosts";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -209,6 +210,7 @@ const ShareButton = styled.button`
   }
 `;
 
+// SAMPLE DATA FOR TESTING PURPOSES, REPLACE WITH SUPABASE DATA IN PRODUCTION
 const communityPosts = [
   {
     id: 1,
@@ -288,60 +290,51 @@ const communityPosts = [
 ];
 
 const Community = () => {
-  const [posts, setPosts] = useState(communityPosts);
+  let postId;
+  const { data: posts, isLoading } = usePosts();
+  const { data: liked } = useLikeStatus(postId);
+
   const navigate = useNavigate();
 
+  // const [posts, setPosts] = useState(communityPosts);
+  // console.log("Fetched posts from Supabase:", posts);
+
   const handleLike = (postId) => {
-    setPosts(
-      posts.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              likes: post.liked ? post.likes - 1 : post.likes + 1,
-              liked: !post.liked,
-            }
-          : post,
-      ),
-    );
+    console.log(postId);
   };
 
   const handleComment = (postId) => {
     setPosts(
-      posts.map((post) =>
+      posts?.map((post) =>
         post.id === postId ? { ...post, comments: post.comments + 1 } : post,
       ),
     );
   };
 
-  // const handleShare = (postId) => {
-  //   setPosts(
-  //     posts.map((post) =>
-  //       post.id === postId ? { ...post, shares: post.shares + 1 } : post,
-  //     ),
-  //   );
-  // };
-
   // SHARE FUNCTION USING NATIVE SHARE API
-  const handleShare = async () => {
-    setPosts(
-      posts.map((post) =>
-        post.id === postId ? { ...post, shares: post.shares + 1 } : post,
-      ),
-    );
-    const shareData = {
-      title: post.title || "Check out this post",
-      text: post.description || "Take a look at this post!",
-      url: `${window.location.origin}/post/${post.id}`,
-    };
+  const handleShare = async (post) => {
+    const url = `${window.location.origin}/post/${post.id}`;
 
     try {
-      // ✅ Use Native Share API if supported (mobile-friendly)
       if (navigator.share) {
-        await navigator.share(shareData);
+        await navigator.share({
+          title: post.title || "Check out this post",
+          text: post.content || "Take a look at this post!",
+          url,
+        });
+      } else if (navigator.clipboard?.writeText) {
+        // ✅ only use clipboard if available
+        await navigator.clipboard.writeText(url);
+        alert("Link copied!");
       } else {
-        // ✅ Fallback: Copy link to clipboard
-        await navigator.clipboard.writeText(shareData.url);
-        alert("Link copied to clipboard!");
+        // ✅ fallback for any browser/context
+        const input = document.createElement("input");
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+        alert("Link copied!");
       }
     } catch (error) {
       console.error("Sharing failed:", error);
@@ -375,10 +368,12 @@ const Community = () => {
             </NewPostContent>
           </NewPostCard>
 
-          {posts.map((post) => (
+          {/* POSTS SUPABASE DATA, TEST  */}
+
+          {posts?.map((post) => (
             <PostCard key={post.id} onClick={() => handlePostClick(post.id)}>
               <PostHeader>
-                <Avatar src={post.avatar} alt={post.author} />
+                <Avatar src="https://picsum.photos/300" alt={post.author} />
                 <PostInfo>
                   <h3>{post.author}</h3>
                   <p>{post.time}</p>
@@ -391,18 +386,18 @@ const Community = () => {
                 <p>{post.content}</p>
               </PostContent>
 
-              {post.image && (
+              {post.image_url && (
                 <PostImage>
-                  <img src={post.image} alt={post.title} />
+                  <img src={post.image_url} alt={post?.author} />
                 </PostImage>
               )}
 
               <PostActions>
                 <ActionButton
-                  liked={post.liked}
+                  liked={post?.liked}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleLike(post.id);
+                    handleLike(post?.id);
                   }}
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -413,7 +408,7 @@ const Community = () => {
                 <ActionButton
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleComment(post.id);
+                    handleComment(post?.id);
                   }}
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -424,7 +419,7 @@ const Community = () => {
                 <ActionButton
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleShare(post.id);
+                    handleShare(post?.id);
                   }}
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -433,9 +428,9 @@ const Community = () => {
                   Share
                 </ActionButton>
                 <PostStats>
-                  <span>{post.likes} likes</span>
-                  <span>{post.comments} comments</span>
-                  <span onClick={handleShare}>{post.shares} shares</span>
+                  <span>{post?.likes} likes</span>
+                  <span>{post?.comments} comments</span>
+                  <span onClick={handleShare}>{post?.shares} shares</span>
                 </PostStats>
               </PostActions>
             </PostCard>

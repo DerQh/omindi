@@ -2,6 +2,11 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
+import { usePost, useToggleLike, useLikeStatus } from "../../hooks/usePosts";
+import { formatSmartDate } from "../../hooks/dateFormat";
+import { supabase } from "../../../supabase";
+import LoadingComponent from "./Loading";
+import { useCreateComment, useFetchComments } from "../../hooks/usePostComment";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -257,7 +262,7 @@ const CommentContent = styled.div`
   }
 `;
 
-const AddComment = styled.div`
+const AddComment = styled.form`
   padding: 20px 24px;
   border-top: 1px solid #ecf2eb;
   display: flex;
@@ -296,7 +301,7 @@ const CommentButton = styled.button`
 
 const communityPosts = [
   {
-    id: 1,
+    id: "216e6f8d-1bc4-4822-b743-b7bdab925f45",
     author: "Amina's Farm",
     avatar: "/farm logo.png",
     type: "update",
@@ -331,59 +336,35 @@ const communityPosts = [
 
 const Post = () => {
   const { id } = useParams();
+  const { data: post, isLoading } = usePost(id);
   const navigate = useNavigate();
-  const [posts, setPosts] = useState(communityPosts);
+  const [postSample, setPosts] = useState(communityPosts);
   const [newComment, setNewComment] = useState("");
-
-  const post = posts.find((p) => p.id === parseInt(id));
+  const toggleLike = useToggleLike(id);
+  const { data: liked } = useLikeStatus(id);
+  const { data: comments, isLoading: commentsLoading } = useFetchComments(id);
+  const { mutate, isPending } = useCreateComment();
 
   const handleBack = () => {
     navigate(-1);
   };
 
+  // TODO: Implement like, comment, and share functionality with real data instead of sample data
   const handleLike = () => {
-    setPosts(
-      posts.map((p) =>
-        p.id === post.id
-          ? {
-              ...p,
-              likes: p.liked ? p.likes - 1 : p.likes + 1,
-              liked: !p.liked,
-            }
-          : p,
-      ),
+    toggleLike.mutate();
+  };
+
+  // HANDLE SUBMIT COMMENT
+
+  const handleComment = (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    mutate(
+      { post_id: id, content: newComment }, // ✅ single object
+      { onSuccess: () => setNewComment("") },
     );
   };
-
-  const handleComment = () => {
-    if (newComment.trim()) {
-      const comment = {
-        id: Date.now(),
-        author: "You",
-        avatar: "/user.jpg",
-        text: newComment,
-        time: "Just now",
-      };
-      setPosts(
-        posts.map((p) =>
-          p.id === post.id
-            ? {
-                ...p,
-                comments: p.comments + 1,
-                commentsList: [...p.commentsList, comment],
-              }
-            : p,
-        ),
-      );
-      setNewComment("");
-    }
-  };
-
-  // const handleShare = () => {
-  //   setPosts(
-  //     posts.map((p) => (p.id === post.id ? { ...p, shares: p.shares + 1 } : p)),
-  //   );
-  // };
 
   const handleShare = async () => {
     const shareData = {
@@ -397,7 +378,7 @@ const Post = () => {
       if (navigator.share) {
         await navigator.share(shareData);
         setPosts(
-          posts.map((p) =>
+          postSample?.map((p) =>
             p.id === post.id ? { ...p, shares: p.shares + 1 } : p,
           ),
         );
@@ -405,7 +386,7 @@ const Post = () => {
         // ✅ Fallback: Copy link to clipboard
         await navigator.clipboard.writeText(shareData.url);
         setPosts(
-          posts.map((p) =>
+          postSample?.map((p) =>
             p.id === post.id ? { ...p, shares: p.shares + 1 } : p,
           ),
         );
@@ -415,6 +396,14 @@ const Post = () => {
       console.error("Sharing failed:", error);
     }
   };
+
+  if (isLoading) {
+    return (
+      <>
+        <LoadingComponent />
+      </>
+    );
+  }
 
   if (!post) {
     return (
@@ -439,10 +428,10 @@ const Post = () => {
 
         <PostCard>
           <PostHeader>
-            <Avatar src={post.avatar} alt={post.author} />
+            <Avatar src="https://picsum.photos/200/200" alt={post.author} />
             <PostInfo>
               <h3>{post.author}</h3>
-              <p>{post.time}</p>
+              <p>{formatSmartDate(post.updated_at)}</p>
             </PostInfo>
             <PostType type={post.type}>{post.type}</PostType>
           </PostHeader>
@@ -452,14 +441,18 @@ const Post = () => {
             <p>{post.content}</p>
           </PostContent>
 
-          {post.image && (
+          {post.image_url && (
             <PostImage>
-              <img src={post.image} alt={post.title} />
+              <img src={post.image_url} alt={post.title} />
             </PostImage>
           )}
 
           <PostActions>
-            <ActionButton liked={post.liked} onClick={handleLike}>
+            <ActionButton
+              liked={liked}
+              onClick={() => toggleLike.mutate()}
+              disabled={toggleLike.isPending}
+            >
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
@@ -490,7 +483,7 @@ const Post = () => {
             <h3>Comments ({post.comments})</h3>
           </CommentsHeader>
           <CommentList>
-            {post.commentsList.map((comment) => (
+            {postSample?.commentsList?.map((comment) => (
               <Comment key={comment.id}>
                 <CommentAvatar
                   onClick={() => navigate(`/follower/${comment.id}`)}
@@ -499,8 +492,8 @@ const Post = () => {
                 />
                 <CommentContent>
                   <div className="author">{comment.author}</div>
-                  <div className="text">{comment.text}</div>
-                  <div className="time">{comment.time}</div>
+                  <div className="text">{comment.content}</div>
+                  <div className="time">{comment.created_at}</div>
                 </CommentContent>
               </Comment>
             ))}
@@ -512,7 +505,9 @@ const Post = () => {
               onChange={(e) => setNewComment(e.target.value)}
               rows="2"
             />
-            <CommentButton onClick={handleComment}>Post</CommentButton>
+            <CommentButton type="submit" onClick={handleComment}>
+              Post
+            </CommentButton>
           </AddComment>
         </CommentsSection>
       </PageWrapper>
