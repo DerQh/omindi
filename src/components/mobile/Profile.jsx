@@ -232,7 +232,7 @@ const Profile = () => {
   // get user id from auth context or supabase auth
   const { user } = useAuth();
   const { data: profileData, isLoading } = useProfile(user?.id);
-  console.log("Fetched profile data:", profileData, user?.id);
+  // console.log("Fetched profile data:", profileData, user?.id, user);
 
   return (
     <>

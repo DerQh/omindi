@@ -150,7 +150,7 @@ const Update = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Here you would typically send the data to your backend - supabase
-    console.log("New post:", formData);
+    // console.log("New post:", formData);
 
     mutate(
       {

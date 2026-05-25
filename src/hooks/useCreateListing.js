@@ -43,7 +43,19 @@ export function useCreateListing() {
       }
 
       // ✅ IMPORTANT: Make sure ALL required columns are inserted
-      console.log(user);
+
+      // ---- get user image URL
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      // console.log(user, profileData);
+
+      let seller_image_url = profileData.avatar_url;
+
       const { data, error } = await supabase
         .from("listings")
         .insert({
@@ -56,6 +68,7 @@ export function useCreateListing() {
           category,
           minimumOrder,
           unit,
+          seller_image_url,
           seller_name:
             user?.user_metadata?.full_name || user?.user_metadata?.username,
         })

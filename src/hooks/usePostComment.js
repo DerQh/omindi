@@ -1,18 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "../../supabase";
 
 // FETCH ALL COMMENTS FOR A POST
-export function useFetchComments(postId) {
+export function useFetchPostComments(post_id) {
   return useQuery({
-    queryKey: ["comments", postId],
+    queryKey: ["post_comments", post_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("post_comments")
         .select("*")
-        .eq("post_id", postId)
+        .eq("post_id", post_id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
+      //   console.log(data);
       return data;
     },
   });
@@ -20,35 +21,49 @@ export function useFetchComments(postId) {
 
 //  CREATE A COMMENT
 export function useCreateComment() {
-  // ✅ no params here
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ post_id, content }) => {
-      // ✅ one object, destructured
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) throw new Error("Not authenticated");
-      console.log(user);
+
+      // GET PROFILE DATA
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // ✅ IMPORTANT: Make sure ALL required columns are inserted
+      // console.log(profileData);
       const { data, error } = await supabase
         .from("post_comments")
         .insert({
+          post_id,
           author_id: user.id,
           content,
-          post_id,
-          author: user.user_metadata?.full_name || "Anonymous",
+          author: profileData.full_name,
+          image_url: profileData.avatar_url,
         })
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.log("Insert error:", error);
+        throw error;
+      }
+
       return data;
     },
 
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["post_comments", variables.post_id],
-      });
-    },
+    // onSuccess: () => {
+    //   console.log("InsertComment  success:", data);
+    //   queryClient.invalidateQueries({ queryKey: ["post_comments", post_id] });
+    // },
   });
 }

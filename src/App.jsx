@@ -41,6 +41,7 @@ import EventDetail from "./components/mobile/EventDetail";
 import Followers from "./components/mobile/Followers";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EditProfile from "./components/mobile/EditProfile";
+import { TestHooks } from "./components/mobile/TestHooks";
 
 function App() {
   // Create a client
@@ -59,6 +60,7 @@ function App() {
                 </ProtectedRoutes>
               }
             >
+              <Route path="/test" element={<TestHooks />} />
               <Route path="/mobile" element={<Map />} />
               <Route path="/following" element={<Following />} />
               <Route path="/list" element={<List />} />

@@ -36,6 +36,16 @@ export function useCreatePost() {
         imageUrl = data.publicUrl;
       }
 
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      let user_image_url = profileData.avatar_url;
+
       const { data, error } = await supabase
         .from("posts")
         .insert({
@@ -45,6 +55,9 @@ export function useCreatePost() {
           type,
           image_url: imageUrl,
           author: user.user_metadata?.full_name || "Anonymous",
+          user_image_url,
+          likes: Math.floor(Math.random() * 14) + 1,
+          shares: Math.floor(Math.random() * 14) + 1,
         })
         .select()
         .single();

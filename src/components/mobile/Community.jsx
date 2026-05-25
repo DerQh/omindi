@@ -373,7 +373,7 @@ const Community = () => {
           {posts?.map((post) => (
             <PostCard key={post.id} onClick={() => handlePostClick(post.id)}>
               <PostHeader>
-                <Avatar src="https://picsum.photos/300" alt={post.author} />
+                <Avatar src={post.user_image_url} alt={post.author} />
                 <PostInfo>
                   <h3>{post.author}</h3>
                   <p>{post.time}</p>
@@ -388,7 +388,7 @@ const Community = () => {
 
               {post.image_url && (
                 <PostImage>
-                  <img src={post.image_url} alt={post?.author} />
+                  <img src={post?.image_url} alt={post?.author} />
                 </PostImage>
               )}
 

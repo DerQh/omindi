@@ -156,13 +156,13 @@ const EditProfile = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log("Submitting profile with:", {
-      farm_name,
-      description,
-      location,
-      location_link,
-      image,
-    });
+    // console.log("Submitting profile with:", {
+    //   farm_name,
+    //   description,
+    //   location,
+    //   location_link,
+    //   image,
+    // });
 
     mutate(
       {

@@ -12,7 +12,6 @@ export function useProfile(id) {
         .select("*")
         .eq("id", id)
         .single();
-
       if (error) throw error;
 
       return data;

@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import DropDownApp from "./DropDownApp";
+import { useUser } from "../../hooks/useUser";
 
 const Nav = styled.nav`
   position: relative;
@@ -66,8 +67,11 @@ const ToggleIcons = styled.div`
 `;
 
 export default function AppNavbar({ pageOne }) {
+  const { data, isLoading } = useUser();
   const [isOpen, setisOpen] = useState(false);
   const navigate = useNavigate();
+
+  const image_url = data?.profile.avatar_url;
 
   const toggleMenu = () => {
     setisOpen(!isOpen);
@@ -76,7 +80,6 @@ export default function AppNavbar({ pageOne }) {
 
   const closeNav = () => {
     setisOpen(false);
-    // navigate(path);
   };
 
   const handleNavigation = (path) => {
@@ -95,7 +98,7 @@ export default function AppNavbar({ pageOne }) {
           {pageOne ? (
             <button>List & Sell </button>
           ) : (
-            <img src="https://picsum.photos/200/200" alt="profile image" />
+            <img src={image_url || "/user.jpg"} alt="profile image" />
           )}
         </ToggleIcons>
       </MenuContainer>

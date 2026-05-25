@@ -366,7 +366,10 @@ const ListingDetail = () => {
               <h3>Seller Information</h3>
               <SellerInfo onClick={() => navigate(`/follower/${listing.id}`)}>
                 <img
-                  src="https://picsum.photos/200/200"
+                  // src="https://picsum.photos/200/200"
+                  src={
+                    listing.seller_image_url || "https://picsum.photos/200/200"
+                  }
                   alt={listing.image_url}
                 />
                 <div>

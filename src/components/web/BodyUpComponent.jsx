@@ -67,6 +67,7 @@ const DownloadContainer = styled.div`
   justify-content: flex-start;
   gap: 5px;
   a {
+    cursor: pointer;
     img {
       max-width: 110px;
       height: auto;

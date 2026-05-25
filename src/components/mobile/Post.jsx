@@ -6,7 +6,9 @@ import { usePost, useToggleLike, useLikeStatus } from "../../hooks/usePosts";
 import { formatSmartDate } from "../../hooks/dateFormat";
 import { supabase } from "../../../supabase";
 import LoadingComponent from "./Loading";
-import { useCreateComment, useFetchComments } from "../../hooks/usePostComment";
+import { TestHooks } from "./TestHooks";
+import { CommentsComponent } from "./Comments";
+import { useFetchPostComments } from "../../hooks/usePostComment";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -219,7 +221,24 @@ const CommentsHeader = styled.div`
 `;
 
 const CommentList = styled.div`
-  padding: 0 24px;
+  max-height: 300px; /* Set the height you want */
+  overflow-y: auto;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  /* Optional: nice scrollbar */
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cfd8cc;
+    border-radius: 6px;
+  }
 `;
 
 const Comment = styled.div`
@@ -299,6 +318,20 @@ const CommentButton = styled.button`
   }
 `;
 
+const ViewMoreButton = styled.button`
+  background: none;
+  border: none;
+  color: #2f5a2a;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px;
+  margin-top: 8px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 const communityPosts = [
   {
     id: "216e6f8d-1bc4-4822-b743-b7bdab925f45",
@@ -336,14 +369,18 @@ const communityPosts = [
 
 const Post = () => {
   const { id } = useParams();
-  const { data: post, isLoading } = usePost(id);
-  const navigate = useNavigate();
-  const [postSample, setPosts] = useState(communityPosts);
-  const [newComment, setNewComment] = useState("");
-  const toggleLike = useToggleLike(id);
   const { data: liked } = useLikeStatus(id);
-  const { data: comments, isLoading: commentsLoading } = useFetchComments(id);
-  const { mutate, isPending } = useCreateComment();
+  const { data: post, isLoading } = usePost(id);
+  const { data: comments, isLoading: commentsLoading } =
+    useFetchPostComments(id);
+
+  const navigate = useNavigate();
+  const [visibleCount, setVisibleCount] = useState(3);
+  const [postSample, setPosts] = useState(communityPosts); // sample posts data
+  const [newComment, setNewComment] = useState("");
+
+  const toggleLike = useToggleLike(id);
+  const visibleComments = comments?.slice(0, visibleCount);
 
   const handleBack = () => {
     navigate(-1);
@@ -354,18 +391,7 @@ const Post = () => {
     toggleLike.mutate();
   };
 
-  // HANDLE SUBMIT COMMENT
-
-  const handleComment = (e) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-
-    mutate(
-      { post_id: id, content: newComment }, // ✅ single object
-      { onSuccess: () => setNewComment("") },
-    );
-  };
-
+  // HANDLE SHARE COMMENT
   const handleShare = async () => {
     const shareData = {
       title: post.title || "Check out this post",
@@ -397,7 +423,7 @@ const Post = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || commentsLoading) {
     return (
       <>
         <LoadingComponent />
@@ -428,10 +454,10 @@ const Post = () => {
 
         <PostCard>
           <PostHeader>
-            <Avatar src="https://picsum.photos/200/200" alt={post.author} />
+            <Avatar src={post.user_image_url} alt={post.author} />
             <PostInfo>
               <h3>{post.author}</h3>
-              <p>{formatSmartDate(post.updated_at)}</p>
+              <p>{formatSmartDate(post.created_at)}</p>
             </PostInfo>
             <PostType type={post.type}>{post.type}</PostType>
           </PostHeader>
@@ -458,7 +484,7 @@ const Post = () => {
               </svg>
               Like
             </ActionButton>
-            <ActionButton onClick={handleComment}>
+            <ActionButton>
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
               </svg>
@@ -470,45 +496,51 @@ const Post = () => {
               </svg>
               Share
             </ActionButton>
-            <PostStats>
+            {/* <PostStats>
               <span>{post.likes} likes</span>
               <span>{post.comments} comments</span>
               <span onClick={handleShare}> {post.shares} shares</span>
-            </PostStats>
+            </PostStats> */}
           </PostActions>
         </PostCard>
 
         <CommentsSection>
           <CommentsHeader>
-            <h3>Comments ({post.comments})</h3>
+            {comments ? (
+              <h3>Comments ({comments.length})</h3>
+            ) : (
+              <h3>No Comments </h3>
+            )}
           </CommentsHeader>
           <CommentList>
-            {postSample?.commentsList?.map((comment) => (
+            {visibleComments?.map((comment) => (
               <Comment key={comment.id}>
                 <CommentAvatar
                   onClick={() => navigate(`/follower/${comment.id}`)}
-                  src={comment.avatar}
+                  src={comment.image_url || "/user.jpg"}
                   alt={comment.author}
                 />
                 <CommentContent>
                   <div className="author">{comment.author}</div>
                   <div className="text">{comment.content}</div>
-                  <div className="time">{comment.created_at}</div>
+                  <div className="time">
+                    {formatSmartDate(comment.created_at)}
+                  </div>
                 </CommentContent>
               </Comment>
             ))}
+
+            {/* if comments are more than 5 , show this view more option */}
+            {visibleCount < comments?.length && (
+              <ViewMoreButton
+                onClick={() => setVisibleCount((prev) => prev + 5)}
+              >
+                View More
+              </ViewMoreButton>
+            )}
           </CommentList>
-          <AddComment>
-            <CommentInput
-              placeholder="Write a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              rows="2"
-            />
-            <CommentButton type="submit" onClick={handleComment}>
-              Post
-            </CommentButton>
-          </AddComment>
+          {/*  -------- COMMENTS COMPONENT ---------- */}
+          <CommentsComponent post_id={id} />
         </CommentsSection>
       </PageWrapper>
     </>
