@@ -3,6 +3,7 @@ import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import { useProfile } from "../../hooks/useProfile";
+import LoadingComponent from "./Loading";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -233,73 +234,78 @@ const Profile = () => {
   const { user } = useAuth();
   const { data: profileData, isLoading } = useProfile(user?.id);
   // console.log("Fetched profile data:", profileData, user?.id, user);
-
   return (
     <>
-      <AppNavbar />
-      <PageWrapper>
-        <PageTitle>Account Profile</PageTitle>
-        <ProfileGrid>
-          <ProfileCard>
-            <ProfileHeader>
-              <div>
-                <h2>{profileData?.farm_name}</h2>
-                <p>{profileData?.description}</p>
-              </div>
+      {isLoading ? (
+        <LoadingComponent> </LoadingComponent>
+      ) : (
+        <>
+          <AppNavbar />
+          <PageWrapper>
+            <PageTitle>Account Profile</PageTitle>
+            <ProfileGrid>
+              <ProfileCard>
+                <ProfileHeader>
+                  <div>
+                    <h2>{profileData?.farm_name}</h2>
+                    <p>{profileData?.description}</p>
+                  </div>
 
-              <EditButton onClick={() => navigate("/edit-profile")}>
-                ✏️ Edit
-              </EditButton>
-            </ProfileHeader>
-            <StatsRow>
-              <div onClick={() => navigate("/followers")}>
-                <h3>{profileInfo.followers}</h3>
-                <p>Followers</p>
-              </div>
-              <div onClick={() => navigate("/list")}>
-                <h3>{profileInfo.listingsCount}</h3>
-                <p>Listings</p>
-              </div>
-              <div>
-                <h3>Location</h3>
-              <p>{profileData?.location.split(",")[0]}</p>
-              </div>
-            </StatsRow>
+                  <EditButton onClick={() => navigate("/edit-profile")}>
+                    ✏️ Edit
+                  </EditButton>
+                </ProfileHeader>
+                <StatsRow>
+                  <div onClick={() => navigate("/followers")}>
+                    <h3>{profileInfo.followers}</h3>
+                    <p>Followers</p>
+                  </div>
+                  <div onClick={() => navigate("/list")}>
+                    <h3>{profileInfo.listingsCount}</h3>
+                    <p>Listings</p>
+                  </div>
+                  <div>
+                    <h3>Location</h3>
+                    <p>{profileData?.location.split(",")[0]}</p>
+                  </div>
+                </StatsRow>
 
-            <MapHeader>
-              <h3>Current Location</h3>
-              <p>{profileData?.location}</p>
-            </MapHeader>
+                <MapHeader>
+                  <h3>Current Location</h3>
+                  <p>{profileData?.location}</p>
+                </MapHeader>
 
-            <MapFrame>
-              <iframe
-                title="Profile location map"
-                src={profileInfo.mapUrl}
-                loading="lazy"
-              />
-            </MapFrame>
-          </ProfileCard>
+                <MapFrame>
+                  <iframe
+                    title="Profile location map"
+                    src={profileInfo.mapUrl}
+                    loading="lazy"
+                  />
+                </MapFrame>
+              </ProfileCard>
 
-          <ListingSection>
-            <SectionTitle>My Listings</SectionTitle>
-            <ListingGrid>
-              {profileInfo.listings.map((item) => (
-                <ListingCard key={item.id}>
-                  <ListingImage>
-                    <img src={item.image} alt={item.title} />
-                  </ListingImage>
-                  <ListingBody>
-                    <h4>{item.title}</h4>
-                    <p>
-                      <strong>{item.price}</strong>
-                    </p>
-                  </ListingBody>
-                </ListingCard>
-              ))}
-            </ListingGrid>
-          </ListingSection>
-        </ProfileGrid>
-      </PageWrapper>
+              <ListingSection>
+                <SectionTitle>My Listings</SectionTitle>
+                <ListingGrid>
+                  {profileInfo.listings.map((item) => (
+                    <ListingCard key={item.id}>
+                      <ListingImage>
+                        <img src={item.image} alt={item.title} />
+                      </ListingImage>
+                      <ListingBody>
+                        <h4>{item.title}</h4>
+                        <p>
+                          <strong>{item.price}</strong>
+                        </p>
+                      </ListingBody>
+                    </ListingCard>
+                  ))}
+                </ListingGrid>
+              </ListingSection>
+            </ProfileGrid>
+          </PageWrapper>
+        </>
+      )}
     </>
   );
 };

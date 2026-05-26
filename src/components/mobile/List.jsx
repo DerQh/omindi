@@ -13,6 +13,14 @@ const List = () => {
 
   // Fetch  listings from subapase and replace the hardcoded goods with real data
   const { data, isLoading, error } = useListings();
+  const [favourites, setFavourites] = useState({});
+
+  const handleFavourite = (id) => {
+    setFavourites((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
   if (isLoading)
     return (
       <>
@@ -71,9 +79,22 @@ const List = () => {
               onClick={() => handleCardClick(listingItem)}
             >
               <ImageWrapper>
+                {/* fav floating */}
+                <FavouriteButton
+                  $active={favourites[listingItem.id]}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFavourite(listingItem.id);
+                  }}
+                >
+                  {favourites[listingItem.id] ? "❤️ Saved" : "🤍 Favourite"}
+                </FavouriteButton>
                 <img src={listingItem.image_url} alt={listingItem.name} />
               </ImageWrapper>
               <Content>
+                {/*  */}
+
+                {/*  */}
                 <h2>{listingItem.title}</h2>
                 <p>
                   Kes {listingItem.price}
@@ -184,6 +205,7 @@ const ListingCard = styled.div`
 `;
 
 const ImageWrapper = styled.div`
+  position: relative;
   height: 220px;
   background: #d7e9ff;
   display: flex;
@@ -279,6 +301,32 @@ const ErrorText = styled.p`
   font-weight: 600;
 `;
 
+const FavouriteButton = styled.button`
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  backdrop-filter: blur(1px);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 18px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  background: ${({ $active }) => ($active ? "#ffe6e6" : "#e5f4ff")};
+
+  color: ${({ $active }) => ($active ? "#d11a2a" : "#2f5a2a")};
+
+  &:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+`;
 // const goods_mock = [
 //   {
 //     id: 1,
