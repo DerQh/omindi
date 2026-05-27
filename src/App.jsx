@@ -43,6 +43,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EditProfile from "./components/mobile/EditProfile";
 import { TestHooks } from "./components/mobile/TestHooks";
 import OrderConfirmation from "./components/mobile/OrderConfirmation";
+import { ScrollToTop } from "./components/mobile/ScrollTop";
 
 function App() {
   // Create a client
@@ -51,6 +52,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <CartProvider>
         <BrowserRouter>
+          <ScrollToTop />
+
           <Routes>
             {/* APP ROUTES */}
             {/* PROTECTED APP ROUTES */}
