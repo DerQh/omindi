@@ -267,6 +267,8 @@ const Checkout = () => {
       alert("Please enter your delivery address.");
       return;
     }
+    alert("Your Order has been placed ! Thank You ");
+
     navigate("/order-confirmation", {
       state: { cartItems, totalCost, paymentMethod, address },
     });

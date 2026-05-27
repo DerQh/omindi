@@ -273,6 +273,7 @@ const ListingDetail = () => {
     } else {
       if (isItemInCart) {
         alert("Item is already in the cart");
+        navigate("/cart");
       } else {
         mutateAddItem(
           { user_id, listing_id },

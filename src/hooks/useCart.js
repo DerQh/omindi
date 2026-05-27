@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
-// CREATE FAVORITE
+// ADD  CART ITEM 
 export function useAddItem() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -24,7 +24,7 @@ export function useAddItem() {
     },
 
     onSuccess: (data, variables) => {
-    //   alert("Item added to your Cart ");
+      alert("Item added to your Cart ");
       queryClient.invalidateQueries({
         queryKey: ["cart", variables.user_id, variables.listing_id],
       });
