@@ -6,21 +6,19 @@ import { useNavigate } from "react-router-dom";
 import { useListings } from "../../hooks/useListings";
 import { formatSmartDate } from "../../hooks/dateFormat";
 import LoadingComponent from "./Loading";
+import { ListingCardTest } from "./ListingCard";
+import { useUser } from "../../hooks/useUser";
 
 const List = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const { data: user } = useUser();
+
+  let user_id = user?.id;
 
   // Fetch  listings from subapase and replace the hardcoded goods with real data
   const { data, isLoading, error } = useListings();
-  const [favourites, setFavourites] = useState({});
 
-  const handleFavourite = (id) => {
-    setFavourites((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
   if (isLoading)
     return (
       <>
@@ -73,49 +71,13 @@ const List = () => {
           />
         </SearchContainer>
         <ListingsGrid>
-          {filteredGoods.map((listingItem) => (
-            <ListingCard
+          {filteredGoods?.map((listingItem) => (
+            <ListingCardTest
+              listingItem={listingItem}
+              handleCardClick={handleCardClick}
+              user_id={user_id}
               key={listingItem.id}
-              onClick={() => handleCardClick(listingItem)}
-            >
-              <ImageWrapper>
-                {/* fav floating */}
-                <FavouriteButton
-                  $active={favourites[listingItem.id]}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleFavourite(listingItem.id);
-                  }}
-                >
-                  {favourites[listingItem.id] ? "❤️ Saved" : "🤍 Favourite"}
-                </FavouriteButton>
-                <img src={listingItem.image_url} alt={listingItem.name} />
-              </ImageWrapper>
-              <Content>
-                {/*  */}
-
-                {/*  */}
-                <h2>{listingItem.title}</h2>
-                <p>
-                  Kes {listingItem.price}
-                  {listingItem.unit ? ` / ${listingItem.unit}` : ""}
-                </p>
-                <p>{listingItem.description}</p>
-                <p>
-                  <strong>Category:</strong> {listingItem.category} •{" "}
-                  <strong>Location:</strong> {listingItem.location}
-                </p>
-                <Meta>
-                  <div className="stats">
-                    <span>{listingItem.inquiries || 0} inquiries</span>
-                    <span>{listingItem.favourites || 0} favourites</span>
-                  </div>
-                  <div className="updated">
-                    Updated {formatSmartDate(listingItem.created_at)}
-                  </div>
-                </Meta>
-              </Content>
-            </ListingCard>
+            />
           ))}
         </ListingsGrid>
       </Container>
@@ -190,143 +152,6 @@ const ListingsGrid = styled.div`
   gap: 20px;
 `;
 
-const ListingCard = styled.div`
-  background: white;
-  border-radius: 18px;
-  box-shadow: 0 9px 25px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-  }
-`;
-
-const ImageWrapper = styled.div`
-  position: relative;
-  height: 220px;
-  background: #d7e9ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-const Content = styled.div`
-  padding: 18px;
-
-  h2 {
-    margin: 0 0 8px;
-    font-size: 1.4rem;
-    color: #273a25;
-  }
-
-  p {
-    margin: 8px 0;
-    color: #44554c;
-    line-height: 1.5;
-  }
-`;
-
-const Meta = styled.div`
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 12px;
-  margin-top: 16px;
-  align-items: center;
-
-  .stats,
-  .controls {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .stats span,
-  .controls button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.95rem;
-    color: #536358;
-  }
-
-  .controls button {
-    border: none;
-    background: #e5f4ff;
-    color: #2f5a2a;
-    padding: 8px 12px;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-
-  .updated {
-    font-size: 0.88rem;
-    color: #7b8f7f;
-  }
-`;
-
-const StateContainer = styled.div`
-  min-height: 60vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const StateCard = styled.div`
-  background: white;
-  padding: 40px 60px;
-  border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(20, 57, 32, 0.08);
-  text-align: center;
-`;
-
-const LoadingText = styled.p`
-  font-size: 1.2rem;
-  color: #2f5a2a;
-  font-weight: 600;
-`;
-
-const ErrorText = styled.p`
-  font-size: 1.1rem;
-  color: #b42318;
-  font-weight: 600;
-`;
-
-const FavouriteButton = styled.button`
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  backdrop-filter: blur(1px);
-  border: none;
-  padding: 8px 14px;
-  border-radius: 18px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-
-  background: ${({ $active }) => ($active ? "#ffe6e6" : "#e5f4ff")};
-
-  color: ${({ $active }) => ($active ? "#d11a2a" : "#2f5a2a")};
-
-  &:hover {
-    transform: translateY(-1px);
-    opacity: 0.9;
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-`;
 // const goods_mock = [
 //   {
 //     id: 1,
