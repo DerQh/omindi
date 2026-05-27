@@ -2,27 +2,25 @@ import { useState } from "react";
 import styled from "styled-components";
 import { formatSmartDate } from "../../hooks/dateFormat";
 import {
-  useAddFavorite,
-  useFavorite,
-  useFavoriteCount,
-  useToggleFavorite,
+  useCreateFavorite,
+  useFavoriteCheck,
+  useFavoriteDelete,
 } from "../../hooks/useFavListings";
-import {
-  useCreateFavTEST,
-  useFavCheck,
-  useFavDelete,
-} from "../../hooks/useTest";
+
 import { useQueryClient } from "@tanstack/react-query";
 
 export function ListingCardTest({ listingItem, handleCardClick, user_id }) {
   const queryClient = useQueryClient();
-
   const listing_id = listingItem?.id;
-  const { data: count } = useFavoriteCount(listing_id);
 
-  const { mutate: deleteFavMutate, isPending: isPendinDelete } = useFavDelete();
-  const { mutate: addFavMutate, isPending: isPendingfav } = useCreateFavTEST();
-  const { data: isFavorited, isLoading } = useFavCheck({ user_id, listing_id });
+  
+  const { mutate: deleteFavMutate, isPending: isPendinDelete } =
+    useFavoriteDelete();
+  const { mutate: addFavMutate, isPending: isPendingfav } = useCreateFavorite();
+  const { data: isFavorited, isLoading } = useFavoriteCheck({
+    user_id,
+    listing_id,
+  });
 
   const handleFavourite = () => {
     if (isFavorited) {

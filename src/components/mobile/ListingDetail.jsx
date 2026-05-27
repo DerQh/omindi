@@ -7,6 +7,12 @@ import { useUser } from "../../hooks/useUser";
 import { useDeleteListing } from "../../hooks/useDeleteListing";
 import LoadingComponent from "./Loading";
 import ConfirmModule from "./ConfirmModule";
+import {
+  useAddItem,
+  useCartItemCheck,
+  useUpdateCartItem,
+} from "../../hooks/useCart";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -234,40 +240,68 @@ const InquireButton = styled.button`
 
 // COMPONENT STARTS HERE
 const ListingDetail = () => {
-  const [showConfirm, setShowConfirm] = useState(false);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // GET USER INFO
   const { data: user, isLoading } = useUser();
   // GET LISTING INFO FROM NAVIGATION STATE
   const location = useLocation();
   const listing = location.state?.listing;
-  // console.log("Card clicked:", listing);
   // DELETE AN ITEM
   const { mutate: deleteListing, isLoading: isDeleting } = useDeleteListing();
-  const navigate = useNavigate();
-  const { addToCart } = useContext(CartContext);
+  const { mutate: mutateAddItem, isPending } = useAddItem();
 
-  // const listing = goods.find((item) => item.id === parseInt(id));
+  const { data: isItemInCart, isLoading: isLoadingItemCheck } =
+    useCartItemCheck({
+      user_id: user?.id,
+      listing_id: listing?.id,
+    });
+
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleBack = () => {
     navigate(-1);
   };
 
   const handleGreenBtn = () => {
+    let user_id = user?.id;
+    let listing_id = listing?.id;
     if (user?.id === listing.seller_id) {
       // navigate("/edit-listing", { state: { listing } });
       alert("Edit functionality coming soon!");
     } else {
-      // navigate("/buy-now", { state: { listing } });
+      if (isItemInCart) {
+        alert("Item is already in the cart");
+      } else {
+        mutateAddItem(
+          { user_id, listing_id },
+          {
+            onSuccess: () => {
+              navigate("/cart", { state: { listing } });
+            },
+          },
+        );
+      }
     }
   };
 
+  // --- ADD ITEMS TO CART / DELETE ITEM
   const handleOrangeBtn = () => {
+    let user_id = user?.id;
+    let listing_id = listing?.id;
     if (user?.id === listing.seller_id) {
       // CONFIRM BEFORE DELETING
       setShowConfirm(true); // Replaces window.confirm
     } else {
-      addToCart(listing);
+      if (isItemInCart) {
+        alert("Item is already in the cart");
+      } else {
+        mutateAddItem({
+          user_id,
+          listing_id,
+        });
+      }
     }
   };
 

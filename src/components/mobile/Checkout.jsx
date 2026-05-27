@@ -1,4 +1,5 @@
 import { useContext, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import { CartContext } from "../../context/CartContext";
@@ -250,11 +251,12 @@ const EmptyMessage = styled.div`
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cartItems, clearCart } = useContext(CartContext);
+  const { state } = useLocation();
+  const { cartItems, totalCost } = state;
   const [completed, setCompleted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [address, setAddress] = useState("");
-
+  // console.log(cartItems, totalCost);
   const totalCount = cartItems.reduce(
     (sum, item) => sum + (item.quantity || 0),
     0,
@@ -265,8 +267,9 @@ const Checkout = () => {
       alert("Please enter your delivery address.");
       return;
     }
-    setCompleted(true);
-    clearCart();
+    navigate("/order-confirmation", {
+      state: { cartItems, totalCost, paymentMethod, address },
+    });
   };
 
   const handleContinueShopping = () => {
@@ -284,7 +287,7 @@ const Checkout = () => {
 
         <Card>
           <Content>
-            {cartItems.length === 0 ? (
+            {cartItems?.length === 0 ? (
               <EmptyMessage>
                 <h2>No items ready for checkout</h2>
                 <p>
@@ -309,12 +312,15 @@ const Checkout = () => {
                 </SummaryRow>
 
                 <ItemList>
-                  {cartItems.map((item) => (
+                  {cartItems?.map((item) => (
                     <CheckoutItem key={item.id}>
-                      <ItemImage src={item.image} alt={item.name} />
+                      <ItemImage
+                        src={item.listings?.image_url}
+                        alt={item.listings?.title}
+                      />
                       <ItemDetails>
-                        <ItemName>{item.name}</ItemName>
-                        <ItemMeta>{item.price}</ItemMeta>
+                        <ItemName>{item.listings?.title}</ItemName>
+                        <ItemMeta>Kes {item.listings?.price}</ItemMeta>
                         <ItemMeta>Quantity: {item.quantity}</ItemMeta>
                       </ItemDetails>
                     </CheckoutItem>

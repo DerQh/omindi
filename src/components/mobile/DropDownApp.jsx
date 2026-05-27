@@ -3,17 +3,22 @@ import styled from "styled-components";
 import { useContext } from "react";
 import { CartContext } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
+import { useUser } from "../../hooks/useUser";
+import { useAllCartItems } from "../../hooks/useCart";
 
 function DropDownApp({ isOpen, toggleMenu }) {
-  const { logout } = useAuth();
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const { data: user, isLoading: isLoadingUser } = useUser();
+  const { data, isLoading } = useAllCartItems(user?.id);
+
+  let cartCount = data?.length;
+
 
   const handleSignOut = async () => {
     await logout();
     navigate("/"); // or "/login"
   };
-  const { cartCount } = useContext(CartContext);
-  // console.log("DropDownApp rendered with isOpen:", isOpen);
 
   return (
     <DropDown isopen={isOpen}>

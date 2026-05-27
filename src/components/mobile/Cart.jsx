@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import { CartContext } from "../../context/CartContext";
 import styled from "styled-components";
+import { useAllCartItems, useUpdateCartItem } from "../../hooks/useCart";
+import { useUser } from "../../hooks/useUser";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -218,13 +220,32 @@ const PrimaryButton = styled.button`
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { cartItems, removeFromCart, updateQuantity, clearCart } =
-    useContext(CartContext);
-  const totalItems = cartItems.reduce(
+  const { data: user, isLoading: isLoadingUser } = useUser();
+  const { data: cartItems, isLoading } = useAllCartItems(user?.id);
+  const { mutate: mutateUpdateItem, isPending: isPendingUpdate } =
+    useUpdateCartItem();
+
+  const { removeFromCart, updateQuantity, clearCart } = useContext(CartContext);
+  const totalItems = cartItems?.reduce(
     (sum, item) => sum + (item.quantity || 0),
     0,
   );
 
+  const totalCost = cartItems?.reduce((sum, item) => {
+    return sum + (item.listings?.price ?? 0) * (item.quantity ?? 1);
+  }, 0);
+
+  const handleUpdateNum = (type, item) => {
+    const user_id = user?.id;
+    const listing_id = item?.listing_id;
+    const cart_id = item?.id;
+
+    if (type === "increment") {
+      mutateUpdateItem({ user_id, listing_id, cart_id, type: "increment" });
+    } else {
+      mutateUpdateItem({ user_id, listing_id, cart_id, type: "decrement" });
+    }
+  };
   const handleContinueShopping = () => {
     navigate("/list");
   };
@@ -240,7 +261,7 @@ const Cart = () => {
 
         <Card>
           <Content>
-            {cartItems.length === 0 ? (
+            {cartItems?.length === 0 ? (
               <EmptyMessage>
                 <h2>Your cart is empty</h2>
                 <p>
@@ -262,29 +283,30 @@ const Cart = () => {
                   </SummaryBlock>
                   <SummaryBlock>
                     <h3>Products</h3>
-                    <p>{cartItems.length}</p>
+                    <p>{cartItems?.length}</p>
                   </SummaryBlock>
                 </CartSummary>
 
-                {cartItems.map((item) => (
+                {cartItems?.map((item) => (
                   <CartItem key={item.id}>
-                    <ItemImage src={item.image} alt={item.name} />
+                    <ItemImage
+                      src={item.listings?.image_url}
+                      alt={item.listings.title}
+                    />
                     <ItemMeta>
-                      <ItemName>{item.name}</ItemName>
-                      <ItemPrice>{item.price}</ItemPrice>
+                      <ItemName>{item.listings?.title} </ItemName>
+                      <ItemPrice>Kes {item.listings?.price}</ItemPrice>
                       <QuantityControls>
                         <QuantityButton
-                          onClick={() =>
-                            updateQuantity(item.id, (item.quantity || 1) - 1)
-                          }
+                          onClick={() => handleUpdateNum("decrement", item)}
+                          disable={isPendingUpdate}
                         >
                           -
                         </QuantityButton>
-                        <QuantityLabel>{item.quantity}</QuantityLabel>
+                        <QuantityLabel>{item?.quantity}</QuantityLabel>
                         <QuantityButton
-                          onClick={() =>
-                            updateQuantity(item.id, (item.quantity || 1) + 1)
-                          }
+                          disable={isPendingUpdate}
+                          onClick={() => handleUpdateNum("increment", item)}
                         >
                           +
                         </QuantityButton>
@@ -299,8 +321,8 @@ const Cart = () => {
                 ))}
 
                 <TotalRow>
-                  <TotalLabel>Cart count</TotalLabel>
-                  <TotalValue>{totalItems} items</TotalValue>
+                  <TotalLabel>TOTAL COST </TotalLabel>
+                  <TotalValue>Kes {totalCost?.toLocaleString()}</TotalValue>
                 </TotalRow>
 
                 <ItemActions style={{ marginTop: "24px" }}>
@@ -310,7 +332,11 @@ const Cart = () => {
                   <ActionButton onClick={clearCart}>Clear cart</ActionButton>
                 </ItemActions>
                 <ItemActions style={{ marginTop: "16px" }}>
-                  <PrimaryButton onClick={() => navigate("/checkout")}>
+                  <PrimaryButton
+                    onClick={() =>
+                      navigate("/checkout", { state: { cartItems, totalCost } })
+                    }
+                  >
                     Proceed to Checkout
                   </PrimaryButton>
                 </ItemActions>

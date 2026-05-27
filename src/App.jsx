@@ -42,6 +42,7 @@ import Followers from "./components/mobile/Followers";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EditProfile from "./components/mobile/EditProfile";
 import { TestHooks } from "./components/mobile/TestHooks";
+import OrderConfirmation from "./components/mobile/OrderConfirmation";
 
 function App() {
   // Create a client
@@ -60,6 +61,10 @@ function App() {
                 </ProtectedRoutes>
               }
             >
+              <Route
+                path="/order-confirmation"
+                element={<OrderConfirmation />}
+              />
               <Route path="/test" element={<TestHooks />} />
               <Route path="/mobile" element={<Map />} />
               <Route path="/following" element={<Following />} />
