@@ -379,6 +379,7 @@ function SignupLogin() {
         await login(formData.email, formData.password);
         navigate("/mobile");
       } else {
+
         await signup(formData.email, formData.password, formData.username);
 
         alert("Account created! Check your email if confirmation is enabled.");
@@ -396,6 +397,7 @@ function SignupLogin() {
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
+
     setFormData({
       username: "",
       email: "",

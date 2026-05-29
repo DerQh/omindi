@@ -17,18 +17,18 @@ export function useListings() {
   });
 }
 
-// fetch single listing by id
-// export function useListing(id) {
-//   return useQuery({
-//     queryKey: ["listing", id],
-//     queryFn: async () => {
-//       const { data, error } = await supabase
-//         .from("listings")
-//         .select("*")
-//         .eq("id", id)
-//         .single();
-//       if (error) throw error;
-//       return data;
-//     },
-//   });
-// }
+// fetch ALL listing by USER_ID
+export function useUserListings(user_id) {
+  return useQuery({
+    queryKey: ["listing", user_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("seller_id", user_id);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+}

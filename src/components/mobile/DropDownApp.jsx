@@ -38,6 +38,7 @@ function DropDownApp({ isOpen, toggleMenu }) {
           <h4 onClick={() => toggleMenu()}>View Profile</h4>
         </li>
       </Link>
+
       <Link to="/notifications">
         <li>
           <h4 onClick={() => toggleMenu()}>Notifications</h4>
@@ -49,6 +50,11 @@ function DropDownApp({ isOpen, toggleMenu }) {
             Cart
             {cartItems?.length > 0 && <Badge>{cartItems?.length}</Badge>}
           </h4>
+        </li>
+      </Link>
+      <Link to="/dashboard">
+        <li>
+          <h4 onClick={() => toggleMenu()}>My Store</h4>
         </li>
       </Link>
       <Link to="/community">

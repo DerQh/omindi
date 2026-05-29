@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
   // ✅ SIGNUP
   const signup = async (email, password, username) => {
     // We can store the username as full_name  in the user's metadata for later retrieval
+    // console.log(email, password, username);
     const full_name = username;
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -79,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// ✅ Custom hook to be used in all componetns 
+// ✅ Custom hook to be used in all componetns
 export const useAuth = () => {
   return useContext(AuthContext);
 };

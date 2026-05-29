@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import { useProfile } from "../../hooks/useProfile";
 import LoadingComponent from "./Loading";
+import { useUserListings } from "../../hooks/useListings";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -233,10 +234,14 @@ const Profile = () => {
   // get user id from auth context or supabase auth
   const { user } = useAuth();
   const { data: profileData, isLoading } = useProfile(user?.id);
+  const { data: userListings, isLoading: isLoadingListings } = useUserListings(
+    user?.id,
+  );
+  // console.log(userListings?.length);
   // console.log("Fetched profile data:", profileData, user?.id, user);
   return (
     <>
-      {isLoading ? (
+      {isLoading || isLoadingListings ? (
         <LoadingComponent> </LoadingComponent>
       ) : (
         <>
@@ -248,7 +253,11 @@ const Profile = () => {
                 <ProfileHeader>
                   <div>
                     <h2>{profileData?.farm_name}</h2>
-                    <p>{profileData?.description}</p>
+                    <p>
+                      {profileData?.description
+                        ? profileData?.description
+                        : "No Profile/Farm description. Click Edit to Add"}
+                    </p>
                   </div>
 
                   <EditButton onClick={() => navigate("/edit-profile")}>
@@ -266,13 +275,21 @@ const Profile = () => {
                   </div>
                   <div>
                     <h3>Location</h3>
-                    <p>{profileData?.location.split(",")[0]}</p>
+                    <p>
+                      {profileData?.location
+                        ? profileData?.location?.split(",")[0]
+                        : "Add Location"}
+                    </p>
                   </div>
                 </StatsRow>
 
                 <MapHeader>
                   <h3>Current Location</h3>
-                  <p>{profileData?.location}</p>
+                  <p>
+                    {profileData?.location
+                      ? profileData?.location?.split(",")[0]
+                      : "Add Location"}
+                  </p>{" "}
                 </MapHeader>
 
                 <MapFrame>
@@ -285,21 +302,29 @@ const Profile = () => {
               </ProfileCard>
 
               <ListingSection>
-                <SectionTitle>My Listings</SectionTitle>
+                <SectionTitle>Posted Listings</SectionTitle>
                 <ListingGrid>
-                  {profileInfo.listings.map((item) => (
-                    <ListingCard key={item.id}>
-                      <ListingImage>
-                        <img src={item.image} alt={item.title} />
-                      </ListingImage>
-                      <ListingBody>
-                        <h4>{item.title}</h4>
-                        <p>
-                          <strong>{item.price}</strong>
-                        </p>
-                      </ListingBody>
-                    </ListingCard>
-                  ))}
+                  {userListings?.length >= 1 ? (
+                    <>
+                      {userListings?.map((item) => (
+                        <ListingCard key={item.id}>
+                          <ListingImage>
+                            <img src={item.image_url} alt={item.title} />
+                          </ListingImage>
+                          <ListingBody>
+                            <h4>{item.title}</h4>
+                            <p>
+                              <strong>
+                                Kes {item.price}/{item.unit}
+                              </strong>
+                            </p>
+                          </ListingBody>
+                        </ListingCard>
+                      ))}
+                    </>
+                  ) : (
+                    "No listings to display "
+                  )}
                 </ListingGrid>
               </ListingSection>
             </ProfileGrid>

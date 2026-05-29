@@ -19,7 +19,6 @@ import AboutUs from "./components/web/AboutUs";
 import FAQ from "./components/web/FaQ";
 import Merchandise from "./components/web/Merchandise";
 import ErrorDisplay from "./components/web/Error";
-import Map from "./components/mobile/Map";
 import Following from "./components/mobile/Following";
 import List from "./components/mobile/List";
 import Messages from "./components/mobile/Messages";
@@ -46,6 +45,9 @@ import OrderConfirmation from "./components/mobile/OrderConfirmation";
 import { ScrollToTop } from "./components/mobile/ScrollTop";
 import Notifications from "./components/mobile/Notifications";
 import ViewOrder from "./components/mobile/ViewOrder";
+import Dashboard from "./components/mobile/Dashboard";
+import { EditListing } from "./components/mobile/EditListing";
+import AppHome from "./components/mobile/AppHome";
 
 function App() {
   // Create a client
@@ -70,10 +72,12 @@ function App() {
                 path="/order-confirmation"
                 element={<OrderConfirmation />}
               />
+              <Route path="/edit-listing" element={<EditListing />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/order/:order_id" element={<ViewOrder />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/test" element={<TestHooks />} />
-              <Route path="/mobile" element={<Map />} />
+              <Route path="/mobile" element={<AppHome />} />
               <Route path="/following" element={<Following />} />
               <Route path="/list" element={<List />} />
               <Route path="/messages" element={<Messages />} />

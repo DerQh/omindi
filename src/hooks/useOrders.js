@@ -116,7 +116,7 @@ export function useAddOrderItems() {
   });
 }
 
-// FETCHES ORDER DETAILS , orders table , order_items table , listings table
+// FETCHES ORDER DETAILS BY ORDER ID , orders table , order_items table , listings table
 export function useOrderId(order_id) {
   // console.log(order_id);
   return useQuery({
@@ -158,7 +158,7 @@ export function useOrderId(order_id) {
   });
 }
 
-// FETCHES ORDER DETAILS , orders table , order_items table , listings table
+// FETCHES ORDER DETAILS BY USER ID , orders table , order_items table , listings table
 export function useOrder(user_id) {
   // console.log(order_id);
   return useQuery({
