@@ -1,19 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { useContext } from "react";
-import { CartContext } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
-import { useUser } from "../../hooks/useUser";
+import { useState } from "react";
 import { useAllCartItems } from "../../hooks/useCart";
+import { useUser } from "../../hooks/useUser";
 
 function DropDownApp({ isOpen, toggleMenu }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { data: user, isLoading: isLoadingUser } = useUser();
-  const { data, isLoading } = useAllCartItems(user?.id);
-
-  let cartCount = data?.length;
-
+  const { data: cartItems, isLoading } = useAllCartItems(user?.id);
 
   const handleSignOut = async () => {
     await logout();
@@ -42,11 +38,16 @@ function DropDownApp({ isOpen, toggleMenu }) {
           <h4 onClick={() => toggleMenu()}>View Profile</h4>
         </li>
       </Link>
+      <Link to="/notifications">
+        <li>
+          <h4 onClick={() => toggleMenu()}>Notifications</h4>
+        </li>
+      </Link>
       <Link to="/cart">
         <li>
           <h4 onClick={() => toggleMenu()}>
             Cart
-            {cartCount > 0 && <Badge>{cartCount}</Badge>}
+            {cartItems?.length > 0 && <Badge>{cartItems?.length}</Badge>}
           </h4>
         </li>
       </Link>

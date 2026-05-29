@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// ✅ Custom hook
+// ✅ Custom hook to be used in all componetns 
 export const useAuth = () => {
   return useContext(AuthContext);
 };

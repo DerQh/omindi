@@ -16,7 +16,7 @@ const ModalOverlay = styled.div`
 
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -59,14 +59,12 @@ const ConfirmBtn = styled.button`
   font-weight: bold;
 `;
 
-export default function ConfirmModule({ onConfirm, onCancel }) {
+export default function ConfirmModule({ onConfirm, onCancel, text }) {
   return (
     // 1. Trigger the onCancel prop when clicking the dark background overlay
     <ModalOverlay onClick={onCancel}>
       <ModalBox onClick={(e) => e.stopPropagation()}>
-        <h3>Are you sure?</h3>
-        <p>Do you really want to delete this listing?</p>
-
+        <p>{text}</p>
         <ButtonGroup>
           {/* 2. Trigger the onCancel prop when clicking the Cancel button */}
           <CancelBtn onClick={onCancel}>Cancel</CancelBtn>

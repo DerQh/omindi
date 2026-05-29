@@ -1,10 +1,15 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import { CartContext } from "../../context/CartContext";
 import styled from "styled-components";
-import { useAllCartItems, useUpdateCartItem } from "../../hooks/useCart";
+import {
+  useAllCartItems,
+  useCartItemDeleteId,
+  useUpdateCartItem,
+} from "../../hooks/useCart";
 import { useUser } from "../../hooks/useUser";
+import LoadingComponent from "./Loading";
+import ConfirmModule from "./ConfirmModule";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -224,8 +229,10 @@ const Cart = () => {
   const { data: cartItems, isLoading } = useAllCartItems(user?.id);
   const { mutate: mutateUpdateItem, isPending: isPendingUpdate } =
     useUpdateCartItem();
+  const { mutate: mutateDeleteItem, isPending: isDeletingItem } =
+    useCartItemDeleteId();
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const { removeFromCart, updateQuantity, clearCart } = useContext(CartContext);
   const totalItems = cartItems?.reduce(
     (sum, item) => sum + (item.quantity || 0),
     0,
@@ -234,6 +241,8 @@ const Cart = () => {
   const totalCost = cartItems?.reduce((sum, item) => {
     return sum + (item.listings?.price ?? 0) * (item.quantity ?? 1);
   }, 0);
+
+  // FUNCTIONS
 
   const handleUpdateNum = (type, item) => {
     const user_id = user?.id;
@@ -250,101 +259,131 @@ const Cart = () => {
     navigate("/list");
   };
 
+  // sets the confrim module ON and deletes/Cancels delete  item
+  const handleConfirmDelete = (item_id) => {
+    setShowConfirm(false);
+    console.log("remove item from cart", item_id, cartItems);
+    mutateDeleteItem({ item_id, user_id: user?.id });
+  };
+
+  const removeFromCart = () => {
+    setShowConfirm(true);
+  };
   return (
     <>
-      <AppNavbar />
-      <Container>
-        <Header>
-          <BackButton onClick={() => navigate(-1)}>←</BackButton>
-          <Title>My Cart</Title>
-        </Header>
+      {isLoading || isLoadingUser ? (
+        <>
+          <LoadingComponent></LoadingComponent>
+        </>
+      ) : (
+        <>
+          <AppNavbar />
+          <Container>
+            <Header>
+              <BackButton onClick={() => navigate(-1)}>←</BackButton>
+              <Title>My Cart</Title>
+            </Header>
 
-        <Card>
-          <Content>
-            {cartItems?.length === 0 ? (
-              <EmptyMessage>
-                <h2>Your cart is empty</h2>
-                <p>
-                  Browse listings and add items to your cart to see them here.
-                </p>
-                <PrimaryButton
-                  onClick={handleContinueShopping}
-                  style={{ marginTop: "24px" }}
-                >
-                  Browse Listings
-                </PrimaryButton>
-              </EmptyMessage>
-            ) : (
-              <>
-                <CartSummary>
-                  <SummaryBlock>
-                    <h3>Total items</h3>
-                    <p>{totalItems}</p>
-                  </SummaryBlock>
-                  <SummaryBlock>
-                    <h3>Products</h3>
-                    <p>{cartItems?.length}</p>
-                  </SummaryBlock>
-                </CartSummary>
+            <Card>
+              <Content>
+                {cartItems?.length === 0 ? (
+                  <EmptyMessage>
+                    <h2>Your cart is empty</h2>
+                    <p>
+                      Browse listings and add items to your cart to see them
+                      here.
+                    </p>
+                    <PrimaryButton
+                      onClick={handleContinueShopping}
+                      style={{ marginTop: "24px" }}
+                    >
+                      Browse Listings
+                    </PrimaryButton>
+                  </EmptyMessage>
+                ) : (
+                  <>
+                    <CartSummary>
+                      <SummaryBlock>
+                        <h3>Total items</h3>
+                        <p>{totalItems}</p>
+                      </SummaryBlock>
+                      <SummaryBlock>
+                        <h3>Products</h3>
+                        <p>{cartItems?.length}</p>
+                      </SummaryBlock>
+                    </CartSummary>
 
-                {cartItems?.map((item) => (
-                  <CartItem key={item.id}>
-                    <ItemImage
-                      src={item.listings?.image_url}
-                      alt={item.listings.title}
-                    />
-                    <ItemMeta>
-                      <ItemName>{item.listings?.title} </ItemName>
-                      <ItemPrice>Kes {item.listings?.price}</ItemPrice>
-                      <QuantityControls>
-                        <QuantityButton
-                          onClick={() => handleUpdateNum("decrement", item)}
-                          disable={isPendingUpdate}
-                        >
-                          -
-                        </QuantityButton>
-                        <QuantityLabel>{item?.quantity}</QuantityLabel>
-                        <QuantityButton
-                          disable={isPendingUpdate}
-                          onClick={() => handleUpdateNum("increment", item)}
-                        >
-                          +
-                        </QuantityButton>
-                      </QuantityControls>
-                      <ItemActions>
-                        <ActionButton onClick={() => removeFromCart(item.id)}>
-                          Remove
-                        </ActionButton>
-                      </ItemActions>
-                    </ItemMeta>
-                  </CartItem>
-                ))}
+                    {cartItems?.map((item) => (
+                      <CartItem key={item.id}>
+                        {showConfirm && (
+                          <ConfirmModule
+                            text="Do you want to delete the item in the cart ? "
+                            onConfirm={() => handleConfirmDelete(item.id)}
+                            onCancel={() => setShowConfirm(false)}
+                          />
+                        )}
+                        <ItemImage
+                          src={item.listings?.image_url}
+                          alt={item.listings.title}
+                        />
+                        <ItemMeta>
+                          <ItemName>{item.listings?.title} </ItemName>
+                          <ItemPrice>Kes {item.listings?.price}</ItemPrice>
+                          <QuantityControls>
+                            <QuantityButton
+                              onClick={() => handleUpdateNum("decrement", item)}
+                              disable={isPendingUpdate}
+                            >
+                              -
+                            </QuantityButton>
+                            <QuantityLabel>{item?.quantity}</QuantityLabel>
+                            <QuantityButton
+                              disable={isPendingUpdate}
+                              onClick={() => handleUpdateNum("increment", item)}
+                            >
+                              +
+                            </QuantityButton>
+                          </QuantityControls>
+                          <ItemActions>
+                            <ActionButton
+                              onClick={() => removeFromCart(item.id)}
+                            >
+                              Remove
+                            </ActionButton>
+                          </ItemActions>
+                        </ItemMeta>
+                      </CartItem>
+                    ))}
 
-                <TotalRow>
-                  <TotalLabel>TOTAL COST </TotalLabel>
-                  <TotalValue>Kes {totalCost?.toLocaleString()}</TotalValue>
-                </TotalRow>
+                    <TotalRow>
+                      <TotalLabel>TOTAL COST </TotalLabel>
+                      <TotalValue>Kes {totalCost?.toLocaleString()}</TotalValue>
+                    </TotalRow>
 
-                <ItemActions style={{ marginTop: "24px" }}>
-                  <PrimaryButton onClick={handleContinueShopping}>
-                    Continue shopping
-                  </PrimaryButton>
-                  <ActionButton onClick={clearCart}>Clear cart</ActionButton>
-                </ItemActions>
-                <ItemActions style={{ marginTop: "16px" }}>
-                  <PrimaryButton
-                    onClick={() =>
-                      navigate("/checkout", { state: { cartItems, totalCost } })
-                    }
-                  >
-                    Proceed to Checkout
-                  </PrimaryButton>
-                </ItemActions>
-              </>
-            )}
-          </Content>
-        </Card>
-      </Container>
+                    <ItemActions style={{ marginTop: "24px" }}>
+                      <PrimaryButton onClick={handleContinueShopping}>
+                        Continue shopping
+                      </PrimaryButton>
+                      <ActionButton>Clear cart</ActionButton>
+                    </ItemActions>
+                    <ItemActions style={{ marginTop: "16px" }}>
+                      <PrimaryButton
+                        onClick={() =>
+                          navigate("/checkout", {
+                            state: { cartItems, totalCost },
+                          })
+                        }
+                      >
+                        Proceed to Checkout
+                      </PrimaryButton>
+                    </ItemActions>
+                  </>
+                )}
+              </Content>
+            </Card>
+          </Container>
+        </>
+      )}
     </>
   );
 };

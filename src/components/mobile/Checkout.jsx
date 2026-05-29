@@ -2,9 +2,225 @@ import { useContext, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import { CartContext } from "../../context/CartContext";
 import styled from "styled-components";
+import { useAuth } from "../../context/AuthContext";
+import { useAddOrder, useAddOrderItems } from "../../hooks/useOrders";
+import { useCartItemsAllDelete } from "../../hooks/useCart";
 
+const Checkout = () => {
+  const navigate = useNavigate();
+  // --- hooks
+  const { state } = useLocation();
+  const { user } = useAuth(); // context that fetches user information that is alreadt fetched on the database
+  const { cartItems, totalCost } = state;
+  const { mutate: mutateAddOrder, isPending: isPendingAddOrder } =
+    useAddOrder();
+  const { mutate: mutateDeleteAllOrders, isPending: isPendingDeleteOrders } =
+    useCartItemsAllDelete();
+  const { mutate: mutateddOrderItems, isPending: isPendingAddingOrdersItems } =
+    useAddOrderItems();
+
+  // ----- state
+  const [completed, setCompleted] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+
+  // console.log(cartItems[0], totalCost);
+  const totalCount = cartItems.reduce(
+    (sum, item) => sum + (item.quantity || 0),
+    0,
+  );
+
+  let user_id = user?.id;
+
+  // ---- FUNCTIONS
+
+  //  -- validate phone functions
+  const validatePhone = (phone) => {
+    const cleaned = phone.replace(/\s/g, "");
+    return /^(07|01)\d{8}$/.test(cleaned); // Kenyan format
+  };
+
+  // --- handleCheckout function
+  const handleCheckout = () => {
+    if (!address.trim()) {
+      alert("Please enter your delivery address.");
+      return;
+    }
+    if (!phone.trim()) {
+      alert("Please enter your mobile number.");
+      return;
+    }
+    if (!validatePhone(phone)) {
+      alert("Please enter a valid Kenyan mobile number e.g. 0712 345 678");
+      return;
+    }
+
+    mutateAddOrder(
+      {
+        user_id,
+        payment_method: paymentMethod,
+        delivery_address: address,
+        total_cost: totalCost,
+        mobile_no: phone,
+      },
+      {
+        // FETCH THE MUTATED DATA ABOVE AS (DATA)
+        onSuccess: (data) => {
+          let orderDataId = data[0]?.id;
+          navigate("/order-confirmation", {
+            state: { cartItems, totalCost, paymentMethod, address },
+          });
+          mutateDeleteAllOrders({
+            user_id,
+          });
+          cartItems?.forEach((item) => {
+            mutateddOrderItems({
+              order_id: orderDataId,
+              listing_id: item.listing_id,
+              quantity: item.quantity,
+              price_at_purchase: item.listings?.price,
+            });
+          });
+          alert("✅ Order successfully, ®AFARMER");
+        },
+      },
+    );
+  };
+
+  const handleContinueShopping = () => {
+    navigate("/list");
+  };
+
+  return (
+    <>
+      <AppNavbar />
+      <Container>
+        <Header>
+          <BackButton onClick={() => navigate(-1)}>←</BackButton>
+          <Title>Checkout</Title>
+        </Header>
+
+        <Card>
+          <Content>
+            {cartItems?.length === 0 ? (
+              <EmptyMessage>
+                <h2>No items ready for checkout</h2>
+                <p>
+                  Add something to your cart first, then come back to complete
+                  your order.
+                </p>
+                <CheckoutButton onClick={handleContinueShopping}>
+                  Browse listings
+                </CheckoutButton>
+              </EmptyMessage>
+            ) : (
+              <>
+                <SummaryRow>
+                  <SummaryBlock>
+                    <SummaryLabel>Items to purchase</SummaryLabel>
+                    <SummaryValue>{totalCount}</SummaryValue>
+                  </SummaryBlock>
+                  <SummaryBlock>
+                    <SummaryLabel>Products</SummaryLabel>
+                    <SummaryValue>{cartItems.length}</SummaryValue>
+                  </SummaryBlock>
+                </SummaryRow>
+
+                <ItemList>
+                  {cartItems?.map((item) => (
+                    <CheckoutItem key={item.id}>
+                      <ItemImage
+                        src={item.listings?.image_url}
+                        alt={item.listings?.title}
+                      />
+                      <ItemDetails>
+                        <ItemName>{item.listings?.title}</ItemName>
+                        <ItemMeta>Kes {item.listings?.price}</ItemMeta>
+                        <ItemMeta>Quantity: {item.quantity}</ItemMeta>
+                      </ItemDetails>
+                    </CheckoutItem>
+                  ))}
+                </ItemList>
+
+                <FormSection>
+                  <FormLabel>Payment Method</FormLabel>
+                  <PaymentOptions>
+                    <PaymentOption>
+                      <input
+                        type="radio"
+                        name="payment"
+                        value="cash"
+                        checked={paymentMethod === "cash"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      Cash on Delivery
+                    </PaymentOption>
+                    <PaymentOption>
+                      <input
+                        type="radio"
+                        name="payment"
+                        value="mobile"
+                        checked={paymentMethod === "mobile"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      Mobile Money
+                    </PaymentOption>
+                    <PaymentOption>
+                      <input
+                        type="radio"
+                        name="payment"
+                        value="bank"
+                        checked={paymentMethod === "bank"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      Bank Transfer
+                    </PaymentOption>
+                  </PaymentOptions>
+                  <FormLabel htmlFor="address">Delivery Address</FormLabel>
+                  <FormTextarea
+                    id="address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Enter your full delivery address..."
+                  />
+                  <FormLabel htmlFor="phone">Mobile Number</FormLabel>
+                  <FormInput
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="e.g. 0712 345 678"
+                  />
+                </FormSection>
+
+                <CheckoutButton onClick={handleCheckout}>
+                  Confirm purchase
+                </CheckoutButton>
+                <CancelButton
+                  onClick={handleContinueShopping}
+                  style={{ marginTop: "16px" }}
+                >
+                  Continue browsing
+                </CancelButton>
+
+                {completed && (
+                  <Confirmation>
+                    <strong>Success!</strong> Your order is complete. The seller
+                    will contact you about pickup or delivery.
+                  </Confirmation>
+                )}
+              </>
+            )}
+          </Content>
+        </Card>
+      </Container>
+    </>
+  );
+};
+
+export default Checkout;
 const Container = styled.div`
   min-height: 100vh;
   background: #f7fbff;
@@ -143,7 +359,7 @@ const FormLabel = styled.label`
 `;
 
 const FormInput = styled.input`
-  width: 100%;
+  width: 90%;
   padding: 16px;
   border: 2px solid #d7e9ff;
   border-radius: 14px;
@@ -159,7 +375,7 @@ const FormInput = styled.input`
 `;
 
 const FormTextarea = styled.textarea`
-  width: 100%;
+  width: 90%;
   min-height: 80px;
   padding: 16px;
   border: 2px solid #d7e9ff;
@@ -248,154 +464,3 @@ const EmptyMessage = styled.div`
   padding: 40px 20px;
   color: #2f5a2a;
 `;
-
-const Checkout = () => {
-  const navigate = useNavigate();
-  const { state } = useLocation();
-  const { cartItems, totalCost } = state;
-  const [completed, setCompleted] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [address, setAddress] = useState("");
-  // console.log(cartItems, totalCost);
-  const totalCount = cartItems.reduce(
-    (sum, item) => sum + (item.quantity || 0),
-    0,
-  );
-
-  const handleCheckout = () => {
-    if (!address.trim()) {
-      alert("Please enter your delivery address.");
-      return;
-    }
-    alert("Your Order has been placed ! Thank You ");
-
-    navigate("/order-confirmation", {
-      state: { cartItems, totalCost, paymentMethod, address },
-    });
-  };
-
-  const handleContinueShopping = () => {
-    navigate("/list");
-  };
-
-  return (
-    <>
-      <AppNavbar />
-      <Container>
-        <Header>
-          <BackButton onClick={() => navigate(-1)}>←</BackButton>
-          <Title>Checkout</Title>
-        </Header>
-
-        <Card>
-          <Content>
-            {cartItems?.length === 0 ? (
-              <EmptyMessage>
-                <h2>No items ready for checkout</h2>
-                <p>
-                  Add something to your cart first, then come back to complete
-                  your order.
-                </p>
-                <CheckoutButton onClick={handleContinueShopping}>
-                  Browse listings
-                </CheckoutButton>
-              </EmptyMessage>
-            ) : (
-              <>
-                <SummaryRow>
-                  <SummaryBlock>
-                    <SummaryLabel>Items to purchase</SummaryLabel>
-                    <SummaryValue>{totalCount}</SummaryValue>
-                  </SummaryBlock>
-                  <SummaryBlock>
-                    <SummaryLabel>Products</SummaryLabel>
-                    <SummaryValue>{cartItems.length}</SummaryValue>
-                  </SummaryBlock>
-                </SummaryRow>
-
-                <ItemList>
-                  {cartItems?.map((item) => (
-                    <CheckoutItem key={item.id}>
-                      <ItemImage
-                        src={item.listings?.image_url}
-                        alt={item.listings?.title}
-                      />
-                      <ItemDetails>
-                        <ItemName>{item.listings?.title}</ItemName>
-                        <ItemMeta>Kes {item.listings?.price}</ItemMeta>
-                        <ItemMeta>Quantity: {item.quantity}</ItemMeta>
-                      </ItemDetails>
-                    </CheckoutItem>
-                  ))}
-                </ItemList>
-
-                <FormSection>
-                  <FormLabel>Payment Method</FormLabel>
-                  <PaymentOptions>
-                    <PaymentOption>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="cash"
-                        checked={paymentMethod === "cash"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                      />
-                      Cash on Delivery
-                    </PaymentOption>
-                    <PaymentOption>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="mobile"
-                        checked={paymentMethod === "mobile"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                      />
-                      Mobile Money
-                    </PaymentOption>
-                    <PaymentOption>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="bank"
-                        checked={paymentMethod === "bank"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                      />
-                      Bank Transfer
-                    </PaymentOption>
-                  </PaymentOptions>
-
-                  <FormLabel htmlFor="address">Delivery Address</FormLabel>
-                  <FormTextarea
-                    id="address"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Enter your full delivery address..."
-                  />
-                </FormSection>
-
-                <CheckoutButton onClick={handleCheckout}>
-                  Confirm purchase
-                </CheckoutButton>
-                <CancelButton
-                  onClick={handleContinueShopping}
-                  style={{ marginTop: "16px" }}
-                >
-                  Continue browsing
-                </CancelButton>
-
-                {completed && (
-                  <Confirmation>
-                    <strong>Success!</strong> Your order is complete. The seller
-                    will contact you about pickup or delivery.
-                  </Confirmation>
-                )}
-              </>
-            )}
-          </Content>
-        </Card>
-      </Container>
-    </>
-  );
-};
-
-export default Checkout;

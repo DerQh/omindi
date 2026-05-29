@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
-// ADD  CART ITEM 
+// ADD  CART ITEM
 export function useAddItem() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -24,7 +24,6 @@ export function useAddItem() {
     },
 
     onSuccess: (data, variables) => {
-      alert("Item added to your Cart ");
       queryClient.invalidateQueries({
         queryKey: ["cart", variables.user_id, variables.listing_id],
       });
@@ -70,6 +69,59 @@ export function useCartItemDelete() {
       }
       // console.log("Delete:", data);
       return data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.refetchQueries({
+        queryKey: ["cart", variables.user_id, variables.listing_id], // this should be changed
+      });
+    },
+  });
+}
+
+// DELETE ALL CART ITEMS BY USER, AFTER CHECKING OUT   - useMutation
+export function useCartItemsAllDelete() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ user_id }) => {
+      const { data, error } = await supabase
+        .from("cart")
+        .delete()
+        .eq("user_id", user_id);
+
+      if (error) {
+        console.log("Delete error:", error);
+        throw error;
+      }
+      // console.log("Delete:", data);
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.refetchQueries({
+        queryKey: ["cart", variables.user_id, variables.listing_id], // this should be changed
+      });
+    },
+  });
+}
+
+// DELETE CART ITEM  by id  - useMutation
+export function useCartItemDeleteId() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ item_id, user_id }) => {
+      const { data, error } = await supabase
+        .from("cart")
+        .delete()
+        .eq("id", item_id);
+
+      if (error) {
+        console.log("Delete error:", error);
+        throw error;
+      }
+      // console.log("Delete:", data);
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.refetchQueries({ queryKey: ["cart", variables.user_id] });
     },
   });
 }
@@ -175,6 +227,9 @@ export function useAllCartItems(user_id) {
       //   console.log("Cart:", data);
 
       return data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.refetchQueries({ queryKey: ["cart", variables.user_id] });
     },
   });
 }

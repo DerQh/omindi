@@ -35,7 +35,7 @@ import Follower from "./components/mobile/Follower";
 import Post from "./components/mobile/Post";
 import Update from "./components/mobile/Update";
 import ProtectedRoutes from "./components/mobile/ProtectedRoutes";
-import { CartProvider } from "./context/CartContext";
+// import { useAppContext } from "./context/CartContext";
 import UpcomingEvents from "./components/mobile/UpcomingEvent";
 import EventDetail from "./components/mobile/EventDetail";
 import Followers from "./components/mobile/Followers";
@@ -44,13 +44,15 @@ import EditProfile from "./components/mobile/EditProfile";
 import { TestHooks } from "./components/mobile/TestHooks";
 import OrderConfirmation from "./components/mobile/OrderConfirmation";
 import { ScrollToTop } from "./components/mobile/ScrollTop";
+import Notifications from "./components/mobile/Notifications";
+import ViewOrder from "./components/mobile/ViewOrder";
 
 function App() {
   // Create a client
   const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-      <CartProvider>
+      <>
         <BrowserRouter>
           <ScrollToTop />
 
@@ -68,6 +70,8 @@ function App() {
                 path="/order-confirmation"
                 element={<OrderConfirmation />}
               />
+              <Route path="/order/:order_id" element={<ViewOrder />} />
+              <Route path="/notifications" element={<Notifications />} />
               <Route path="/test" element={<TestHooks />} />
               <Route path="/mobile" element={<Map />} />
               <Route path="/following" element={<Following />} />
@@ -110,7 +114,7 @@ function App() {
             <Route path="*" element={<ErrorDisplay />} />
           </Routes>
         </BrowserRouter>
-      </CartProvider>
+      </>
     </QueryClientProvider>
   );
 }

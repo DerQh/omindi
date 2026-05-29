@@ -1,7 +1,6 @@
 import { useContext, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import { CartContext } from "../../context/CartContext";
 import styled from "styled-components";
 import { useUser } from "../../hooks/useUser";
 import { useDeleteListing } from "../../hooks/useDeleteListing";
@@ -319,12 +318,6 @@ const ListingDetail = () => {
     // navigate("/edit-listing", { state: { listing } });
   };
 
-  // console.log(
-  //   "Current user:",
-  //   user?.id === listing?.seller_id ? "Seller" : "Buyer",
-  //   user?.profile?.full_name,
-  // );
-
   if (isLoading) {
     return (
       <>
@@ -349,6 +342,7 @@ const ListingDetail = () => {
       {/* CONFIRMATION MODAL */}
       {showConfirm && (
         <ConfirmModule
+          text="Do you want to delete this listing"
           onConfirm={handleConfirmDelete}
           onCancel={() => setShowConfirm(false)}
         />

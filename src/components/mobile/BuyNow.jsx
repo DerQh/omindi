@@ -1,7 +1,6 @@
 import { useContext, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import { CartContext } from "../../context/CartContext";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -194,7 +193,6 @@ const ImagePreview = styled.div`
 const BuyNow = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addToCart } = useContext(CartContext);
   const listing = location.state?.listing;
   const [quantity, setQuantity] = useState(() => {
     if (!listing) return 1;
