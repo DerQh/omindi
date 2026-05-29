@@ -270,11 +270,24 @@ const paymentLabels = {
 const OrderConfirmation = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const { cartItems, totalCost, paymentMethod, address } = state || {};
+  const {
+    orderGroupedBySeller: cartItems,
+    totalCost,
+    paymentMethod,
+    address,
+    orderId,
+  } = state || {};
 
-  const orderId = `ORD-${Date.now().toString(36).toUpperCase()}`;
+
+  // total count — sum items across all groups
   const totalCount = cartItems?.reduce(
-    (sum, item) => sum + (item.quantity || 0),
+    (sum, group) => sum + group.items.reduce((s, item) => s + item.quantity, 0),
+    0,
+  );
+
+  // total products count
+  const totalProducts = cartItems?.reduce(
+    (sum, group) => sum + group.items.length,
     0,
   );
   const estimatedDays = paymentMethod === "cash" ? "2–4" : "1–3";
@@ -297,7 +310,7 @@ const OrderConfirmation = () => {
                 Thank you for your purchase. The seller will contact you
                 shortly.
               </SuccessSub>
-              <OrderId>Order ID: {orderId}</OrderId>
+              <OrderId>Order ID: {orderId[0]?.slice(0, 8).toUpperCase()}</OrderId>
             </SuccessBanner>
 
             {/* Order summary */}
@@ -309,7 +322,7 @@ const OrderConfirmation = () => {
               </SummaryBlock>
               <SummaryBlock>
                 <SummaryLabel>Products</SummaryLabel>
-                <SummaryValue>{cartItems?.length}</SummaryValue>
+                <SummaryValue>{totalProducts}</SummaryValue>
               </SummaryBlock>
               <TotalBlock>
                 <SummaryLabel>Total Paid</SummaryLabel>
@@ -320,23 +333,29 @@ const OrderConfirmation = () => {
             {/* Items */}
             <SectionTitle>Items</SectionTitle>
             <ItemList>
-              {cartItems?.map((item) => (
-                <CheckoutItem key={item.id}>
-                  <ItemImage
-                    src={item.listings?.image_url}
-                    alt={item.listings?.title}
-                  />
-                  <ItemDetails>
-                    <ItemName>{item.listings?.title}</ItemName>
-                    <ItemMeta>Kes {item.listings?.price} per unit</ItemMeta>
-                    <ItemMeta>Quantity: {item.quantity}</ItemMeta>
-                    <ItemTotal>
-                      Subtotal: Kes{" "}
-                      {(item.listings?.price * item.quantity).toLocaleString()}
-                    </ItemTotal>
-                  </ItemDetails>
-                </CheckoutItem>
-              ))}
+              {cartItems?.map((group) =>
+                group.items.map((item) => (
+                  <CheckoutItem key={item.id}>
+                    <ItemImage
+                      src={item.listings?.image_url}
+                      alt={item.listings?.title}
+                    />
+                    <ItemDetails>
+                      <ItemName>{item.listings?.title}</ItemName>
+                      <ItemMeta>
+                        Kes {item.listings?.price} per {item.listings?.unit}
+                      </ItemMeta>
+                      <ItemMeta>Quantity: {item.quantity}</ItemMeta>
+                      <ItemTotal>
+                        Subtotal: Kes{" "}
+                        {(
+                          item.listings?.price * item.quantity
+                        ).toLocaleString()}
+                      </ItemTotal>
+                    </ItemDetails>
+                  </CheckoutItem>
+                )),
+              )}
             </ItemList>
 
             <Divider />

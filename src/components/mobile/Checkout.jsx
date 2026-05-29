@@ -6,27 +6,30 @@ import styled from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import { useAddOrder, useAddOrderItems } from "../../hooks/useOrders";
 import { useCartItemsAllDelete } from "../../hooks/useCart";
+import { useNotifyOrder } from "../../hooks/useNotification";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  // --- hooks
+  // --- HOOKS
   const { state } = useLocation();
   const { user } = useAuth(); // context that fetches user information that is alreadt fetched on the database
   const { cartItems, totalCost } = state;
-  const { mutate: mutateAddOrder, isPending: isPendingAddOrder } =
-    useAddOrder();
   const { mutate: mutateDeleteAllOrders, isPending: isPendingDeleteOrders } =
     useCartItemsAllDelete();
-  const { mutate: mutateddOrderItems, isPending: isPendingAddingOrdersItems } =
-    useAddOrderItems();
 
-  // ----- state
+  const { mutateAsync: mutateAddOrder, isPending: isPendingAddOrder } =
+    useAddOrder();
+  const { mutateAsync: mutateddOrderItems } = useAddOrderItems();
+  const { mutateAsync: mutateAsyncAddNotification, isPending } =
+    useNotifyOrder();
+
+  // ----- STATES ---------
   const [completed, setCompleted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
 
-  // console.log(cartItems[0], totalCost);
+  // console.log(cartItems, totalCost);
   const totalCount = cartItems.reduce(
     (sum, item) => sum + (item.quantity || 0),
     0,
@@ -34,16 +37,41 @@ const Checkout = () => {
 
   let user_id = user?.id;
 
-  // ---- FUNCTIONS
+  // --------TEST FUNCTION FOR CARTITEMS TO GROUP THE ORDERS  THEM BY SELLERS
+  const orderGroupedBySeller = Object.values(
+    cartItems?.reduce((acc, row) => {
+      const sellerId = row.listings.seller_id;
 
-  //  -- validate phone functions
+      if (!acc[sellerId]) {
+        acc[sellerId] = {
+          seller_id: sellerId,
+          items: [],
+          totalCost: 0,
+        };
+      }
+
+      acc[sellerId].items.push(row);
+
+      const price = row.listings.price ?? 0;
+      const qty = row.quantity ?? 0;
+
+      acc[sellerId].totalCost += price * qty;
+
+      return acc;
+    }, {}),
+  );
+  // console.log(orderGroupedBySeller);
+
+  // --------- FUNCTIONS
+
+  //  -- VALIDATE  phone functions
   const validatePhone = (phone) => {
     const cleaned = phone.replace(/\s/g, "");
     return /^(07|01)\d{8}$/.test(cleaned); // Kenyan format
   };
 
-  // --- handleCheckout function
-  const handleCheckout = () => {
+  // --- CHECKOUT FUNCTION USE ASYNC  function
+  const handleCheckout = async () => {
     if (!address.trim()) {
       alert("Please enter your delivery address.");
       return;
@@ -56,37 +84,82 @@ const Checkout = () => {
       alert("Please enter a valid Kenyan mobile number e.g. 0712 345 678");
       return;
     }
+    let orderIds = []; // collect all order ids
 
-    mutateAddOrder(
-      {
+    for (const group of orderGroupedBySeller) {
+      const orderRows = await mutateAddOrder({
         user_id,
         payment_method: paymentMethod,
         delivery_address: address,
-        total_cost: totalCost,
+        total_cost: group.totalCost,
         mobile_no: phone,
+      });
+      let orderDataId = orderRows?.[0]?.id;
+      orderIds.push(orderDataId); // save it
+
+      // --- INSERT order notification (call after order is created)
+      mutateAsyncAddNotification({
+        user_id,
+        orderId: orderDataId,
+        status: "pending",
+        total: group.totalCost,
+        payment: paymentMethod,
+      });
+
+      for (const item of group.items) {
+        await mutateddOrderItems({
+          order_id: orderDataId,
+          listing_id: item.listing_id,
+          quantity: item.quantity,
+          price_at_purchase: item.listings?.price,
+        });
+      }
+    }
+    // CLEAR CART
+    mutateDeleteAllOrders({ user_id });
+    // console.log(orderIds);
+
+    // navigate with the first order id (or all of them)
+    navigate("/order-confirmation", {
+      state: {
+        orderGroupedBySeller,
+        totalCost,
+        paymentMethod,
+        address,
+        orderId: orderIds, // first order id
       },
-      {
-        // FETCH THE MUTATED DATA ABOVE AS (DATA)
-        onSuccess: (data) => {
-          let orderDataId = data[0]?.id;
-          navigate("/order-confirmation", {
-            state: { cartItems, totalCost, paymentMethod, address },
-          });
-          mutateDeleteAllOrders({
-            user_id,
-          });
-          cartItems?.forEach((item) => {
-            mutateddOrderItems({
-              order_id: orderDataId,
-              listing_id: item.listing_id,
-              quantity: item.quantity,
-              price_at_purchase: item.listings?.price,
-            });
-          });
-          alert("✅ Order successfully, ®AFARMER");
-        },
-      },
-    );
+    });
+
+    // mutateAddOrder(
+    //   {
+    //     user_id,
+    //     payment_method: paymentMethod,
+    //     delivery_address: address,
+    //     total_cost: totalCost,
+    //     mobile_no: phone,
+    //   },
+    //   {
+    //     // FETCH THE MUTATED DATA ABOVE AS (DATA)
+    //     onSuccess: (data) => {
+    //       let orderDataId = data[0]?.id;
+    //       navigate("/order-confirmation", {
+    //         state: { cartItems, totalCost, paymentMethod, address },
+    //       });
+    //       mutateDeleteAllOrders({
+    //         user_id,
+    //       });
+    //       cartItems?.forEach((item) => {
+    //         mutateddOrderItems({
+    //           order_id: orderDataId,
+    //           listing_id: item.listing_id,
+    //           quantity: item.quantity,
+    //           price_at_purchase: item.listings?.price,
+    //         });
+    //       });
+    //       alert("✅ Order successfully, ®AFARMER");
+    //     },
+    //   },
+    // );
   };
 
   const handleContinueShopping = () => {

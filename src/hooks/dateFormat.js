@@ -16,6 +16,8 @@ const formatSmartDate = (dateString) => {
   const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
   const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
   const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+  if (!dateString) return "";
+  if (isNaN(past.getTime())) return ""; // guard invalid date
 
   if (diffInMinutes < 1) return "Just now";
   if (diffInMinutes < 60) return `${diffInMinutes}m ago`;

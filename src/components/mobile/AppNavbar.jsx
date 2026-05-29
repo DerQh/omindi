@@ -212,7 +212,7 @@ const MENU_ITEMS = [
   { label: "Community", icon: "🌿", path: "/community" },
 ];
 
-export default function AppNavbar({ pageOne }) {
+export default function AppNavbar() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { data: userData } = useUser();
@@ -254,7 +254,7 @@ export default function AppNavbar({ pageOne }) {
   return (
     <Nav>
       <Logo onClick={() => navigate("/mobile")}>
-        <img loading="lazy" src="afarmer.svg" alt="logo" />
+        <img loading="lazy" src="afarmer.jpg" alt="logo" />
         <span>AFARMER</span>
       </Logo>
 

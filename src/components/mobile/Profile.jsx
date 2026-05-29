@@ -15,8 +15,11 @@ const PageWrapper = styled.div`
 const PageTitle = styled.h1`
   margin: 0 0 14px;
   color: #264a28;
-  font-size: 2.4rem;
   text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  white-space: nowrap; 
 `;
 
 const ProfileGrid = styled.div`

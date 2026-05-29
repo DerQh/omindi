@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useOrder, useOrderId } from "../../hooks/useOrders";
+import { Fragment } from "react";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(16px); }
@@ -335,9 +336,8 @@ const formatDate = (dateString) =>
 const ViewOrder = () => {
   const { order_id } = useParams();
 
-  let order_id_Test = "02ff8fde-fba0-4d9c-b398-53d5f757cdc3";
   const navigate = useNavigate();
-  const { data: order, isLoading, isError } = useOrderId(order_id_Test);
+  const { data: order, isLoading, isError } = useOrderId(order_id);
 
   const stepIndex = getStepIndex(order?.status);
 
@@ -383,8 +383,8 @@ const ViewOrder = () => {
                     <SectionTitle>Order Progress</SectionTitle>
                     <StepsRow>
                       {STATUS_STEPS?.map((step, i) => (
-                        <>
-                          <Step key={step}>
+                        <Fragment key={step}>
+                          <Step>
                             <StepDot $done={i <= stepIndex}>
                               {i < stepIndex ? "✓" : i + 1}
                             </StepDot>
@@ -395,7 +395,7 @@ const ViewOrder = () => {
                           {i < STATUS_STEPS.length - 1 && (
                             <StepLine key={`line-${i}`} $done={i < stepIndex} />
                           )}
-                        </>
+                        </Fragment>
                       ))}
                     </StepsRow>
                     <Divider />

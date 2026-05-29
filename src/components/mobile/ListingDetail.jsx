@@ -12,6 +12,7 @@ import {
   useUpdateCartItem,
 } from "../../hooks/useCart";
 import { useQueryClient } from "@tanstack/react-query";
+import { useStartConversation } from "../../hooks/useMessages";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -37,7 +38,7 @@ const BackButton = styled.button`
   font-size: 1.2rem;
   cursor: pointer;
   width: 40px;
-  height: 40px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,9 +51,14 @@ const BackButton = styled.button`
 
 const Title = styled.h1`
   margin: 0;
-  color: #2f5a2a;
+  /* color: #2f5a2a; */
   flex: 1;
   text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f3a1d;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
 `;
 
 const DetailCard = styled.div`
@@ -87,11 +93,11 @@ const ContentSection = styled.div`
 const ProductName = styled.h2`
   margin: 0 0 16px;
   color: #2f5a2a;
-  font-size: 2rem;
+  font-size: 1.6rem;
 `;
 
 const Price = styled.p`
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   color: #2f5a2a;
   font-weight: 700;
   margin: 0 0 24px;
@@ -250,6 +256,7 @@ const ListingDetail = () => {
   // DELETE AN ITEM
   const { mutate: deleteListing, isLoading: isDeleting } = useDeleteListing();
   const { mutate: mutateAddItem, isPending } = useAddItem();
+  const { mutate: startConversation } = useStartConversation();
 
   const { data: isItemInCart, isLoading: isLoadingItemCheck } =
     useCartItemCheck({
@@ -311,7 +318,20 @@ const ListingDetail = () => {
   };
 
   const handleInquire = () => {
-    navigate("/inquire", { state: { listing } });
+   
+    startConversation(
+      {
+        buyer_id: user?.id,
+        seller_id: listing?.seller_id,
+        listing_id: listing?.id,
+      },
+      {
+        onSuccess: (conversation) => {
+          console.log("convostarted");
+          navigate("/messages", { state: { conversationId: conversation.id } });
+        },
+      },
+    );
   };
 
   const handleEdit = () => {

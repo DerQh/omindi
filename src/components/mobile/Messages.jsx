@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
+import { useAuth } from "../../context/AuthContext";
+import {
+  useConversations,
+  useMarkMessagesRead,
+  useMessages,
+  useSendMessage,
+} from "../../hooks/useMessages";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -193,80 +200,120 @@ const InputArea = styled.form`
   }
 `;
 
-const initialConversations = [
-  {
-    id: 1,
-    name: "Amina's Farm",
-    role: "Seller",
-    avatar: "/amina.jpg",
-    latest: "Yes, I can deliver tomorrow morning.",
-    unread: 2,
-    messages: [
-      { id: 1, fromOwner: false, text: "Hello! I need 10kg of spinach.", time: "09:12 AM" },
-      { id: 2, fromOwner: true, text: "I have it ready. Would you like delivery?", time: "09:15 AM" },
-      { id: 3, fromOwner: false, text: "Yes, please. Pickup at 10AM works.", time: "09:18 AM" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Market Buyer Group",
-    role: "Buyer",
-    avatar: "/chat.png",
-    latest: "We are confirming the bulk order today.",
-    unread: 0,
-    messages: [
-      { id: 1, fromOwner: true, text: "Can you confirm the quantity for tomatoes?", time: "Yesterday" },
-      { id: 2, fromOwner: false, text: "We need 25kg by Friday.", time: "Yesterday" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Honey Harvest",
-    role: "Seller",
-    avatar: "/honeyfarm.jpg",
-    latest: "The new batch is ready for inspection.",
-    unread: 1,
-    messages: [
-      { id: 1, fromOwner: false, text: "Your honey order is ready for pickup.", time: "Mon" },
-      { id: 2, fromOwner: true, text: "Great, I will collect after 2PM.", time: "Mon" },
-    ],
-  },
-];
+// const initialConversations = [
+//   {
+//     id: 1,
+//     name: "Amina's Farm",
+//     role: "Seller",
+//     avatar: "/amina.jpg",
+//     latest: "Yes, I can deliver tomorrow morning.",
+//     unread: 2,
+//     messages: [
+//       {
+//         id: 1,
+//         fromOwner: false,
+//         text: "Hello! I need 10kg of spinach.",
+//         time: "09:12 AM",
+//       },
+//       {
+//         id: 2,
+//         fromOwner: true,
+//         text: "I have it ready. Would you like delivery?",
+//         time: "09:15 AM",
+//       },
+//       {
+//         id: 3,
+//         fromOwner: false,
+//         text: "Yes, please. Pickup at 10AM works.",
+//         time: "09:18 AM",
+//       },
+//     ],
+//   },
+//   {
+//     id: 2,
+//     name: "Market Buyer Group",
+//     role: "Buyer",
+//     avatar: "/chat.png",
+//     latest: "We are confirming the bulk order today.",
+//     unread: 0,
+//     messages: [
+//       {
+//         id: 1,
+//         fromOwner: true,
+//         text: "Can you confirm the quantity for tomatoes?",
+//         time: "Yesterday",
+//       },
+//       {
+//         id: 2,
+//         fromOwner: false,
+//         text: "We need 25kg by Friday.",
+//         time: "Yesterday",
+//       },
+//     ],
+//   },
+//   {
+//     id: 3,
+//     name: "Honey Harvest",
+//     role: "Seller",
+//     avatar: "/honeyfarm.jpg",
+//     latest: "The new batch is ready for inspection.",
+//     unread: 1,
+//     messages: [
+//       {
+//         id: 1,
+//         fromOwner: false,
+//         text: "Your honey order is ready for pickup.",
+//         time: "Mon",
+//       },
+//       {
+//         id: 2,
+//         fromOwner: true,
+//         text: "Great, I will collect after 2PM.",
+//         time: "Mon",
+//       },
+//     ],
+//   },
+// ];
 
 const Messages = () => {
-  const [conversations, setConversations] = useState(initialConversations);
-  const [activeId, setActiveId] = useState(initialConversations[0].id);
+  const { user } = useAuth();
+
+  const { data: conversations = [], isLoading } = useConversations(user?.id);
+  const [activeId, setActiveId] = useState(null);
+  const { data: messages = [] } = useMessages(activeId);
+  const { mutate: sendMessage } = useSendMessage();
+  const { mutate: markRead } = useMarkMessagesRead();
+
+  console.log(conversations)
+
   const [draft, setDraft] = useState("");
+  
+  // set first conversation as active
+  useEffect(() => {
+    if (conversations?.length > 0 && !activeId) {
+      setActiveId(conversations[0]?.id);
+    }
+  }, [conversations]);
 
-  const activeConversation = conversations.find((item) => item.id === activeId);
+  const activeConversation = conversations?.find((c) => c.id === activeId);
 
-  const onSend = (event) => {
-    event.preventDefault();
-    if (!draft.trim() || !activeConversation) return;
+  // mark as read when opening
+  useEffect(() => {
+    if (activeId && user?.id) {
+      markRead({ conversation_id: activeId, user_id: user?.id });
+    }
+  }, [activeId]);
 
-    const updatedConversations = conversations.map((conversation) => {
-      if (conversation.id !== activeId) return conversation;
-
-      return {
-        ...conversation,
-        latest: draft,
-        unread: 0,
-        messages: [
-          ...conversation.messages,
-          {
-            id: conversation.messages.length + 1,
-            fromOwner: true,
-            text: draft.trim(),
-            time: "Now",
-          },
-        ],
-      };
+  const onSend = (e) => {
+    e.preventDefault();
+    if (!draft.trim() || !activeId) return;
+    sendMessage({
+      conversation_id: activeId,
+      sender_id: user?.id,
+      text: draft.trim(),
     });
-
-    setConversations(updatedConversations);
     setDraft("");
   };
-
   return (
     <>
       <AppNavbar />
@@ -278,7 +325,7 @@ const Messages = () => {
               <h2>Conversations</h2>
               <p>Chat with sellers and buyers from your network.</p>
             </ListHeader>
-            {conversations.map((conversation) => (
+            {conversations?.map((conversation) => (
               <ConversationItem
                 key={conversation.id}
                 active={conversation.id === activeId}
@@ -286,10 +333,12 @@ const Messages = () => {
               >
                 <img src={conversation.avatar} alt={conversation.name} />
                 <div>
-                  <h3>{conversation.name}</h3>
+                  <h3>{conversation.seller.full_name}</h3>
                   <p>{conversation.latest}</p>
                 </div>
-                {conversation.unread > 0 && <span>• {conversation.unread}</span>}
+                {conversation.unread > 0 && (
+                  <span>• {conversation.unread}</span>
+                )}
               </ConversationItem>
             ))}
           </ConversationList>
@@ -298,17 +347,23 @@ const Messages = () => {
             {activeConversation ? (
               <>
                 <ChatHeader>
-                  <img src={activeConversation.avatar} alt={activeConversation.name} />
+                  <img
+                    src={activeConversation.avatar}
+                    alt={activeConversation.name}
+                  />
                   <div>
                     <h2>{activeConversation.name}</h2>
                     <p>{activeConversation.role}</p>
                   </div>
                 </ChatHeader>
                 <ChatBody>
-                  {activeConversation.messages.map((message) => (
-                    <MessageBubble key={message.id} fromOwner={message.fromOwner}>
+                  {activeConversation?.messages?.map((message) => (
+                    <MessageBubble
+                      key={message.id}
+                      fromOwner={message.sender_id === user?.id}
+                    >
                       <p>{message.text}</p>
-                      <span>{message.time}</span>
+                      <span>{formatSmartDate(message.created_at)}</span>
                     </MessageBubble>
                   ))}
                 </ChatBody>

@@ -5,6 +5,7 @@ import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import { useOrder } from "../../hooks/useOrders";
 import { formatSmartDate } from "../../hooks/dateFormat";
+import { useMarkAllRead, useMarkRead, useNotifications } from "../../hooks/useNotification";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(12px); }
@@ -40,7 +41,7 @@ const BackButton = styled.button`
   font-size: 1.2rem;
   cursor: pointer;
   width: 40px;
-  height: 40px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,10 +62,15 @@ const TitleRow = styled.div`
 const Title = styled.h1`
   margin: 0;
   color: #2f5a2a;
-  font-size: 1.5rem;
   display: flex;
   align-items: center;
   gap: 10px;
+  /*  */
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
 `;
 
 const UnreadBadge = styled.span`
@@ -429,9 +435,18 @@ const filterMap = {
 const Notifications = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const { mutate: markRead } = useMarkRead();
+  const { mutate: markAllRead } = useMarkAllRead();
+  const { data: notifications, isLoading } = useNotifications(user?.id);
+  // const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [activeFilter, setActiveFilter] = useState("All");
   const [expandedId, setExpandedId] = useState(null);
+  const paymentLabels = {
+    cash: "Cash on Delivery",
+    mobile: "Mobile Money",
+    bank: "Bank Transfer",
+  };
+  console.log(notifications);
 
   // --- Detail content per notification type
   const renderDetail = (n) => {
@@ -441,39 +456,42 @@ const Notifications = () => {
           <DetailCard>
             <DetailRow>
               <DetailLabel>Order ID</DetailLabel>
-              <DetailValue>{n.detail.orderId}</DetailValue>
+              <DetailValue>
+                {n.detail?.orderId?.slice(0, 8).toUpperCase()}
+              </DetailValue>
             </DetailRow>
             <DetailDivider />
-            {n.detail.items?.map((item, i) => (
-              <DetailRow key={i}>
-                <DetailLabel>{item.name}</DetailLabel>
-                <DetailValue>
-                  x{item.qty} — Kes {item.price}
-                </DetailValue>
-              </DetailRow>
-            ))}
-            <DetailDivider />
+            <DetailRow>
+              <DetailLabel>Status</DetailLabel>
+              <DetailValue>{n.detail?.status}</DetailValue>
+            </DetailRow>
             <DetailRow>
               <DetailLabel>Total</DetailLabel>
-              <DetailValue>Kes {n.detail.total?.toLocaleString()}</DetailValue>
+              <DetailValue>Kes {n.detail?.total?.toLocaleString()}</DetailValue>
             </DetailRow>
             <DetailRow>
               <DetailLabel>Payment</DetailLabel>
-              <DetailValue>{n.detail.payment}</DetailValue>
+              <DetailValue>
+                {paymentLabels[n.detail?.payment] ?? n.detail?.payment}
+              </DetailValue>
             </DetailRow>
             <DetailRow>
-              <DetailLabel>Status</DetailLabel>
-              <DetailValue>{n.detail.status}</DetailValue>
-            </DetailRow>
-            <DetailRow>
-              <DetailLabel>Estimated Delivery</DetailLabel>
-              <DetailValue>{n.detail.delivery}</DetailValue>
+              <DetailLabel>Date</DetailLabel>
+              <DetailValue>
+                {new Date(n.created_at).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </DetailValue>{" "}
             </DetailRow>
             <DetailActionBtn
-              onClick={() => navigate(`/order/${n.detail.orderId}`)}
+              onClick={() => navigate(`/order/${n.detail?.orderId}`)}
             >
               View Order →
-            </DetailActionBtn>{" "}
+            </DetailActionBtn>
           </DetailCard>
         );
 
@@ -561,23 +579,17 @@ const Notifications = () => {
     }
   };
 
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  const unreadCount = notifications?.filter((n) => !n.read).length;
+  console.log(unreadCount);
 
-  const markAllRead = () =>
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+  
 
   const handleClick = (n) => {
     setExpandedId((prev) => (prev === n.id ? null : n.id));
-    if (n.unread) {
-      setNotifications((prev) =>
-        prev.map((item) =>
-          item.id === n.id ? { ...item, unread: false } : item,
-        ),
-      );
-    }
+    if (!n.read) markRead(n.id);
   };
 
-  const filtered = notifications.filter((n) => {
+  const filtered = notifications?.filter((n) => {
     const f = filterMap[activeFilter];
     if (!f) return true;
     if (Array.isArray(f)) return f.includes(n.type);
@@ -601,6 +613,7 @@ const Notifications = () => {
           </TitleRow>
         </Header>
 
+        {/* NAMES OF THE NOTIFICATIONS TAB , ALL , ORDERS , INQUIRIEES , FAV, SYSTEM */}
         <FilterRow>
           {FILTERS.map((f) => (
             <FilterBtn
@@ -615,13 +628,13 @@ const Notifications = () => {
 
         <Card>
           <NotifList>
-            {filtered.length === 0 ? (
+            {filtered?.length === 0 ? (
               <EmptyState>
                 <EmptyIcon>🔔</EmptyIcon>
                 <EmptyText>No notifications here yet.</EmptyText>
               </EmptyState>
             ) : (
-              filtered.map((n) => {
+              filtered?.map((n) => {
                 const meta = NOTIF_META[n.type] ?? {
                   icon: "🔔",
                   iconBg: "#f0f7ee",

@@ -3,6 +3,7 @@ import { supabase } from "../../supabase";
 
 // --- FETCH all notifications for a user
 export function useNotifications(user_id) {
+  console.log(user_id)
   return useQuery({
     queryKey: ["notifications", user_id],
     enabled: !!user_id,
