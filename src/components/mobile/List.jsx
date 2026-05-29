@@ -87,6 +87,75 @@ const List = () => {
 
 export default List;
 
+const Header1 = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e6efe8;
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f3a1d;
+    letter-spacing: -0.2px;
+    white-space: nowrap; /* ✅ prevents wrapping */
+  }
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    h1 {
+      font-size: 1.4rem;
+    }
+  }
+`;
+
+const Button = styled(Link)`
+  background: #2f5a2a;
+  color: white;
+  text-decoration: none;
+  font-size: 14px; /* slightly smaller */
+  font-weight: 500;
+  padding: 10px 18px; /* reduced padding */
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: #244a23;
+  }
+`;
+const SearchContainer = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 40px;
+
+  input {
+    width: 100%;
+    max-width: 420px;
+    padding: 10px 14px; /* smaller */
+    border-radius: 8px;
+    border: 1px solid #dfe7e2;
+    background: #ffffff;
+    font-size: 14px; /* smaller */
+    color: #2c2c2c;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #2f5a2a;
+      box-shadow: 0 0 0 2px rgba(47, 90, 42, 0.12);
+    }
+  }
+`;
+
+//  - -- - - -  - -  - -
+
 const Container = styled.div`
   padding: 20px 30px;
   text-align: center;
@@ -104,45 +173,11 @@ const Header = styled.div`
 
   h1 {
     margin: 0;
-    font-size: 2rem;
-    color: #2f5a2a;
-  }
-`;
-
-const SearchContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 24px;
-
-  input {
-    padding: 12px 16px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    min-width: 300px;
-    font-size: 1rem;
-
-    &:focus {
-      outline: none;
-      border-color: #2f5a2a;
-      box-shadow: 0 0 4px rgba(47, 90, 42, 0.2);
-    }
-  }
-`;
-
-const Button = styled(Link)`
-  background-color: #2f5a2a;
-  color: white;
-  text-decoration: none;
-  font-size: 16px;
-  padding: 12px 22px;
-  border-radius: 10px;
-  transition:
-    transform 0.15s ease,
-    background-color 0.15s ease;
-
-  &:hover {
-    background-color: #245026;
-    transform: translateY(-1px);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f3a1d;
+    letter-spacing: -0.2px;
+    white-space: nowrap; /* ✅ prevents wrapping */
   }
 `;
 
