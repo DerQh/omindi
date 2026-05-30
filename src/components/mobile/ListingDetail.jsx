@@ -35,7 +35,7 @@ const BackButton = styled.button`
   border: none;
   border-radius: 8px;
   padding: 8px 12px;
-  font-size: 1.2rem;
+  font-size: 1.2rem; 
   cursor: pointer;
   width: 40px;
   height: 30px;
@@ -318,7 +318,6 @@ const ListingDetail = () => {
   };
 
   const handleInquire = () => {
-   
     startConversation(
       {
         buyer_id: user?.id,
@@ -327,9 +326,10 @@ const ListingDetail = () => {
       },
       {
         onSuccess: (conversation) => {
-          console.log("convostarted");
+          console.log("conversation:", conversation); // check this
           navigate("/messages", { state: { conversationId: conversation.id } });
         },
+        onError: (e) => console.log("error:", e),
       },
     );
   };

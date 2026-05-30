@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import AppNavbar from "./AppNavbar";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -12,148 +12,598 @@ import {
 } from "../../hooks/useDashboard";
 import { formatSmartDate } from "../../hooks/dateFormat";
 
-// --- animations
+// ─── TOKENS ──────────────────────────────────────────────────────────────────
+const C = {
+  forest: "#1e3d1a",
+  green: "#2f5a2a",
+  greenMid: "#3d7a36",
+  greenLight: "#5c9132",
+  mint: "#eef7ee",
+  mintDark: "#d6ead6",
+  blue: "#1a5a8a",
+  blueLight: "#e5f4ff",
+  gold: "#b07d00",
+  goldLight: "#fff8e5",
+  purple: "#5a2a8a",
+  purpleLight: "#f0ebff",
+  red: "#a32d2d",
+  redLight: "#fdf0f0",
+  text: "#1a2e1a",
+  textMid: "#4a6a4a",
+  textMuted: "#7b9b7b",
+  border: "#e8f2e8",
+  bg: "#f4f7f4",
+  white: "#ffffff",
+};
+
+// ─── ANIMATIONS ──────────────────────────────────────────────────────────────
 const fadeUp = keyframes`
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
-// --- layout
+const shimmer = keyframes`
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+`;
+
+const animated = css`
+  animation: ${fadeUp} 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: ${({ $delay }) => $delay || "0s"};
+`;
+
+// ─── LAYOUT ──────────────────────────────────────────────────────────────────
 const Page = styled.div`
   min-height: 100vh;
-  background: #f7fbff;
-  padding-bottom: 40px;
+  background: ${C.bg};
+  padding-bottom: 60px;
 `;
 
 const Wrapper = styled.div`
-  max-width: 960px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 28px 20px 0;
 `;
 
-const Header = styled.div`
+// ─── TOPBAR ──────────────────────────────────────────────────────────────────
+const TopBar = styled.div`
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-end;
   margin-bottom: 28px;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
 `;
 
-const TitleBlock = styled.div``;
+const TitleGroup = styled.div``;
+
+const Eyebrow = styled.p`
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: ${C.greenLight};
+`;
 
 const PageTitle = styled.h1`
-  margin: 0 0 4px;
-  color: #2f5a2a;
-  font-size: 1.6rem;
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: ${C.forest};
+  letter-spacing: -0.6px;
+  line-height: 1.15;
 `;
 
 const PageSub = styled.p`
-  margin: 0;
-  color: #7b8f7f;
-  font-size: 0.9rem;
+  margin: 5px 0 0;
+  font-size: 0.84rem;
+  color: ${C.textMuted};
 `;
 
 const AddBtn = styled.button`
-  background: #2f5a2a;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: ${C.green};
   color: white;
   border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
-  font-size: 0.9rem;
+  border-radius: 11px;
+  padding: 11px 22px;
+  font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 14px rgba(47, 90, 42, 0.35);
+  transition:
+    background 0.15s,
+    box-shadow 0.15s,
+    transform 0.1s;
+
   &:hover {
-    background: #245026;
+    background: ${C.forest};
+    box-shadow: 0 6px 20px rgba(47, 90, 42, 0.45);
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0);
   }
 `;
 
-// --- stat cards
+// ─── STAT CARDS ──────────────────────────────────────────────────────────────
 const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+
+  @media (max-width: 800px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const StatCard = styled.div`
-  background: white;
+  ${animated}
+  background: ${C.white};
   border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 16px rgba(20, 57, 32, 0.07);
-  animation: ${fadeUp} 0.3s ease;
-  border-left: 4px solid ${({ $color }) => $color || "#2f5a2a"};
+  padding: 20px 22px 18px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+  cursor: ${({ $clickable }) => ($clickable ? "pointer" : "default")};
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: ${({ $color }) => $color || C.green};
+    border-radius: 16px 16px 0 0;
+  }
+
+  &:hover {
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.05),
+      0 10px 28px rgba(0, 0, 0, 0.1);
+    transform: ${({ $clickable }) =>
+      $clickable ? "translateY(-2px)" : "none"};
+  }
+`;
+
+const StatIcon = styled.div`
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: ${({ $bg }) => $bg || C.mint};
+  color: ${({ $color }) => $color || C.green};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  margin-bottom: 14px;
 `;
 
 const StatLabel = styled.p`
-  margin: 0 0 6px;
-  color: #7b8f7f;
-  font-size: 0.8rem;
+  margin: 0 0 5px;
+  font-size: 0.73rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.09em;
+  color: ${C.textMuted};
 `;
 
 const StatValue = styled.p`
-  margin: 0;
-  color: #2f5a2a;
-  font-size: 1.8rem;
+  margin: 0 0 5px;
+  font-size: 1.85rem;
   font-weight: 800;
+  color: ${C.text};
+  letter-spacing: -1px;
+  line-height: 1;
 `;
 
-const StatSub = styled.p`
-  margin: 4px 0 0;
-  color: #aac4aa;
-  font-size: 0.78rem;
+const StatTag = styled.span`
+  display: inline-block;
+  font-size: 0.73rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: ${({ $up }) => ($up ? C.mint : C.goldLight)};
+  color: ${({ $up }) => ($up ? C.green : C.gold)};
 `;
 
-// --- tabs
+// ─── TABS ────────────────────────────────────────────────────────────────────
 const TabRow = styled.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #ebf2eb;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid ${C.border};
   padding-bottom: 0;
 `;
 
 const Tab = styled.button`
   background: none;
   border: none;
-  padding: 10px 20px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
-  color: ${({ $active }) => ($active ? "#2f5a2a" : "#7b8f7f")};
+  color: ${({ $active }) => ($active ? C.green : C.textMuted)};
   border-bottom: 3px solid
-    ${({ $active }) => ($active ? "#2f5a2a" : "transparent")};
+    ${({ $active }) => ($active ? C.green : "transparent")};
   margin-bottom: -2px;
-  transition: all 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
   &:hover {
-    color: #2f5a2a;
+    color: ${C.green};
   }
 `;
 
-// --- card container
+const TabBadge = styled.span`
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: ${({ $active }) => ($active ? C.green : C.border)};
+  color: ${({ $active }) => ($active ? C.white : C.textMuted)};
+  transition:
+    background 0.15s,
+    color 0.15s;
+`;
+
+// ─── FILTER BAR ──────────────────────────────────────────────────────────────
+const FilterBar = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+`;
+
+const FilterChip = styled.button`
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1.5px solid ${({ $active }) => ($active ? C.green : C.border)};
+  background: ${({ $active }) => ($active ? C.mint : C.white)};
+  color: ${({ $active }) => ($active ? C.green : C.textMuted)};
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: ${C.green};
+    color: ${C.green};
+  }
+`;
+
+// ─── CARD SHELL ──────────────────────────────────────────────────────────────
 const Card = styled.div`
-  background: white;
+  ${animated}
+  background: ${C.white};
   border-radius: 18px;
-  box-shadow: 0 6px 24px rgba(20, 57, 32, 0.07);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 20px rgba(0, 0, 0, 0.07);
   overflow: hidden;
 `;
 
-// --- listings tab
-const ListingGrid = styled.div`
-  display: grid;
-  gap: 0;
+// ─── ORDER CARD ──────────────────────────────────────────────────────────────
+const OrderCard = styled.div`
+  border-bottom: 1px solid ${C.border};
+  &:last-child {
+    border-bottom: none;
+  }
 `;
+
+const OrderHeader = styled.div`
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.12s;
+  align-items: center;
+
+  &:hover {
+    background: #f7fbf7;
+  }
+
+  @media (max-width: 540px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const OrderLeft = styled.div``;
+
+const OrderIdRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+`;
+
+const OrderId = styled.span`
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: ${C.text};
+  font-family: "SF Mono", "Fira Code", monospace;
+`;
+
+const OrderDate = styled.span`
+  font-size: 0.75rem;
+  color: ${C.textMuted};
+`;
+
+const OrderMeta = styled.p`
+  margin: 0;
+  font-size: 0.78rem;
+  color: ${C.textMuted};
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+`;
+
+const MetaDot = styled.span`
+  color: ${C.border};
+`;
+
+const OrderRight = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+
+  @media (max-width: 540px) {
+    flex-direction: row;
+    align-items: center;
+  }
+`;
+
+const OrderTotal = styled.span`
+  font-size: 1rem;
+  font-weight: 800;
+  color: ${C.text};
+`;
+
+const ExpandToggle = styled.span`
+  font-size: 0.7rem;
+  color: ${C.textMuted};
+  font-weight: 600;
+`;
+
+const statusMap = {
+  pending: { bg: C.goldLight, color: C.gold, label: "Pending" },
+  confirmed: { bg: C.mint, color: C.green, label: "Confirmed" },
+  delivering: { bg: C.blueLight, color: C.blue, label: "Shipping" },
+  delivered: { bg: C.mint, color: C.green, label: "Delivered" },
+  cancelled: { bg: C.redLight, color: C.red, label: "Cancelled" },
+  refunded: { bg: C.purpleLight, color: C.purple, label: "Refunded" },
+};
+
+const StatusBadge = styled.span`
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 11px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  background: ${({ $s }) => statusMap[$s]?.bg ?? C.mint};
+  color: ${({ $s }) => statusMap[$s]?.color ?? C.green};
+`;
+
+// ─── EXPANDED ORDER ──────────────────────────────────────────────────────────
+const OrderExpanded = styled.div`
+  padding: 0 20px 20px;
+  display: grid;
+  gap: 12px;
+  animation: ${fadeUp} 0.25s ease;
+`;
+
+const SectionLabel = styled.p`
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: ${C.textMuted};
+`;
+
+const ItemRow = styled.div`
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: ${C.bg};
+  border-radius: 12px;
+  padding: 10px 14px;
+`;
+
+const ItemThumb = styled.img`
+  width: 48px;
+  height: 48px;
+  border-radius: 9px;
+  object-fit: cover;
+  background: ${C.mintDark};
+`;
+
+const ItemInfo = styled.div``;
+const ItemName = styled.p`
+  margin: 0 0 2px;
+  font-size: 0.87rem;
+  font-weight: 700;
+  color: ${C.text};
+`;
+const ItemMeta = styled.p`
+  margin: 0;
+  font-size: 0.76rem;
+  color: ${C.textMuted};
+`;
+const ItemPrice = styled.p`
+  margin: 0;
+  font-size: 0.87rem;
+  font-weight: 700;
+  color: ${C.text};
+  white-space: nowrap;
+`;
+
+const InfoGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  @media (max-width: 540px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const InfoBox = styled.div`
+  background: ${C.bg};
+  border: 1px solid ${C.border};
+  border-radius: 12px;
+  padding: 12px 16px;
+`;
+
+const InfoLabel = styled.p`
+  margin: 0 0 3px;
+  font-size: 0.71rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: ${C.textMuted};
+`;
+
+const InfoValue = styled.p`
+  margin: 0;
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: ${C.text};
+`;
+
+// ─── STATUS STEPPER ──────────────────────────────────────────────────────────
+const stepOrder = ["pending", "confirmed", "delivering", "delivered"];
+
+const Stepper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 12px 0 4px;
+`;
+
+const Step = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+
+  &:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: ${({ $done }) => ($done ? C.green : C.border)};
+    z-index: 0;
+  }
+`;
+
+const StepDot = styled.div`
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: ${({ $done, $current }) =>
+    $current ? C.green : $done ? C.mintDark : C.border};
+  border: 2px solid
+    ${({ $done, $current }) =>
+      $current ? C.green : $done ? C.greenMid : C.border};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: ${({ $done, $current }) =>
+    $current || $done ? C.green : C.textMuted};
+  z-index: 1;
+  position: relative;
+`;
+
+const StepLabel = styled.p`
+  margin: 5px 0 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: ${({ $done, $current }) =>
+    $current ? C.green : $done ? C.textMid : C.textMuted};
+  text-align: center;
+  text-transform: capitalize;
+`;
+
+// ─── ACTION BUTTONS ──────────────────────────────────────────────────────────
+const ActionBar = styled.div`
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+`;
+
+const ActionBtn = styled.button`
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition:
+    opacity 0.15s,
+    transform 0.1s;
+  background: ${({ $variant }) =>
+    $variant === "danger"
+      ? C.redLight
+      : $variant === "primary"
+        ? C.green
+        : C.mint};
+  color: ${({ $variant }) =>
+    $variant === "danger" ? C.red : $variant === "primary" ? C.white : C.green};
+
+  &:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
+  &:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+// ─── LISTINGS TAB ────────────────────────────────────────────────────────────
+const ListingGrid = styled.div``;
 
 const ListingRow = styled.div`
   display: grid;
-  grid-template-columns: 70px 1fr auto;
-  gap: 16px;
+  grid-template-columns: 68px 1fr auto;
+  gap: 14px;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f0f7ee;
-  animation: ${fadeUp} 0.3s ease;
+  padding: 14px 20px;
+  border-bottom: 1px solid ${C.border};
+  transition: background 0.12s;
+  animation: ${fadeUp} 0.3s ease both;
+
   &:last-child {
     border-bottom: none;
   }
@@ -167,240 +617,99 @@ const ListingRow = styled.div`
 `;
 
 const ListingThumb = styled.img`
-  width: 70px;
-  height: 60px;
+  width: 68px;
+  height: 58px;
   object-fit: cover;
-  border-radius: 10px;
-  background: #d7e9d7;
+  border-radius: 11px;
+  background: ${C.mintDark};
 `;
 
 const ListingInfo = styled.div``;
 
 const ListingTitle = styled.p`
   margin: 0 0 3px;
-  color: #2f5a2a;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: ${C.text};
 `;
 
 const ListingMeta = styled.p`
-  margin: 0;
-  color: #7b8f7f;
-  font-size: 0.82rem;
+  margin: 0 0 2px;
+  font-size: 0.78rem;
+  color: ${C.textMuted};
 `;
 
 const ListingActions = styled.div`
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+
+  @media (max-width: 500px) {
+    display: none;
+  }
 `;
 
 const SmallBtn = styled.button`
   padding: 6px 14px;
   border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  background: ${({ $variant }) =>
-    $variant === "danger"
-      ? "#fdf0f0"
-      : $variant === "edit"
-        ? "#f0f7ee"
-        : "#f0f7ee"};
-  color: ${({ $variant }) => ($variant === "danger" ? "#a32d2d" : "#2f5a2a")};
-  &:hover {
-    background: ${({ $variant }) =>
-      $variant === "danger" ? "#f5d5d5" : "#d7efd7"};
-  }
-`;
-
-// --- orders tab
-const OrderList = styled.div``;
-
-const OrderCard = styled.div`
-  border-bottom: 1px solid #f0f7ee;
-  animation: ${fadeUp} 0.3s ease;
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const OrderHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 18px 20px 12px;
-  gap: 12px;
-  flex-wrap: wrap;
-  cursor: pointer;
-  &:hover {
-    background: #f7fbf7;
-  }
-`;
-
-const OrderMeta = styled.div``;
-
-const OrderId = styled.p`
-  margin: 0 0 3px;
-  color: #2f5a2a;
-  font-weight: 700;
-  font-size: 0.9rem;
-  font-family: monospace;
-`;
-
-const OrderInfo = styled.p`
-  margin: 0;
-  color: #7b8f7f;
-  font-size: 0.82rem;
-`;
-
-const OrderRight = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-`;
-
-const OrderTotal = styled.p`
-  margin: 0;
-  color: #2f5a2a;
-  font-weight: 700;
-  font-size: 1rem;
-`;
-
-const statusColors = {
-  pending: { bg: "#fff8e5", color: "#b07d00" },
-  confirmed: { bg: "#eef9f0", color: "#2f5a2a" },
-  delivering: { bg: "#e5f4ff", color: "#1a5a8a" },
-  delivered: { bg: "#eef9f0", color: "#2f5a2a" },
-  cancelled: { bg: "#fdf0f0", color: "#a32d2d" },
-  refunded: { bg: "#f5f0ff", color: "#5a2a8a" },
-};
-
-const StatusBadge = styled.span`
-  padding: 4px 12px;
-  border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 700;
-  text-transform: capitalize;
-  background: ${({ $s }) => statusColors[$s]?.bg ?? "#f0f7ee"};
-  color: ${({ $s }) => statusColors[$s]?.color ?? "#2f5a2a"};
-`;
-
-const OrderExpanded = styled.div`
-  padding: 0 20px 18px;
-  display: grid;
-  gap: 12px;
-`;
-
-const OrderItemRow = styled.div`
-  display: grid;
-  grid-template-columns: 50px 1fr auto;
-  gap: 12px;
-  align-items: center;
-  background: #f0f7ee;
-  border-radius: 12px;
-  padding: 10px 14px;
-`;
-
-const OrderItemImg = styled.img`
-  width: 50px;
-  height: 50px;
-  object-fit: cover;
-  border-radius: 8px;
-  background: #d7e9d7;
-`;
-
-const OrderItemInfo = styled.div``;
-const OrderItemName = styled.p`
-  margin: 0;
-  color: #2f5a2a;
-  font-weight: 600;
-  font-size: 0.88rem;
-`;
-const OrderItemMeta = styled.p`
-  margin: 0;
-  color: #7b8f7f;
-  font-size: 0.8rem;
-`;
-const OrderItemPrice = styled.p`
-  margin: 0;
-  color: #2f5a2a;
-  font-weight: 700;
-  font-size: 0.88rem;
-  white-space: nowrap;
-`;
-
-const DeliveryInfo = styled.div`
-  background: #f7fbff;
-  border: 1px solid #d7e9ff;
-  border-radius: 12px;
-  padding: 14px;
-  display: grid;
-  gap: 8px;
-`;
-
-const DelivRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-`;
-const DelivLabel = styled.span`
-  color: #7b8f7f;
-`;
-const DelivValue = styled.span`
-  color: #2f5a2a;
-  font-weight: 600;
-`;
-
-const ActionBar = styled.div`
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-`;
-
-const ActionBtn = styled.button`
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 600;
   cursor: pointer;
   border: none;
   background: ${({ $variant }) =>
-    $variant === "danger"
-      ? "#fdf0f0"
-      : $variant === "primary"
-        ? "#2f5a2a"
-        : "#f0f7ee"};
-  color: ${({ $variant }) =>
-    $variant === "danger"
-      ? "#a32d2d"
-      : $variant === "primary"
-        ? "white"
-        : "#2f5a2a"};
+    $variant === "danger" ? C.redLight : C.mint};
+  color: ${({ $variant }) => ($variant === "danger" ? C.red : C.green)};
+  transition: background 0.15s;
+
   &:hover {
-    opacity: 0.85;
-  }
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+    background: ${({ $variant }) =>
+      $variant === "danger" ? "#f5d5d5" : C.mintDark};
   }
 `;
 
+// ─── MISC ────────────────────────────────────────────────────────────────────
 const EmptyState = styled.div`
   text-align: center;
   padding: 60px 20px;
-  color: #7b8f7f;
+  color: ${C.textMuted};
+  font-size: 0.9rem;
+`;
+
+const EmptyIcon = styled.div`
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+`;
+
+const SkeletonRow = styled.div`
+  height: 72px;
+  border-radius: 0;
+  background: linear-gradient(
+    90deg,
+    ${C.border} 25%,
+    #f7faf7 50%,
+    ${C.border} 75%
+  );
+  background-size: 800px 100%;
+  animation: ${shimmer} 1.4s infinite linear;
+  border-bottom: 1px solid ${C.border};
 `;
 
 const paymentLabels = {
   cash: "Cash on Delivery",
-  mobile: "Mobile Money",
+  mobile: "M-Pesa",
   bank: "Bank Transfer",
 };
 
-// ─── DASHBOARD COMPONENT ────────────────────────────────────────────────────
+const ALL_STATUSES = [
+  "all",
+  "pending",
+  "confirmed",
+  "delivering",
+  "delivered",
+  "cancelled",
+];
+
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -408,6 +717,7 @@ const Dashboard = () => {
 
   const [activeTab, setActiveTab] = useState("orders");
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: stats } = useDashboardStats(seller_id);
   const { data: listings = [], isLoading: loadingListings } =
@@ -418,7 +728,7 @@ const Dashboard = () => {
     useUpdateOrderStatus();
   const { mutate: deleteListing } = useDeleteListing();
 
-  // group order items by order_id
+  // group items → orders
   const orders = Object.values(
     orderItems.reduce((acc, item) => {
       const oid = item.orders?.id;
@@ -427,11 +737,17 @@ const Dashboard = () => {
       acc[oid].items.push(item);
       return acc;
     }, {}),
-  );
+  ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-  const handleStatusUpdate = (order_id, status) => {
+  const filteredOrders =
+    statusFilter === "all"
+      ? orders
+      : orders.filter((o) => o.status === statusFilter);
+
+  const pendingCount = orders.filter((o) => o.status === "pending").length;
+
+  const handleStatusUpdate = (order_id, status) =>
     updateStatus({ order_id, status });
-  };
 
   const nextActions = (status) => {
     switch (status) {
@@ -461,77 +777,149 @@ const Dashboard = () => {
           },
         ];
       case "delivered":
-        return [{ label: "↩ Refund", status: "refunded", variant: "danger" }];
+        return [
+          { label: "↩ Issue Refund", status: "refunded", variant: "danger" },
+        ];
       default:
         return [];
     }
   };
 
+  const currentStep = (status) => stepOrder.indexOf(status);
+
   return (
     <Page>
       <AppNavbar />
       <Wrapper>
-        {/* Header */}
-        <Header>
-          <TitleBlock>
+        {/* TOP BAR */}
+        <TopBar>
+          <TitleGroup>
+            <Eyebrow>Store Management</Eyebrow>
             <PageTitle>My Store</PageTitle>
-            <PageSub>Manage your listings and incoming orders</PageSub>
-          </TitleBlock>
-          <AddBtn onClick={() => navigate("/newlist")}>+ Add Listing</AddBtn>
-        </Header>
+            <PageSub>Manage your listings and fulfil incoming orders.</PageSub>
+          </TitleGroup>
+          {/* <AddBtn onClick={() => navigate("/newlist")}>+ New Listing</AddBtn> */}
+        </TopBar>
 
-        {/* Stats */}
+        {/* STATS */}
         <StatsGrid>
-          <StatCard $color="#2f5a2a">
+          <StatCard
+            $color={C.green}
+            $delay="0s"
+            $clickable
+            onClick={() => navigate("/sales")}
+          >
+            <StatIcon $bg={C.mint} $color={C.green}>
+              💰
+            </StatIcon>
             <StatLabel>Total Revenue</StatLabel>
             <StatValue>
-              Kes {stats?.totalRevenue?.toLocaleString() ?? 0}
+              Kes {(stats?.totalRevenue ?? 0).toLocaleString()}
             </StatValue>
-            <StatSub>all time</StatSub>
+            <StatTag $up>↑ View details</StatTag>
           </StatCard>
-          <StatCard $color="#1a5a8a">
+
+          <StatCard $color={C.blue} $delay="0.07s">
+            <StatIcon $bg={C.blueLight} $color={C.blue}>
+              📦
+            </StatIcon>
             <StatLabel>Orders Received</StatLabel>
             <StatValue>{stats?.totalOrders ?? 0}</StatValue>
-            <StatSub>total orders</StatSub>
+            <StatTag $up>All time</StatTag>
           </StatCard>
-          <StatCard $color="#b07d00">
+
+          <StatCard $color={C.gold} $delay="0.14s">
+            <StatIcon $bg={C.goldLight} $color={C.gold}>
+              ⏳
+            </StatIcon>
             <StatLabel>Pending Orders</StatLabel>
             <StatValue>{stats?.pendingOrders ?? 0}</StatValue>
-            <StatSub>need action</StatSub>
+            <StatTag>Needs action</StatTag>
           </StatCard>
-          <StatCard $color="#5a2a8a">
+
+          <StatCard $color={C.purple} $delay="0.21s">
+            <StatIcon $bg={C.purpleLight} $color={C.purple}>
+              🌿
+            </StatIcon>
             <StatLabel>Active Listings</StatLabel>
             <StatValue>{stats?.totalListings ?? 0}</StatValue>
-            <StatSub>live on marketplace</StatSub>
+            <StatTag $up>Live</StatTag>
           </StatCard>
         </StatsGrid>
 
-        {/* Tabs */}
+        {/* TABS */}
         <TabRow>
           <Tab
             $active={activeTab === "orders"}
             onClick={() => setActiveTab("orders")}
           >
-            Orders {orders.length > 0 && `(${orders.length})`}
+            Orders
+            {orders.length > 0 && (
+              <TabBadge $active={activeTab === "orders"}>
+                {orders.length}
+              </TabBadge>
+            )}
+            {pendingCount > 0 && activeTab !== "orders" && (
+              <TabBadge style={{ background: C.gold, color: C.white }}>
+                {pendingCount} pending
+              </TabBadge>
+            )}
           </Tab>
           <Tab
             $active={activeTab === "listings"}
             onClick={() => setActiveTab("listings")}
           >
-            Listings {listings.length > 0 && `(${listings.length})`}
+            Listings
+            {listings.length > 0 && (
+              <TabBadge $active={activeTab === "listings"}>
+                {listings.length}
+              </TabBadge>
+            )}
           </Tab>
         </TabRow>
 
-        {/* ORDERS TAB */}
+        {/* ── ORDERS TAB ─────────────────────────────────────────────── */}
         {activeTab === "orders" && (
-          <Card>
-            {loadingOrders ? (
-              <EmptyState>Loading orders...</EmptyState>
-            ) : orders.length === 0 ? (
-              <EmptyState>No orders received yet.</EmptyState>
-            ) : (
-              <OrderList>
-                {orders.map((order) => (
+          <>
+            {/* status filter chips */}
+            {orders.length > 0 && (
+              <FilterBar>
+                {ALL_STATUSES.map((s) => {
+                  const count =
+                    s === "all"
+                      ? orders.length
+                      : orders.filter((o) => o.status === s).length;
+                  if (s !== "all" && count === 0) return null;
+                  return (
+                    <FilterChip
+                      key={s}
+                      $active={statusFilter === s}
+                      onClick={() => setStatusFilter(s)}
+                    >
+                      {s === "all" ? "All" : (statusMap[s]?.label ?? s)} (
+                      {count})
+                    </FilterChip>
+                  );
+                })}
+              </FilterBar>
+            )}
+
+            <Card $delay="0.28s">
+              {loadingOrders ? (
+                <>
+                  <SkeletonRow />
+                  <SkeletonRow style={{ opacity: 0.6 }} />
+                  <SkeletonRow style={{ opacity: 0.35 }} />
+                </>
+              ) : filteredOrders.length === 0 ? (
+                <EmptyState>
+                  <EmptyIcon>📭</EmptyIcon>
+                  {statusFilter === "all"
+                    ? "No orders received yet."
+                    : `No ${statusFilter} orders.`}
+                </EmptyState>
+              ) : (
+                filteredOrders.map((order) => (
                   <OrderCard key={order.id}>
                     <OrderHeader
                       onClick={() =>
@@ -540,73 +928,121 @@ const Dashboard = () => {
                         )
                       }
                     >
-                      <OrderMeta>
-                        <OrderId>#{order.id.slice(0, 8).toUpperCase()}</OrderId>
-                        <OrderInfo>
-                          {formatSmartDate(order.created_at)} ·{" "}
-                          {paymentLabels[order.payment_method] ??
-                            order.payment_method}
-                        </OrderInfo>
-                        <OrderInfo>
-                          📍 {order.delivery_address} · 📞 {order.mobile_no}
-                        </OrderInfo>
-                      </OrderMeta>
+                      <OrderLeft>
+                        <OrderIdRow>
+                          <OrderId>
+                            #{order.id.slice(0, 8).toUpperCase()}
+                          </OrderId>
+                          <StatusBadge $s={order.status}>
+                            {statusMap[order.status]?.label ?? order.status}
+                          </StatusBadge>
+                          <OrderDate>
+                            {formatSmartDate(order.created_at)}
+                          </OrderDate>
+                        </OrderIdRow>
+                        <OrderMeta>
+                          <span>📍 {order.delivery_address}</span>
+                          <MetaDot>·</MetaDot>
+                          <span>📞 {order.mobile_no}</span>
+                          <MetaDot>·</MetaDot>
+                          <span>
+                            {paymentLabels[order.payment_method] ??
+                              order.payment_method}
+                          </span>
+                          <MetaDot>·</MetaDot>
+                          <span>
+                            {order.items?.length} item
+                            {order.items?.length !== 1 ? "s" : ""}
+                          </span>
+                        </OrderMeta>
+                      </OrderLeft>
+
                       <OrderRight>
                         <OrderTotal>
                           Kes {order.total_cost?.toLocaleString()}
                         </OrderTotal>
-                        <StatusBadge $s={order.status}>
-                          {order.status}
-                        </StatusBadge>
-                        <span style={{ color: "#aac4aa", fontSize: "0.75rem" }}>
+                        <ExpandToggle>
                           {expandedOrder === order.id ? "▲ hide" : "▼ details"}
-                        </span>
+                        </ExpandToggle>
                       </OrderRight>
                     </OrderHeader>
 
                     {expandedOrder === order.id && (
                       <OrderExpanded>
-                        {/* items */}
-                        {order.items.map((item) => (
-                          <OrderItemRow key={item.id}>
-                            <OrderItemImg
-                              src={item.listings?.image_url}
-                              alt={item.listings?.title}
-                            />
-                            <OrderItemInfo>
-                              <OrderItemName>
-                                {item.listings?.title}
-                              </OrderItemName>
-                              <OrderItemMeta>
-                                Qty: {item.quantity} · {item.listings?.unit}
-                              </OrderItemMeta>
-                            </OrderItemInfo>
-                            <OrderItemPrice>
-                              Kes{" "}
-                              {(
-                                item.price_at_purchase * item.quantity
-                              ).toLocaleString()}
-                            </OrderItemPrice>
-                          </OrderItemRow>
-                        ))}
+                        {/* status stepper */}
+                        {!["cancelled", "refunded"].includes(order.status) && (
+                          <div>
+                            <SectionLabel>Order Progress</SectionLabel>
+                            <Stepper>
+                              {stepOrder.map((step, i) => {
+                                const cur = currentStep(order.status);
+                                const done = i < cur;
+                                const current = i === cur;
+                                return (
+                                  <Step key={step} $done={done || current}>
+                                    <StepDot $done={done} $current={current}>
+                                      {done ? "✓" : i + 1}
+                                    </StepDot>
+                                    <StepLabel $done={done} $current={current}>
+                                      {step}
+                                    </StepLabel>
+                                  </Step>
+                                );
+                              })}
+                            </Stepper>
+                          </div>
+                        )}
 
-                        {/* delivery info */}
-                        <DeliveryInfo>
-                          <DelivRow>
-                            <DelivLabel>Delivery Address</DelivLabel>
-                            <DelivValue>{order.delivery_address}</DelivValue>
-                          </DelivRow>
-                          <DelivRow>
-                            <DelivLabel>Mobile</DelivLabel>
-                            <DelivValue>{order.mobile_no}</DelivValue>
-                          </DelivRow>
-                          <DelivRow>
-                            <DelivLabel>Payment</DelivLabel>
-                            <DelivValue>
-                              {paymentLabels[order.payment_method]}
-                            </DelivValue>
-                          </DelivRow>
-                        </DeliveryInfo>
+                        {/* order items */}
+                        <div>
+                          <SectionLabel>Items Ordered</SectionLabel>
+                          {order.items.map((item) => (
+                            <ItemRow key={item.id}>
+                              <ItemThumb
+                                src={item.listings?.image_url}
+                                alt={item.listings?.title}
+                              />
+                              <ItemInfo>
+                                <ItemName>{item.listings?.title}</ItemName>
+                                <ItemMeta>
+                                  Qty: {item.quantity} · {item.listings?.unit} ·{" "}
+                                  {item.listings?.category}
+                                </ItemMeta>
+                              </ItemInfo>
+                              <ItemPrice>
+                                Kes{" "}
+                                {(
+                                  item.price_at_purchase * item.quantity
+                                ).toLocaleString()}
+                              </ItemPrice>
+                            </ItemRow>
+                          ))}
+                        </div>
+
+                        {/* delivery + payment info */}
+                        <InfoGrid>
+                          <InfoBox>
+                            <InfoLabel>Delivery Address</InfoLabel>
+                            <InfoValue>{order.delivery_address}</InfoValue>
+                          </InfoBox>
+                          <InfoBox>
+                            <InfoLabel>Contact</InfoLabel>
+                            <InfoValue>{order.mobile_no}</InfoValue>
+                          </InfoBox>
+                          <InfoBox>
+                            <InfoLabel>Payment Method</InfoLabel>
+                            <InfoValue>
+                              {paymentLabels[order.payment_method] ??
+                                order.payment_method}
+                            </InfoValue>
+                          </InfoBox>
+                          <InfoBox>
+                            <InfoLabel>Order Total</InfoLabel>
+                            <InfoValue>
+                              Kes {order.total_cost?.toLocaleString()}
+                            </InfoValue>
+                          </InfoBox>
+                        </InfoGrid>
 
                         {/* action buttons */}
                         {nextActions(order.status).length > 0 && (
@@ -628,30 +1064,31 @@ const Dashboard = () => {
                       </OrderExpanded>
                     )}
                   </OrderCard>
-                ))}
-              </OrderList>
-            )}
-          </Card>
+                ))
+              )}
+            </Card>
+          </>
         )}
 
-        {/* LISTINGS TAB */}
+        {/* ── LISTINGS TAB ───────────────────────────────────────────── */}
         {activeTab === "listings" && (
-          <Card>
+          <Card $delay="0.28s">
             {loadingListings ? (
-              <EmptyState>Loading listings...</EmptyState>
+              <>
+                <SkeletonRow />
+                <SkeletonRow style={{ opacity: 0.6 }} />
+                <SkeletonRow style={{ opacity: 0.35 }} />
+              </>
             ) : listings.length === 0 ? (
               <EmptyState>
-                No listings yet.{" "}
-                <span
-                  style={{
-                    color: "#2f5a2a",
-                    cursor: "pointer",
-                    textDecoration: "underline",
-                  }}
-                  onClick={() => navigate("/add-listing")}
+                <EmptyIcon>🌱</EmptyIcon>
+                <p>No listings yet.</p>
+                <SmallBtn
+                  style={{ margin: "8px auto 0", display: "block" }}
+                  onClick={() => navigate("/newlist")}
                 >
                   Add your first listing →
-                </span>
+                </SmallBtn>
               </EmptyState>
             ) : (
               <ListingGrid>
@@ -661,16 +1098,18 @@ const Dashboard = () => {
                     <ListingInfo>
                       <ListingTitle>{listing.title}</ListingTitle>
                       <ListingMeta>
-                        Kes {listing.price} / {listing.unit} ·{" "}
-                        {listing.category} · {listing.location}
+                        Kes {listing.price?.toLocaleString()} / {listing.unit}
+                        &nbsp;·&nbsp;{listing.category}
+                        &nbsp;·&nbsp;{listing.location}
                       </ListingMeta>
-                      <ListingMeta>
-                        {formatSmartDate(listing.created_at)}
+                      <ListingMeta
+                        style={{ color: C.textMuted, fontSize: "0.73rem" }}
+                      >
+                        Added {formatSmartDate(listing.created_at)}
                       </ListingMeta>
                     </ListingInfo>
                     <ListingActions>
                       <SmallBtn
-                        $variant="edit"
                         onClick={() =>
                           navigate("/edit-listing", { state: { listing } })
                         }

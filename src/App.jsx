@@ -48,6 +48,7 @@ import ViewOrder from "./components/mobile/ViewOrder";
 import Dashboard from "./components/mobile/Dashboard";
 import { EditListing } from "./components/mobile/EditListing";
 import AppHome from "./components/mobile/AppHome";
+import SalesDashboard from "./components/mobile/SalesDashboard";
 
 function App() {
   // Create a client
@@ -72,6 +73,7 @@ function App() {
                 path="/order-confirmation"
                 element={<OrderConfirmation />}
               />
+              <Route path="/sales" element={<SalesDashboard />} />
               <Route path="/edit-listing" element={<EditListing />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/order/:order_id" element={<ViewOrder />} />
@@ -114,7 +116,7 @@ function App() {
             <Route path="/shop" element={<Shop />} />
             <Route path="/aboutus" element={<AboutUs />} />
             <Route path="/faq" element={<FAQ />} />
-            <Route path="/shop/item" element={<Merchandise />} />
+            <Route path="/shop/item/:id" element={<Merchandise />} />
             <Route path="*" element={<ErrorDisplay />} />
           </Routes>
         </BrowserRouter>

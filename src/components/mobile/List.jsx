@@ -16,8 +16,11 @@ const List = () => {
 
   let user_id = user?.id;
 
-  // Fetch  listings from subapase and replace the hardcoded goods with real data
+  // -------Fetch  listings from subapase and replace the hardcoded goods with real data
   const { data, isLoading, error } = useListings();
+
+  // ------Remove all objects in the array that seller_id == user_id
+  const dataMain = data?.filter((item) => item.seller_id !== user?.id);
 
   if (isLoading)
     return (
@@ -38,8 +41,8 @@ const List = () => {
       </>
     );
 
-  // Filter listings based on search term, checking title, description, category and location for matches
-  const filteredGoods = data?.filter((listingItem) => {
+  //-------Filter listings based on search term, checking title, description, category and location for matches
+  const filteredGoods = dataMain?.filter((listingItem) => {
     const search = searchTerm.toLowerCase();
 
     return (

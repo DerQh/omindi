@@ -1,648 +1,821 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import styled from "styled-components";
+import { Link, useNavigate } from "react-router-dom";
+import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 
-const MainContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px;
-  font-family: "Dosis", sans-serif;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+// ─── Eye icons for the password toggle ───────────────────────────────────────
+
+const EyeOpen = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeClosed = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+    <line x1="1" y1="1" x2="23" y2="23" />
+  </svg>
+);
+
+// ─── Animations ───────────────────────────────────────────────────────────────
+
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
-const LogoContainer = styled(Link)`
+const spin = keyframes`
+  to { transform: rotate(360deg); }
+`;
+
+// ─── Page layout ─────────────────────────────────────────────────────────────
+// Two-column on desktop: branded left panel + form right panel
+// Collapses to single column (form only) on mobile
+
+const Page = styled.div`
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+// ─── Left panel — brand + trust signals ──────────────────────────────────────
+
+const LeftPanel = styled.div`
+  background: linear-gradient(145deg, #0f2210 0%, #1e3d1a 40%, #2f5a2a 80%, #3d7a35 100%);
+  padding: 48px 52px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+
+  /* Decorative circles */
+  &::before {
+    content: "";
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    top: -120px; right: -120px;
+    pointer-events: none;
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    bottom: -60px; left: -60px;
+    pointer-events: none;
+  }
+
+  @media (max-width: 860px) { display: none; }
+`;
+
+const LeftLogo = styled(Link)`
+  display: flex;
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  color: inherit;
+  position: relative;
+  z-index: 1;
+
+  img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+`;
+
+const LeftLogoText = styled.span`
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: white;
+  letter-spacing: -0.5px;
+`;
+
+const LeftBody = styled.div`
+  position: relative;
+  z-index: 1;
+`;
+
+const LeftHeadline = styled.h2`
+  margin: 0 0 14px;
+  font-size: clamp(1.6rem, 2.4vw, 2rem);
+  font-weight: 900;
+  color: white;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+`;
+
+const LeftSub = styled.p`
+  margin: 0 0 40px;
+  color: rgba(255,255,255,0.65);
+  font-size: 0.95rem;
+  line-height: 1.7;
+`;
+
+// Trust signal rows shown on the left panel
+const TrustList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+`;
+
+const TrustItem = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+`;
+
+const TrustIcon = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+`;
+
+const TrustText = styled.div``;
+
+const TrustTitle = styled.p`
+  margin: 0 0 2px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+`;
+
+const TrustDesc = styled.p`
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.5;
+`;
+
+// Stat chips at the bottom of the left panel
+const StatRow = styled.div`
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+`;
+
+const StatChip = styled.div`
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+`;
+
+// ─── Right panel — form ───────────────────────────────────────────────────────
+
+const RightPanel = styled.div`
+  background: #f5f8f5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  min-height: 100vh;
+
+  @media (max-width: 480px) { padding: 32px 20px; }
+`;
+
+// Mobile-only logo — hidden on desktop (left panel has it)
+const MobileLogo = styled(Link)`
+  display: none;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  margin-bottom: 28px;
+
+  img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  span {
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: #2f5a2a;
+  }
+
+  @media (max-width: 860px) { display: flex; }
+`;
+
+const FormCard = styled.div`
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(20, 57, 32, 0.09);
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  animation: ${fadeUp} 0.4s ease;
+
+  @media (max-width: 480px) { padding: 28px 22px; }
+`;
+
+const FormHeader = styled.div`
+  margin-bottom: 28px;
+`;
+
+const FormTitle = styled.h2`
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1a2e1a;
+  letter-spacing: -0.03em;
+`;
+
+const FormSub = styled.p`
+  margin: 0;
+  color: #7b8f7f;
+  font-size: 0.88rem;
+`;
+
+// ─── Mode switcher tabs ───────────────────────────────────────────────────────
+
+const ModeTabs = styled.div`
+  display: flex;
+  background: #f0f7ee;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 28px;
+`;
+
+const ModeTab = styled.button`
+  flex: 1;
+  padding: 9px;
+  border-radius: 7px;
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: ${({ $active }) => ($active ? "white" : "transparent")};
+  color: ${({ $active }) => ($active ? "#2f5a2a" : "#7b8f7f")};
+  box-shadow: ${({ $active }) => ($active ? "0 2px 8px rgba(0,0,0,0.08)" : "none")};
+`;
+
+// ─── Input fields ─────────────────────────────────────────────────────────────
+
+const Field = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+`;
+
+const FieldLabel = styled.label`
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1a2e1a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+`;
+
+const InputWrap = styled.div`
+  position: relative;
+`;
+
+// $hasError uses the $ prefix to avoid forwarding to the DOM element
+const Input = styled.input`
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  padding-right: ${({ $hasToggle }) => ($hasToggle ? "44px" : "16px")};
+  border: 1.5px solid ${({ $hasError }) => ($hasError ? "#dc3545" : "#d7edd9")};
+  border-radius: 11px;
+  font-size: 16px;
+  color: #1a2e1a;
+  background: ${({ $hasError }) => ($hasError ? "#fff5f5" : "#f8faf6")};
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+
+  &::placeholder { color: #aac4aa; }
+
+  &:focus {
+    border-color: ${({ $hasError }) => ($hasError ? "#dc3545" : "#2f5a2a")};
+    background: white;
+    box-shadow: 0 0 0 3px ${({ $hasError }) =>
+      $hasError ? "rgba(220,53,69,0.1)" : "rgba(47,90,42,0.1)"};
+  }
+`;
+
+// Show/hide password toggle button inside the input
+const ToggleBtn = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #aac4aa;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 1rem;
+  line-height: 1;
+  transition: color 0.15s;
+
+  &:hover { color: #2f5a2a; }
+`;
+
+const FieldError = styled.p`
+  margin: 0;
+  font-size: 0.75rem;
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+// ─── Inline row: Remember me + Forgot password ────────────────────────────────
+
+const LoginExtras = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
 `;
 
-const Logo = styled.img`
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+const RememberRow = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: #556652;
   cursor: pointer;
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  color: #2f5a2a;
-  font-size: 2.2rem;
-`;
-
-const AuthContainer = styled.div`
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 15px 35px rgba(47, 90, 42, 0.1);
-  padding: 40px;
-  width: 100%;
-  max-width: 400px;
-`;
-
-const AuthHeader = styled.div`
-  text-align: center;
-  margin-bottom: 30px;
-
-  h2 {
-    margin: 0 0 10px;
-    color: #2f5a2a;
-    font-size: 1.8rem;
-  }
-
-  p {
-    margin: 0;
-    color: #5b6d57;
-    font-size: 14px;
-  }
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  label {
-    font-weight: 600;
-    color: #2f5a2a;
-    font-size: 14px;
-  }
-
-  .input-container {
-    position: relative;
-  }
 
   input {
-    padding: 14px 16px;
-    border: 2px solid #e8f0e8;
-    border-radius: 12px;
-    font-size: 16px;
-    color: #243a20;
-    background: #fafcfa;
-    transition: all 0.3s ease;
-    width: 90%;
-
-    &:focus {
-      outline: none;
-      border-color: #2f5a2a;
-      background: white;
-      box-shadow: 0 0 0 3px rgba(47, 90, 42, 0.1);
-    }
-
-    &::placeholder {
-      color: #9ba89b;
-    }
-
-    ${({ hasError }) =>
-      hasError &&
-      `
-      border-color: #dc3545;
-      background: #fff5f5;
-
-      &:focus {
-        border-color: #dc3545;
-        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
-      }
-    `}
-  }
-
-  .password-toggle {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #9ba89b;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: color 0.2s ease;
-
-    &:hover {
-      color: #2f5a2a;
-    }
-
-    svg {
-      width: 20px;
-      height: 20px;
-    }
-  }
-
-  .error-message {
-    color: #dc3545;
-    font-size: 12px;
-    margin-top: 4px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    svg {
-      width: 14px;
-      height: 14px;
-    }
+    width: 15px;
+    height: 15px;
+    accent-color: #2f5a2a;
   }
 `;
 
-const SubmitButton = styled.button`
-  padding: 16px;
-  background: linear-gradient(135deg, #2f5a2a 0%, #3d7a3d 100%);
+const ForgotLink = styled.a`
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #2f5a2a;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+`;
+
+// ─── Submit button ────────────────────────────────────────────────────────────
+
+const SubmitBtn = styled.button`
+  width: 100%;
+  padding: 14px;
+  background: #2f5a2a;
   color: white;
   border: none;
   border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  transition: background 0.18s, transform 0.12s;
+  margin-top: 4px;
 
-  &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #245026 0%, #2f5a2a 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(47, 90, 42, 0.3);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
+  &:hover:not(:disabled) { background: #1e3d1a; transform: translateY(-1px); }
+  &:active:not(:disabled) { transform: translateY(0); }
+  &:disabled { opacity: 0.65; cursor: not-allowed; }
 `;
 
-const ErrorMessage = styled.div`
-  background: #f8d7da;
-  color: #721c24;
+const Spinner = styled.span`
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: ${spin} 0.7s linear infinite;
+  display: inline-block;
+`;
+
+// ─── Error banner ─────────────────────────────────────────────────────────────
+
+const ErrorBanner = styled.div`
+  background: #fdf0f0;
+  border: 1px solid #f5c6c2;
+  border-radius: 10px;
   padding: 12px 16px;
-  border-radius: 8px;
   margin-bottom: 20px;
-  border: 1px solid #f5c6cb;
+  font-size: 0.85rem;
+  color: #a32d2d;
+  font-weight: 500;
+`;
+
+// ─── Success state shown after signup ────────────────────────────────────────
+
+const SuccessCard = styled.div`
+  text-align: center;
+  padding: 16px 0;
+  animation: ${fadeUp} 0.3s ease;
+`;
+
+const SuccessIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 14px;
+`;
+
+const SuccessTitle = styled.h3`
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1a2e1a;
+`;
+
+const SuccessDesc = styled.p`
+  margin: 0 0 20px;
+  color: #7b8f7f;
+  font-size: 0.88rem;
+  line-height: 1.6;
+`;
+
+const SuccessBtn = styled.button`
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 11px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #1e3d1a; }
+`;
+
+// ─── Divider + toggle ────────────────────────────────────────────────────────
+
+const Divider = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  margin: 22px 0;
+  color: #aac4aa;
+  font-size: 0.78rem;
 
-  svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
+  &::before, &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e8f0e8;
   }
 `;
 
 const ToggleText = styled.p`
   text-align: center;
-  margin: 20px 0 0;
-  color: #5b6d57;
-  font-size: 14px;
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7b8f7f;
 
-  span {
+  button {
+    background: none;
+    border: none;
     color: #2f5a2a;
+    font-weight: 700;
     cursor: pointer;
-    font-weight: 600;
-    text-decoration: underline;
+    font-size: inherit;
+    padding: 0;
+    margin-left: 4px;
 
-    &:hover {
-      color: #1e3a1e;
-    }
+    &:hover { text-decoration: underline; }
   }
 `;
 
-const CheckboxGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-
-  input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: #2f5a2a;
-  }
-
-  label {
-    font-size: 14px;
-    color: #5b6d57;
-    cursor: pointer;
-  }
-`;
-
-const ForgotPassword = styled.a`
-  color: #2f5a2a;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  display: inline-block;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const Divider = styled.div`
-  display: flex;
-  align-items: center;
+const BackToHome = styled(Link)`
+  display: block;
   text-align: center;
-  margin: 20px 0;
-  color: #9ba89b;
-  font-size: 14px;
+  margin-top: 20px;
+  font-size: 0.82rem;
+  color: #7b8f7f;
+  text-decoration: none;
 
-  &::before,
-  &::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background-color: #e8f0e8;
-  }
-
-  &::before {
-    margin-right: 10px;
-  }
-
-  &::after {
-    margin-left: 10px;
-  }
+  &:hover { color: #2f5a2a; }
 `;
+
+// ─── Trust signals data ───────────────────────────────────────────────────────
+
+const TRUST = [
+  {
+    icon: "🌿",
+    title: "Connect directly with farmers",
+    desc: "No middlemen — buy and sell fresh produce at fair prices.",
+  },
+  {
+    icon: "🔒",
+    title: "Your data is secure",
+    desc: "We use industry-standard encryption to protect your account.",
+  },
+  {
+    icon: "📍",
+    title: "Local and nationwide",
+    desc: "Find farms within your area or source from across Kenya.",
+  },
+];
+
+// ─── Component ────────────────────────────────────────────────────────────────
+// Handles both Sign In and Sign Up in one component — toggled by isLogin state.
+// All validation runs client-side before calling Supabase auth.
 
 function SignupLogin() {
-  const { login, signup } = useAuth();
   const navigate = useNavigate();
+  const { login, signup } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true);
+  const [signupSuccess, setSignupSuccess] = useState(false);
+
   const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    username: "", email: "", password: "", confirmPassword: "",
   });
+
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
+    setFormData((p) => ({ ...p, [name]: value }));
+    // Clear the error for this field as soon as the user starts correcting it
+    if (errors[name]) setErrors((p) => ({ ...p, [name]: "" }));
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    // ✅ Username only for signup
-    if (!isLogin && !formData.username.trim()) {
-      newErrors.username = "Username is required";
-    }
-
-    // ✅ Email required for BOTH login and signup
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
-    }
-
-    // ✅ Password
-    if (!formData.password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    // ✅ Confirm password only for signup
+  const validate = () => {
+    const e = {};
+    if (!isLogin && !formData.username.trim()) e.username = "Full name is required";
+    if (!formData.email.trim())                e.email    = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = "Enter a valid email";
+    if (!formData.password)                    e.password = "Password is required";
+    else if (formData.password.length < 6)     e.password = "At least 6 characters";
     if (!isLogin) {
-      if (!formData.confirmPassword.trim()) {
-        newErrors.confirmPassword = "Please confirm your password";
-      } else if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match";
-      }
+      if (!formData.confirmPassword)           e.confirmPassword = "Please confirm your password";
+      else if (formData.password !== formData.confirmPassword) e.confirmPassword = "Passwords do not match";
     }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  // HAMDLE FORM SUBMISSION
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
-
-    if (!validateForm()) return;
-
+    if (!validate()) return;
     setIsLoading(true);
-
     try {
       if (isLogin) {
         await login(formData.email, formData.password);
         navigate("/mobile");
       } else {
-
         await signup(formData.email, formData.password, formData.username);
-
-        alert("Account created! Check your email if confirmation is enabled.");
-
-        setIsLogin(true);
+        setSignupSuccess(true);
       }
     } catch (err) {
-      setErrors({
-        submit: err?.message || "Something went wrong.",
-      });
+      setErrors({ submit: err?.message || "Something went wrong. Please try again." });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleMode = () => {
-    setIsLogin(!isLogin);
-
-    setFormData({
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    });
+  const switchMode = () => {
+    setIsLogin((p) => !p);
+    setFormData({ username: "", email: "", password: "", confirmPassword: "" });
     setErrors({});
+    setSignupSuccess(false);
   };
 
   return (
-    <MainContainer>
-      <LogoContainer to="/mobile">
-        <Logo src="/logo1.jpg" alt="Logo" />
-        <Title>AFARMER</Title>
-      </LogoContainer>
+    <Page>
 
-      <AuthContainer>
-        <AuthHeader>
-          <h2>{isLogin ? "Welcome Back!" : "Join Our Community"}</h2>
-          <p>
-            {isLogin ? "Sign in to your account" : "Create your farmer account"}
-          </p>
-        </AuthHeader>
+      {/* ── Left panel — brand + trust signals ── */}
+      <LeftPanel>
+        <LeftLogo to="/">
+          <img src="/logo1.jpg" alt="Afarmer logo" loading="lazy" />
+          <LeftLogoText>AFARMER</LeftLogoText>
+        </LeftLogo>
 
-        {errors.submit && (
-          <ErrorMessage>
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                opacity="0"
-              />
-              <path d="M13 17h-2v-6h2v6zm0-8h-2V7h2v2z" />
-            </svg>
-            {errors.submit}
-          </ErrorMessage>
-        )}
+        <LeftBody>
+          <LeftHeadline>
+            The marketplace for<br />local food & farms
+          </LeftHeadline>
+          <LeftSub>
+            Join thousands of Kenyan farmers and buyers connecting
+            directly — no middlemen, no markup.
+          </LeftSub>
+          <TrustList>
+            {TRUST.map((t) => (
+              <TrustItem key={t.title}>
+                <TrustIcon>{t.icon}</TrustIcon>
+                <TrustText>
+                  <TrustTitle>{t.title}</TrustTitle>
+                  <TrustDesc>{t.desc}</TrustDesc>
+                </TrustText>
+              </TrustItem>
+            ))}
+          </TrustList>
+        </LeftBody>
 
-        <Form onSubmit={handleSubmit}>
-          {isLogin ? (
-            <InputGroup hasError={!!errors.email}>
-              <label htmlFor="email">E-mail </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter your email"
-                required
-              />
-              {errors.email && (
-                <div className="error-message">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                      opacity="0"
-                    />
-                    <path d="M13 17h-2v-6h2v6zm0-8h-2V7h2v2z" />
-                  </svg>
-                  {errors.email}
-                </div>
-              )}
-            </InputGroup>
+        <StatRow>
+          <StatChip>500+ Farms</StatChip>
+          <StatChip>12K+ Buyers</StatChip>
+          <StatChip>30+ Counties</StatChip>
+        </StatRow>
+      </LeftPanel>
+
+      {/* ── Right panel — form ── */}
+      <RightPanel>
+        {/* Logo shown only on mobile (left panel is hidden) */}
+        <MobileLogo to="/">
+          <img src="/logo1.jpg" alt="Afarmer logo" loading="lazy" />
+          <span>AFARMER</span>
+        </MobileLogo>
+
+        <FormCard>
+          {signupSuccess ? (
+            // Success state — replaces the form after a successful signup
+            <SuccessCard>
+              <SuccessIcon>🎉</SuccessIcon>
+              <SuccessTitle>Account created!</SuccessTitle>
+              <SuccessDesc>
+                Check your email to confirm your account, then sign in
+                to start connecting with farmers and buyers.
+              </SuccessDesc>
+              <SuccessBtn onClick={() => { setSignupSuccess(false); setIsLogin(true); }}>
+                Go to Sign In →
+              </SuccessBtn>
+            </SuccessCard>
           ) : (
-            <InputGroup hasError={!!errors.username}>
-              <label htmlFor="username">Full Name </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                placeholder="Enter your full names"
-                required
-              />
-              {errors.username && (
-                <div className="error-message">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                      opacity="0"
-                    />
-                    <path d="M13 17h-2v-6h2v6zm0-8h-2V7h2v2z" />
-                  </svg>
-                  {errors.username}
-                </div>
-              )}
-            </InputGroup>
-          )}
-
-          {!isLogin && (
-            <InputGroup hasError={!!errors.email}>
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter your email"
-                required
-              />
-              {errors.email && (
-                <div className="error-message">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                      opacity="0"
-                    />
-                    <path d="M13 17h-2v-6h2v6zm0-8h-2V7h2v2z" />
-                  </svg>
-                  {errors.email}
-                </div>
-              )}
-            </InputGroup>
-          )}
-
-          <InputGroup hasError={!!errors.password}>
-            <label htmlFor="password">Password</label>
-            <div className="input-container">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Enter your password"
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92 1.11-1.11c1.73-4.39 6-7.5 11-7.5-1.73-4.39-6-7.5-11-7.5-1.55 0-3.03.3-4.38.84l.42.42c.65-.31 1.35-.52 2.08-.52z" />
-                    <path d="M2.81 2.81 1.39 4.22l2.27 2.27C2.61 8.07 2 9.96 2 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42c-1.51.76-3.18 1.17-4.92 1.17-5 0-9.27-3.11-11-7.5 1.73-4.39 6-7.5 11-7.5 1.55 0 3.03.3 4.38.84l.42-.42C15.03 3.3 13.45 3 12 3c-2.76 0-5 2.24-5 5 0 .57.11 1.11.31 1.61L7.31 9.61C7.11 9.25 7 8.64 7 8c0-1.66 1.34-3 3-3 .74 0 1.41.21 1.97.56l2.92-2.92L2.81 2.81z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <div className="error-message">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                    opacity="0"
-                  />
-                  <path d="M13 17h-2v-6h2v6zm0-8h-2V7h2v2z" />
-                </svg>
-                {errors.password}
-              </div>
-            )}
-          </InputGroup>
-
-          {isLogin && (
             <>
-              <CheckboxGroup>
-                <input type="checkbox" id="remember" name="remember" />
-                <label htmlFor="remember">Remember me</label>
-              </CheckboxGroup>
-              <ForgotPassword href="#" onClick={(e) => e.preventDefault()}>
-                Forgot your password?
-              </ForgotPassword>
+              <FormHeader>
+                <FormTitle>{isLogin ? "Welcome back" : "Create account"}</FormTitle>
+                <FormSub>
+                  {isLogin
+                    ? "Sign in to your Afarmer account"
+                    : "Join the Afarmer community today — it's free"}
+                </FormSub>
+              </FormHeader>
+
+              {/* Tab switcher: Sign In | Sign Up */}
+              <ModeTabs>
+                <ModeTab $active={isLogin}  onClick={() => { if (!isLogin) switchMode(); }}>Sign In</ModeTab>
+                <ModeTab $active={!isLogin} onClick={() => { if (isLogin) switchMode(); }}>Sign Up</ModeTab>
+              </ModeTabs>
+
+              {/* Global error banner */}
+              {errors.submit && <ErrorBanner>⚠️ {errors.submit}</ErrorBanner>}
+
+              <form onSubmit={handleSubmit}>
+
+                {/* Full name — signup only */}
+                {!isLogin && (
+                  <Field>
+                    <FieldLabel htmlFor="username">Full Name *</FieldLabel>
+                    <Input
+                      id="username"
+                      name="username"
+                      type="text"
+                      value={formData.username}
+                      onChange={handleChange}
+                      placeholder="e.g. Amina Wanjiru"
+                      $hasError={!!errors.username}
+                      required
+                    />
+                    {errors.username && <FieldError>⚠ {errors.username}</FieldError>}
+                  </Field>
+                )}
+
+                {/* Email */}
+                <Field>
+                  <FieldLabel htmlFor="email">Email Address *</FieldLabel>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                    $hasError={!!errors.email}
+                    required
+                  />
+                  {errors.email && <FieldError>⚠ {errors.email}</FieldError>}
+                </Field>
+
+                {/* Password */}
+                <Field>
+                  <FieldLabel htmlFor="password">Password *</FieldLabel>
+                  <InputWrap>
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder={isLogin ? "Your password" : "Min. 6 characters"}
+                      $hasError={!!errors.password}
+                      $hasToggle
+                      required
+                    />
+                    <ToggleBtn
+                      type="button"
+                      onClick={() => setShowPassword((p) => !p)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeClosed /> : <EyeOpen />}
+                    </ToggleBtn>
+                  </InputWrap>
+                  {errors.password && <FieldError>⚠ {errors.password}</FieldError>}
+                </Field>
+
+                {/* Confirm password — signup only */}
+                {!isLogin && (
+                  <Field>
+                    <FieldLabel htmlFor="confirmPassword">Confirm Password *</FieldLabel>
+                    <InputWrap>
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="Repeat your password"
+                        $hasError={!!errors.confirmPassword}
+                        $hasToggle
+                        required
+                      />
+                      <ToggleBtn
+                        type="button"
+                        onClick={() => setShowConfirmPassword((p) => !p)}
+                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showConfirmPassword ? <EyeClosed /> : <EyeOpen />}
+                      </ToggleBtn>
+                    </InputWrap>
+                    {errors.confirmPassword && <FieldError>⚠ {errors.confirmPassword}</FieldError>}
+                  </Field>
+                )}
+
+                {/* Remember me + Forgot password — login only, same row */}
+                {isLogin && (
+                  <LoginExtras>
+                    <RememberRow>
+                      <input type="checkbox" id="remember" name="remember" />
+                      Remember me
+                    </RememberRow>
+                    <ForgotLink href="#" onClick={(e) => e.preventDefault()}>
+                      Forgot password?
+                    </ForgotLink>
+                  </LoginExtras>
+                )}
+
+                <SubmitBtn type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <><Spinner /> {isLogin ? "Signing in…" : "Creating account…"}</>
+                  ) : (
+                    isLogin ? "Sign In →" : "Create Account →"
+                  )}
+                </SubmitBtn>
+              </form>
+
+              <Divider>or</Divider>
+
+              <ToggleText>
+                {isLogin ? "Don't have an account?" : "Already have an account?"}
+                <button type="button" onClick={switchMode}>
+                  {isLogin ? "Sign up free" : "Sign in"}
+                </button>
+              </ToggleText>
             </>
           )}
+        </FormCard>
 
-          {!isLogin && (
-            <InputGroup hasError={!!errors.confirmPassword}>
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <div className="input-container">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  placeholder="Confirm your password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={
-                    showConfirmPassword ? "Hide password" : "Show password"
-                  }
-                >
-                  {showConfirmPassword ? (
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92 1.11-1.11c1.73-4.39 6-7.5 11-7.5-1.73-4.39-6-7.5-11-7.5-1.55 0-3.03.3-4.38.84l.42.42c.65-.31 1.35-.52 2.08-.52z" />
-                      <path d="M2.81 2.81 1.39 4.22l2.27 2.27C2.61 8.07 2 9.96 2 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42c-1.51.76-3.18 1.17-4.92 1.17-5 0-9.27-3.11-11-7.5 1.73-4.39 6-7.5 11-7.5 1.55 0 3.03.3 4.38.84l.42-.42C15.03 3.3 13.45 3 12 3c-2.76 0-5 2.24-5 5 0 .57.11 1.11.31 1.61L7.31 9.61C7.11 9.25 7 8.64 7 8c0-1.66 1.34-3 3-3 .74 0 1.41.21 1.97.56l2.92-2.92L2.81 2.81z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <div className="error-message">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                      opacity="0"
-                    />
-                    <path d="M13 17h-2v-6h2v6zm0-8h-2V7h2v2z" />
-                  </svg>
-                  {errors.confirmPassword}
-                </div>
-              )}
-            </InputGroup>
-          )}
+        <BackToHome to="/">← Back to home</BackToHome>
+      </RightPanel>
 
-          <SubmitButton type="submit" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <div className="spinner"></div>
-                {isLogin ? "Signing In..." : "Creating Account..."}
-              </>
-            ) : isLogin ? (
-              "Sign In"
-            ) : (
-              "Create Account"
-            )}
-          </SubmitButton>
-        </Form>
-
-        <Divider>or</Divider>
-
-        <ToggleText>
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <span onClick={toggleMode}>
-            {isLogin ? "Sign up now!" : "Sign in here"}
-          </span>
-        </ToggleText>
-      </AuthContainer>
-    </MainContainer>
+    </Page>
   );
 }
 

@@ -3,143 +3,236 @@ import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
-import { useOrder } from "../../hooks/useOrders";
-import { formatSmartDate } from "../../hooks/dateFormat";
 import { useMarkAllRead, useMarkRead, useNotifications } from "../../hooks/useNotification";
+import { formatSmartDate } from "../../hooks/dateFormat";
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+// ─── Animations ───────────────────────────────────────────────────────────────
+
+const slideUp = keyframes`
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
 const expandDown = keyframes`
   from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
+
+const shimmer = keyframes`
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+`;
+
+// ─── Page Shell ───────────────────────────────────────────────────────────────
 
 const Container = styled.div`
   min-height: 100vh;
-  background: #f7fbff;
-  padding: 20px 24px;
+  background: #f5f8f5;
+  padding-bottom: 48px;
 `;
 
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 24px;
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
-`;
+// ─── Hero ─────────────────────────────────────────────────────────────────────
 
-const BackButton = styled.button`
-  background: #2f5a2a;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  width: 40px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16px;
-  flex-shrink: 0;
-  &:hover {
-    background: #245026;
+const Hero = styled.div`
+  background: linear-gradient(135deg, #2f5a2a 0%, #3d7a35 60%, #4e9643 100%);
+  padding: 32px 24px 72px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    top: -70px;
+    right: -50px;
+    pointer-events: none;
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    bottom: 10px;
+    left: -30px;
+    pointer-events: none;
   }
 `;
 
-const TitleRow = styled.div`
+const HeroTop = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex: 1;
+  margin-bottom: 20px;
 `;
 
-const Title = styled.h1`
-  margin: 0;
-  color: #2f5a2a;
+const HeroLeft = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  /*  */
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: -0.2px;
-  white-space: nowrap;
 `;
 
-const UnreadBadge = styled.span`
-  background: #2f5a2a;
+const BackBtn = styled.button`
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 2px 10px;
-  border-radius: 999px;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+`;
+
+const HeroTitle = styled.h1`
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 800;
 `;
 
 const MarkAllBtn = styled.button`
-  background: none;
-  border: none;
-  color: #2f5a2a;
-  font-size: 0.85rem;
-  font-weight: 600;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 999px;
   cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
+  white-space: nowrap;
+
   &:hover {
-    color: #245026;
+    background: rgba(255, 255, 255, 0.28);
   }
 `;
 
-const FilterRow = styled.div`
+const HeroStats = styled.div`
   display: flex;
-  gap: 8px;
-  max-width: 700px;
-  margin: 0 auto 20px;
+  gap: 10px;
   flex-wrap: wrap;
 `;
 
-const FilterBtn = styled.button`
-  padding: 6px 16px;
+const StatChip = styled.div`
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 999px;
-  border: 2px solid ${({ $active }) => ($active ? "#2f5a2a" : "#d7e9d7")};
-  background: ${({ $active }) => ($active ? "#2f5a2a" : "white")};
-  color: ${({ $active }) => ($active ? "white" : "#2f5a2a")};
-  font-size: 0.85rem;
+  padding: 7px 14px;
+  color: white;
+  font-size: 0.88rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+// ─── Filter Bar ───────────────────────────────────────────────────────────────
+
+// Floats over the hero bottom edge — same pattern as Following.jsx tab bar
+const FilterBarWrap = styled.div`
+  position: relative;
+  margin-top: -40px;
+  padding: 0 20px;
+  z-index: 10;
+  margin-bottom: 20px;
+`;
+
+const FilterBar = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 5px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 8px 28px rgba(20, 57, 32, 0.11);
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+`;
+
+const FilterBtn = styled.button`
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: none;
+  background: ${({ $active }) => ($active ? "#2f5a2a" : "transparent")};
+  color: ${({ $active }) => ($active ? "white" : "#7b8f7f")};
+  font-size: 0.83rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
   &:hover {
-    background: #2f5a2a;
-    color: white;
-    border-color: #2f5a2a;
+    background: ${({ $active }) => ($active ? "#2f5a2a" : "#eef7ee")};
+    color: ${({ $active }) => ($active ? "white" : "#2f5a2a")};
   }
 `;
 
-const Card = styled.div`
-  max-width: 700px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(20, 57, 32, 0.08);
-  overflow: hidden;
+const FilterCount = styled.span`
+  background: ${({ $active }) => ($active ? "rgba(255,255,255,0.25)" : "#eef7ee")};
+  color: ${({ $active }) => ($active ? "white" : "#2f5a2a")};
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
 `;
 
-const NotifList = styled.div`
-  display: flex;
-  flex-direction: column;
+// ─── Content ──────────────────────────────────────────────────────────────────
+
+const ContentArea = styled.div`
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
 `;
+
+// ─── Date Groups ──────────────────────────────────────────────────────────────
+
+// Groups notifications visually under Today / Yesterday / Earlier
+const DateGroup = styled.div`
+  margin-bottom: 18px;
+  animation: ${slideUp} 0.3s ease;
+`;
+
+const DateLabel = styled.p`
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #7b8f7f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+`;
+
+const NotifCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(20, 57, 32, 0.07);
+`;
+
+// ─── Notification Row ─────────────────────────────────────────────────────────
 
 const NotifItem = styled.div`
   border-bottom: 1px solid #f0f7ee;
-  background: ${({ $unread }) => ($unread ? "#f7fbf7" : "white")};
+  background: ${({ $unread }) => ($unread ? "#fafff8" : "white")};
   transition: background 0.15s;
-  animation: ${fadeIn} 0.3s ease;
+
   &:last-child {
     border-bottom: none;
   }
@@ -148,11 +241,12 @@ const NotifItem = styled.div`
 const NotifRow = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  padding: 18px 22px;
+  gap: 13px;
+  padding: 16px 18px;
   cursor: pointer;
+
   &:hover {
-    background: #eef9f0;
+    background: #f0f9f0;
   }
 `;
 
@@ -160,11 +254,11 @@ const IconWrap = styled.div`
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: ${({ $color }) => $color || "#eef9f0"};
+  background: ${({ $bg }) => $bg || "#eef9f0"};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   flex-shrink: 0;
 `;
 
@@ -175,57 +269,66 @@ const NotifContent = styled.div`
 
 const NotifTitle = styled.p`
   margin: 0 0 3px;
-  color: #2f5a2a;
+  color: #1a3318;
   font-weight: ${({ $unread }) => ($unread ? "700" : "500")};
-  font-size: 0.95rem;
+  font-size: 0.93rem;
 `;
 
+// Clamp body to 2 lines — old code used white-space:nowrap which cut messages off entirely
 const NotifBody = styled.p`
   margin: 0 0 5px;
   color: #7b8f7f;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   line-height: 1.5;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 `;
 
 const NotifTime = styled.span`
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: #aac4aa;
+`;
+
+const NotifRight = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+`;
+
+// Green dot shown on unread notifications
+const UnreadDot = styled.div`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2f5a2a;
 `;
 
 const ChevronWrap = styled.div`
   color: #aac4aa;
-  font-size: 0.8rem;
-  margin-top: 4px;
+  font-size: 0.75rem;
   transition: transform 0.2s;
   transform: ${({ $open }) => ($open ? "rotate(180deg)" : "rotate(0deg)")};
 `;
 
-const UnreadDot = styled.div`
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #2f5a2a;
-  flex-shrink: 0;
-  margin-top: 6px;
-`;
+// ─── Expanded Detail Panel ────────────────────────────────────────────────────
 
-// --- Expanded detail panel
 const DetailPanel = styled.div`
-  padding: 0 22px 20px 80px;
+  padding: 0 18px 18px 75px;
   animation: ${expandDown} 0.2s ease;
 
   @media (max-width: 500px) {
-    padding-left: 22px;
+    padding-left: 18px;
   }
 `;
 
 const DetailCard = styled.div`
   background: #f0f7ee;
   border-radius: 14px;
-  padding: 18px;
+  padding: 16px;
   display: grid;
   gap: 10px;
 `;
@@ -239,14 +342,14 @@ const DetailRow = styled.div`
 
 const DetailLabel = styled.span`
   color: #7b8f7f;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   flex-shrink: 0;
 `;
 
 const DetailValue = styled.span`
   color: #2f5a2a;
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   text-align: right;
 `;
 
@@ -260,195 +363,190 @@ const DetailActionBtn = styled.button`
   color: white;
   border: none;
   border-radius: 10px;
-  padding: 10px 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  padding: 10px 18px;
+  font-size: 0.88rem;
+  font-weight: 700;
   cursor: pointer;
-  margin-top: 4px;
   align-self: flex-start;
+  margin-top: 2px;
+  transition: background 0.2s;
+
   &:hover {
     background: #245026;
   }
 `;
 
-const EmptyState = styled.div`
+// ─── Loading Skeleton ─────────────────────────────────────────────────────────
+
+const SkeletonBase = styled.div`
+  border-radius: 8px;
+  background: linear-gradient(90deg, #e8f0e8 25%, #f0f7f0 50%, #e8f0e8 75%);
+  background-size: 800px 100%;
+  animation: ${shimmer} 1.4s infinite;
+`;
+
+const SkeletonRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #f0f7ee;
+  &:last-child { border-bottom: none; }
+`;
+
+const SkeletonCircle = styled(SkeletonBase)`
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+`;
+
+const SkeletonLines = styled.div`
+  flex: 1;
+  display: grid;
+  gap: 8px;
+`;
+
+const SkeletonLine = styled(SkeletonBase)`
+  height: 12px;
+  width: ${({ $w }) => $w || "100%"};
+`;
+
+const LoadingSkeleton = () => (
+  <NotifCard>
+    {Array.from({ length: 5 }).map((_, i) => (
+      <SkeletonRow key={i}>
+        <SkeletonCircle />
+        <SkeletonLines>
+          <SkeletonLine $w="50%" />
+          <SkeletonLine $w="80%" />
+          <SkeletonLine $w="28%" />
+        </SkeletonLines>
+      </SkeletonRow>
+    ))}
+  </NotifCard>
+);
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+
+const EmptyWrap = styled.div`
   text-align: center;
-  padding: 60px 20px;
-  color: #7b8f7f;
+  padding: 60px 24px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(20, 57, 32, 0.07);
 `;
 
 const EmptyIcon = styled.div`
   font-size: 3rem;
   margin-bottom: 12px;
 `;
-const EmptyText = styled.p`
-  margin: 0;
+
+const EmptyTitle = styled.p`
+  margin: 0 0 6px;
   font-size: 1rem;
+  font-weight: 700;
+  color: #1a3318;
 `;
 
-// --- Mock data with detail objects
-const MOCK_NOTIFICATIONS = [
-  {
-    id: 1,
-    type: "order",
-    title: "Order Confirmed",
-    body: "Your order ORD-K8X2F for Fresh Tomatoes has been confirmed.",
-    time: "2 min ago",
-    unread: true,
-    icon: "🛒",
-    iconBg: "#eef9f0",
-    detail: {
-      orderId: "ORD-K8X2F",
-      items: [
-        { name: "Fresh Tomatoes", qty: 2, price: 200 },
-        { name: "Onion ", qty: 3, price: 525 },
-      ],
-      total: 400,
-      payment: "Cash on Delivery",
-      status: "Confirmed",
-      delivery: "2–4 business days",
-    },
-  },
-  {
-    id: 2,
-    type: "inquiry",
-    title: "New Inquiry on Your Listing",
-    body: "John Kamau asked: 'Is this still available? Can you deliver to Westlands?'",
-    time: "15 min ago",
-    unread: true,
-    icon: "💬",
-    iconBg: "#e5f4ff",
-    detail: {
-      from: "John Kamau",
-      listing: "Organic Avocados — 1kg",
-      message: "Is this still available? Can you deliver to Westlands?",
-      sent: "15 min ago",
-    },
-  },
-  {
-    id: 3,
-    type: "order",
-    title: "Order Out for Delivery",
-    body: "Your order ORD-A3T7P is on its way. Expected delivery today.",
-    time: "1 hr ago",
-    unread: true,
-    icon: "🚚",
-    iconBg: "#fff8e5",
-    detail: {
-      orderId: "ORD-A3T7P",
-      items: [{ name: "Fresh Spinach", qty: 3, price: 100 }],
-      total: 300,
-      payment: "Mobile Money",
-      status: "Out for Delivery",
-      delivery: "Today",
-    },
-  },
-  {
-    id: 4,
-    type: "favorite",
-    title: "Someone Saved Your Listing",
-    body: "A buyer added 'Organic Avocados — 1kg' to their favourites.",
-    time: "3 hrs ago",
-    unread: false,
-    icon: "❤️",
-    iconBg: "#fdf0f0",
-    detail: { listing: "Organic Avocados — 1kg", totalSaves: 12 },
-  },
-  {
-    id: 5,
-    type: "inquiry",
-    title: "New Inquiry on Your Listing",
-    body: "Grace Wanjiru asked: 'What is the minimum order quantity?'",
-    time: "5 hrs ago",
-    unread: false,
-    icon: "💬",
-    iconBg: "#e5f4ff",
-    detail: {
-      from: "Grace Wanjiru",
-      listing: "Fresh Tomatoes — 2kg",
-      message: "What is the minimum order quantity?",
-      sent: "5 hrs ago",
-    },
-  },
-  {
-    id: 6,
-    type: "order",
-    title: "Order Delivered",
-    body: "Your order ORD-B9W1Q has been marked as delivered.",
-    time: "Yesterday",
-    unread: false,
-    icon: "✅",
-    iconBg: "#eef9f0",
-    detail: {
-      orderId: "ORD-B9W1Q",
-      items: [{ name: "Ugali Flour 2kg", qty: 1, price: 180 }],
-      total: 180,
-      payment: "Bank Transfer",
-      status: "Delivered",
-      delivery: "Completed",
-    },
-  },
-  {
-    id: 7,
-    type: "price",
-    title: "Price Drop Alert",
-    body: "Fresh Spinach Bundle dropped from Kes 150 to Kes 100.",
-    time: "Yesterday",
-    unread: false,
-    icon: "📉",
-    iconBg: "#f0f7ee",
-    detail: { listing: "Fresh Spinach Bundle", oldPrice: 150, newPrice: 100 },
-  },
-  {
-    id: 8,
-    type: "system",
-    title: "Welcome to the Marketplace!",
-    body: "Your account is set up. Start browsing listings or add your own products.",
-    time: "2 days ago",
-    unread: false,
-    icon: "🌿",
-    iconBg: "#eef9f0",
-    detail: {
-      message:
-        "Your account is ready. Browse listings or post your own products to start selling.",
-      action: "Browse Listings",
-    },
-  },
+const EmptyDesc = styled.p`
+  margin: 0;
+  color: #7b8f7f;
+  font-size: 0.88rem;
+`;
+
+// ─── Static config ────────────────────────────────────────────────────────────
+
+// Maps notification type to icon + background colour
+const NOTIF_META = {
+  order:    { icon: "🛒", iconBg: "#eef9f0" },
+  inquiry:  { icon: "💬", iconBg: "#e5f4ff" },
+  favorite: { icon: "❤️", iconBg: "#fdf0f0" },
+  price:    { icon: "📉", iconBg: "#f0f7ee" },
+  system:   { icon: "🌿", iconBg: "#eef9f0" },
+};
+
+const FILTERS = [
+  { label: "All",       type: null },
+  { label: "Orders",    type: "order" },
+  { label: "Inquiries", type: "inquiry" },
+  { label: "Saved",     type: "favorite" },
+  { label: "System",    type: ["price", "system"] },
 ];
 
-const NOTIF_META = {
-  order: { icon: "🛒", iconBg: "#eef9f0" },
-  inquiry: { icon: "💬", iconBg: "#e5f4ff" },
-  favorite: { icon: "❤️", iconBg: "#fdf0f0" },
-  price: { icon: "📉", iconBg: "#f0f7ee" },
-  system: { icon: "🌿", iconBg: "#eef9f0" },
+// Per-filter empty state messages
+const EMPTY_MSG = {
+  All:       { icon: "🔔", title: "No notifications yet",     desc: "You're all caught up!" },
+  Orders:    { icon: "🛒", title: "No order notifications",   desc: "Order updates will appear here." },
+  Inquiries: { icon: "💬", title: "No inquiries yet",         desc: "Buyer messages about your listings will show here." },
+  Saved:     { icon: "❤️", title: "No saves yet",             desc: "When buyers save your listings you'll see it here." },
+  System:    { icon: "🌿", title: "No system notifications",  desc: "Platform updates and alerts will appear here." },
 };
-const FILTERS = ["All", "Orders", "Inquiries", "Favourites", "System"];
-const filterMap = {
-  All: null,
-  Orders: "order",
-  Inquiries: "inquiry",
-  Favourites: "favorite",
-  System: ["price", "system"],
+
+const paymentLabels = {
+  cash:   "Cash on Delivery",
+  mobile: "Mobile Money",
+  bank:   "Bank Transfer",
 };
+
+// Groups a flat array of notifications into Today / Yesterday / Earlier
+// based on the Supabase created_at timestamp
+const groupByDate = (items) => {
+  const todayStr = new Date().toDateString();
+  const yday = new Date();
+  yday.setDate(yday.getDate() - 1);
+  const ydayStr = yday.toDateString();
+
+  const groups = { Today: [], Yesterday: [], Earlier: [] };
+  items.forEach((n) => {
+    const d = new Date(n.created_at).toDateString();
+    if (d === todayStr) groups.Today.push(n);
+    else if (d === ydayStr) groups.Yesterday.push(n);
+    else groups.Earlier.push(n);
+  });
+  return groups;
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const Notifications = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const { mutate: markRead } = useMarkRead();
   const { mutate: markAllRead } = useMarkAllRead();
   const { data: notifications, isLoading } = useNotifications(user?.id);
-  // const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+
   const [activeFilter, setActiveFilter] = useState("All");
   const [expandedId, setExpandedId] = useState(null);
-  const paymentLabels = {
-    cash: "Cash on Delivery",
-    mobile: "Mobile Money",
-    bank: "Bank Transfer",
-  };
-  console.log(notifications);
 
-  // --- Detail content per notification type
+  const unreadCount = notifications?.filter((n) => !n.read).length ?? 0;
+  const totalCount  = notifications?.length ?? 0;
+
+  // Filter list based on active tab
+  const filtered = notifications?.filter((n) => {
+    const f = FILTERS.find((x) => x.label === activeFilter)?.type;
+    if (!f) return true;
+    if (Array.isArray(f)) return f.includes(n.type);
+    return n.type === f;
+  }) ?? [];
+
+  // Count per tab for badge numbers
+  const countFor = (label) => {
+    const f = FILTERS.find((x) => x.label === label)?.type;
+    if (!f) return totalCount;
+    return notifications?.filter((n) => {
+      if (Array.isArray(f)) return f.includes(n.type);
+      return n.type === f;
+    }).length ?? 0;
+  };
+
+  const handleClick = (n) => {
+    setExpandedId((prev) => (prev === n.id ? null : n.id));
+    if (!n.read) markRead(n.id);
+  };
+
+  // Detail panel rendered per notification type when a row is expanded
   const renderDetail = (n) => {
     switch (n.type) {
       case "order":
@@ -456,9 +554,7 @@ const Notifications = () => {
           <DetailCard>
             <DetailRow>
               <DetailLabel>Order ID</DetailLabel>
-              <DetailValue>
-                {n.detail?.orderId?.slice(0, 8).toUpperCase()}
-              </DetailValue>
+              <DetailValue>{n.detail?.orderId?.slice(0, 8).toUpperCase()}</DetailValue>
             </DetailRow>
             <DetailDivider />
             <DetailRow>
@@ -471,25 +567,18 @@ const Notifications = () => {
             </DetailRow>
             <DetailRow>
               <DetailLabel>Payment</DetailLabel>
-              <DetailValue>
-                {paymentLabels[n.detail?.payment] ?? n.detail?.payment}
-              </DetailValue>
+              <DetailValue>{paymentLabels[n.detail?.payment] ?? n.detail?.payment}</DetailValue>
             </DetailRow>
             <DetailRow>
               <DetailLabel>Date</DetailLabel>
               <DetailValue>
                 {new Date(n.created_at).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
+                  month: "short", day: "numeric", year: "numeric",
+                  hour: "2-digit", minute: "2-digit",
                 })}
-              </DetailValue>{" "}
+              </DetailValue>
             </DetailRow>
-            <DetailActionBtn
-              onClick={() => navigate(`/order/${n.detail?.orderId}`)}
-            >
+            <DetailActionBtn onClick={() => navigate(`/order/${n.detail?.orderId}`)}>
               View Order →
             </DetailActionBtn>
           </DetailCard>
@@ -500,24 +589,22 @@ const Notifications = () => {
           <DetailCard>
             <DetailRow>
               <DetailLabel>From</DetailLabel>
-              <DetailValue>{n.detail.from}</DetailValue>
+              <DetailValue>{n.detail?.from}</DetailValue>
             </DetailRow>
             <DetailRow>
               <DetailLabel>Listing</DetailLabel>
-              <DetailValue>{n.detail.listing}</DetailValue>
+              <DetailValue>{n.detail?.listing}</DetailValue>
             </DetailRow>
             <DetailDivider />
             <DetailRow>
               <DetailLabel>Message</DetailLabel>
-              <DetailValue style={{ maxWidth: "60%", lineHeight: 1.5 }}>
-                {n.detail.message}
+              <DetailValue style={{ maxWidth: "62%", lineHeight: 1.55 }}>
+                "{n.detail?.message}"
               </DetailValue>
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Sent</DetailLabel>
-              <DetailValue>{n.detail.sent}</DetailValue>
-            </DetailRow>
-            <DetailActionBtn>Reply →</DetailActionBtn>
+            <DetailActionBtn onClick={() => navigate("/messages")}>
+              Reply →
+            </DetailActionBtn>
           </DetailCard>
         );
 
@@ -526,11 +613,11 @@ const Notifications = () => {
           <DetailCard>
             <DetailRow>
               <DetailLabel>Listing</DetailLabel>
-              <DetailValue>{n.detail.listing}</DetailValue>
+              <DetailValue>{n.detail?.listing}</DetailValue>
             </DetailRow>
             <DetailRow>
               <DetailLabel>Total saves</DetailLabel>
-              <DetailValue>{n.detail.totalSaves}</DetailValue>
+              <DetailValue>{n.detail?.totalSaves}</DetailValue>
             </DetailRow>
             <DetailActionBtn>View Listing →</DetailActionBtn>
           </DetailCard>
@@ -541,19 +628,17 @@ const Notifications = () => {
           <DetailCard>
             <DetailRow>
               <DetailLabel>Listing</DetailLabel>
-              <DetailValue>{n.detail.listing}</DetailValue>
+              <DetailValue>{n.detail?.listing}</DetailValue>
             </DetailRow>
             <DetailRow>
-              <DetailLabel>Old Price</DetailLabel>
-              <DetailValue
-                style={{ textDecoration: "line-through", color: "#aaa" }}
-              >
-                Kes {n.detail.oldPrice}
+              <DetailLabel>Was</DetailLabel>
+              <DetailValue style={{ textDecoration: "line-through", color: "#aaa" }}>
+                Kes {n.detail?.oldPrice}
               </DetailValue>
             </DetailRow>
             <DetailRow>
-              <DetailLabel>New Price</DetailLabel>
-              <DetailValue>Kes {n.detail.newPrice}</DetailValue>
+              <DetailLabel>Now</DetailLabel>
+              <DetailValue>Kes {n.detail?.newPrice}</DetailValue>
             </DetailRow>
             <DetailActionBtn>View Listing →</DetailActionBtn>
           </DetailCard>
@@ -564,11 +649,11 @@ const Notifications = () => {
           <DetailCard>
             <DetailRow>
               <DetailLabel>Message</DetailLabel>
-              <DetailValue style={{ maxWidth: "70%", lineHeight: 1.5 }}>
-                {n.detail.message}
+              <DetailValue style={{ maxWidth: "68%", lineHeight: 1.55 }}>
+                {n.detail?.message}
               </DetailValue>
             </DetailRow>
-            {n.detail.action && (
+            {n.detail?.action && (
               <DetailActionBtn>{n.detail.action} →</DetailActionBtn>
             )}
           </DetailCard>
@@ -579,89 +664,108 @@ const Notifications = () => {
     }
   };
 
-  const unreadCount = notifications?.filter((n) => !n.read).length;
-  console.log(unreadCount);
-
-  
-
-  const handleClick = (n) => {
-    setExpandedId((prev) => (prev === n.id ? null : n.id));
-    if (!n.read) markRead(n.id);
-  };
-
-  const filtered = notifications?.filter((n) => {
-    const f = filterMap[activeFilter];
-    if (!f) return true;
-    if (Array.isArray(f)) return f.includes(n.type);
-    return n.type === f;
-  });
+  const groups  = groupByDate(filtered);
+  const hasAny  = filtered.length > 0;
+  const emptyMsg = EMPTY_MSG[activeFilter] ?? EMPTY_MSG.All;
 
   return (
     <>
       <AppNavbar />
       <Container>
-        <Header>
-          <BackButton onClick={() => navigate(-1)}>←</BackButton>
-          <TitleRow>
-            <Title>
-              Notifications
-              {unreadCount > 0 && <UnreadBadge>{unreadCount}</UnreadBadge>}
-            </Title>
+
+        {/* ── Hero ── */}
+        <Hero>
+          <HeroTop>
+            <HeroLeft>
+              <BackBtn onClick={() => navigate(-1)}>←</BackBtn>
+              <HeroTitle>Notifications</HeroTitle>
+            </HeroLeft>
             {unreadCount > 0 && (
-              <MarkAllBtn onClick={markAllRead}>Mark all read</MarkAllBtn>
+              <MarkAllBtn onClick={markAllRead}>✓ Mark all read</MarkAllBtn>
             )}
-          </TitleRow>
-        </Header>
-
-        {/* NAMES OF THE NOTIFICATIONS TAB , ALL , ORDERS , INQUIRIEES , FAV, SYSTEM */}
-        <FilterRow>
-          {FILTERS.map((f) => (
-            <FilterBtn
-              key={f}
-              $active={activeFilter === f}
-              onClick={() => setActiveFilter(f)}
-            >
-              {f}
-            </FilterBtn>
-          ))}
-        </FilterRow>
-
-        <Card>
-          <NotifList>
-            {filtered?.length === 0 ? (
-              <EmptyState>
-                <EmptyIcon>🔔</EmptyIcon>
-                <EmptyText>No notifications here yet.</EmptyText>
-              </EmptyState>
-            ) : (
-              filtered?.map((n) => {
-                const meta = NOTIF_META[n.type] ?? {
-                  icon: "🔔",
-                  iconBg: "#f0f7ee",
-                };
-
-                return (
-                  <NotifItem key={n.id} $unread={!n.read}>
-                    <NotifRow onClick={() => handleClick(n)}>
-                      <IconWrap $color={meta.iconBg}>{meta.icon}</IconWrap>
-                      <NotifContent>
-                        <NotifTitle $unread={!n.read}>{n.title}</NotifTitle>
-                        <NotifBody>{n.body}</NotifBody>
-                        <NotifTime>{formatSmartDate(n.created_at)}</NotifTime>
-                      </NotifContent>
-                      {!n.read && <UnreadDot />}
-                      <ChevronWrap $open={expandedId === n.id}>▼</ChevronWrap>
-                    </NotifRow>
-
-                    {expandedId === n.id && (
-                      <DetailPanel>{renderDetail(n)}</DetailPanel>
-                    )}
-                  </NotifItem>
-                );
-              })
+          </HeroTop>
+          <HeroStats>
+            <StatChip>🔔 {totalCount} total</StatChip>
+            {unreadCount > 0 && (
+              <StatChip>🟢 {unreadCount} unread</StatChip>
             )}
-          </NotifList>
-        </Card>
+          </HeroStats>
+        </Hero>
+
+        {/* ── Filter bar floats over the hero bottom ── */}
+        <FilterBarWrap>
+          <FilterBar>
+            {FILTERS.map(({ label }) => {
+              const count = countFor(label);
+              return (
+                <FilterBtn
+                  key={label}
+                  $active={activeFilter === label}
+                  onClick={() => setActiveFilter(label)}
+                >
+                  {label}
+                  {count > 0 && (
+                    <FilterCount $active={activeFilter === label}>{count}</FilterCount>
+                  )}
+                </FilterBtn>
+              );
+            })}
+          </FilterBar>
+        </FilterBarWrap>
+
+        {/* ── Content ── */}
+        <ContentArea>
+
+          {isLoading && <LoadingSkeleton />}
+
+          {!isLoading && !hasAny && (
+            <EmptyWrap>
+              <EmptyIcon>{emptyMsg.icon}</EmptyIcon>
+              <EmptyTitle>{emptyMsg.title}</EmptyTitle>
+              <EmptyDesc>{emptyMsg.desc}</EmptyDesc>
+            </EmptyWrap>
+          )}
+
+          {/* Notifications grouped by Today / Yesterday / Earlier */}
+          {!isLoading && hasAny &&
+            Object.entries(groups).map(([label, items]) => {
+              if (!items.length) return null;
+              return (
+                <DateGroup key={label}>
+                  <DateLabel>{label}</DateLabel>
+                  <NotifCard>
+                    {items.map((n) => {
+                      const meta  = NOTIF_META[n.type] ?? { icon: "🔔", iconBg: "#f0f7ee" };
+                      const isOpen = expandedId === n.id;
+
+                      return (
+                        <NotifItem key={n.id} $unread={!n.read}>
+                          <NotifRow onClick={() => handleClick(n)}>
+                            <IconWrap $bg={meta.iconBg}>{meta.icon}</IconWrap>
+                            <NotifContent>
+                              <NotifTitle $unread={!n.read}>{n.title}</NotifTitle>
+                              <NotifBody>{n.body}</NotifBody>
+                              <NotifTime>{formatSmartDate(n.created_at)}</NotifTime>
+                            </NotifContent>
+                            <NotifRight>
+                              {!n.read && <UnreadDot />}
+                              <ChevronWrap $open={isOpen}>▼</ChevronWrap>
+                            </NotifRight>
+                          </NotifRow>
+
+                          {isOpen && (
+                            <DetailPanel>{renderDetail(n)}</DetailPanel>
+                          )}
+                        </NotifItem>
+                      );
+                    })}
+                  </NotifCard>
+                </DateGroup>
+              );
+            })
+          }
+
+        </ContentArea>
       </Container>
     </>
   );

@@ -1,308 +1,614 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import {
   useConversations,
+  useDeleteConversation,
+  useDeleteMessage,
   useMarkMessagesRead,
   useMessages,
   useSendMessage,
 } from "../../hooks/useMessages";
+import { formatSmartDate } from "../../hooks/dateFormat";
 
-const PageContainer = styled.div`
+// ─── Animations ───────────────────────────────────────────────────────────────
+
+const slideUp = keyframes`
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+const shimmer = keyframes`
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+`;
+
+const popIn = keyframes`
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+`;
+
+// ─── Page Shell ───────────────────────────────────────────────────────────────
+
+const Container = styled.div`
   min-height: 100vh;
-  background: #eef7ee;
-  padding: 20px 24px 40px;
+  background: #f5f8f5;
+  padding-bottom: 40px;
 `;
 
-const PageTitle = styled.h1`
-  margin: 0 0 18px;
-  color: #264a28;
-  font-size: 2.3rem;
-  text-align: center;
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+
+const Hero = styled.div`
+  background: linear-gradient(135deg, #2f5a2a 0%, #3d7a35 60%, #4e9643 100%);
+  padding: 28px 24px 64px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    top: -70px;
+    right: -40px;
+    pointer-events: none;
+  }
 `;
 
-const MessagesLayout = styled.div`
+const HeroTitle = styled.h1`
+  margin: 0 0 6px;
+  color: white;
+  font-size: 1.6rem;
+  font-weight: 800;
+`;
+
+const HeroChips = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+`;
+
+const HeroChip = styled.div`
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 6px 14px;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+// ─── Layout ───────────────────────────────────────────────────────────────────
+
+const Layout = styled.div`
+  max-width: 960px;
+  margin: -32px auto 0;
+  padding: 0 20px;
   display: grid;
   grid-template-columns: 320px 1fr;
-  gap: 20px;
-  margin-top: 20px;
-  @media (max-width: 900px) {
+  gap: 16px;
+  position: relative;
+  z-index: 5;
+
+  @media (max-width: 860px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const ConversationList = styled.div`
+// ─── Conversation Panel ───────────────────────────────────────────────────────
+
+// On mobile, hide this panel when a chat is open
+const ConvPanel = styled.div`
   background: white;
-  border-radius: 22px;
-  box-shadow: 0 12px 30px rgba(34, 79, 38, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.08);
   overflow: hidden;
-`;
+  display: flex;
+  flex-direction: column;
+  max-height: 680px;
 
-const ListHeader = styled.div`
-  padding: 20px;
-  border-bottom: 1px solid #ecf2eb;
-  h2 {
-    margin: 0;
-    color: #2f5a2a;
-    font-size: 1.2rem;
-  }
-  p {
-    margin: 8px 0 0;
-    color: #5b6d57;
-    font-size: 0.95rem;
+  @media (max-width: 860px) {
+    display: ${({ $hidden }) => ($hidden ? "none" : "flex")};
   }
 `;
 
-const ConversationItem = styled.button`
+const ConvPanelHeader = styled.div`
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid #f0f7ee;
+`;
+
+const ConvPanelTitle = styled.h2`
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+// Search input to filter conversations by contact name
+const SearchInput = styled.input`
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #e0ece0;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 16px;
+  color: #1a3318;
+  background: #f5f8f5;
+  outline: none;
+  font-family: inherit;
+
+  &::placeholder {
+    color: #aac4aa;
+  }
+  &:focus {
+    border-color: #2f5a2a;
+    background: white;
+  }
+`;
+
+const ConvList = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d7edd9 transparent;
+`;
+
+const ConvItem = styled.button`
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
+  gap: 12px;
+  padding: 13px 16px;
   border: none;
-  background: ${({ active }) => (active ? "#eef7ee" : "white")};
+  background: ${({ $active }) => ($active ? "#eef7ee" : "white")};
   cursor: pointer;
   text-align: left;
-  transition: background 0.2s ease;
+  transition: background 0.15s;
+  border-bottom: 1px solid #f0f7ee;
+  position: relative;
 
+  &:last-child {
+    border-bottom: none;
+  }
   &:hover {
     background: #f3faf0;
   }
+`;
+
+const ConvAvatar = styled.div`
+  position: relative;
+  flex-shrink: 0;
 
   img {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
     object-fit: cover;
-  }
-
-  div {
-    flex: 1;
-  }
-
-  h3 {
-    margin: 0 0 6px;
-    font-size: 1rem;
-    color: #233a23;
-  }
-
-  p {
-    margin: 0;
-    color: #5b6d57;
-    font-size: 0.92rem;
+    background: #d7edd9;
+    display: block;
   }
 `;
 
-const MessagePanel = styled.div`
+// Green dot shown when unread_count > 0
+const UnreadDot = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2f5a2a;
+  border: 2px solid white;
+`;
+
+const UnreadBadge = styled.span`
+  background: #2f5a2a;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  flex-shrink: 0;
+`;
+
+const ConvMeta = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const ConvName = styled.p`
+  margin: 0 0 3px;
+  font-size: 0.9rem;
+  font-weight: ${({ $unread }) => ($unread ? "700" : "600")};
+  color: #1a3318;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ConvSub = styled.p`
+  margin: 0;
+  color: #7b8f7f;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ConvTime = styled.span`
+  font-size: 0.72rem;
+  color: #aac4aa;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 2px;
+`;
+
+// ─── Chat Panel ───────────────────────────────────────────────────────────────
+
+// On mobile, hide when viewing the conversation list
+const ChatPanel = styled.div`
   background: white;
-  border-radius: 22px;
-  box-shadow: 0 12px 30px rgba(34, 79, 38, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  max-height: 680px;
+  animation: ${popIn} 0.25s ease;
+
+  @media (max-width: 860px) {
+    display: ${({ $hidden }) => ($hidden ? "none" : "flex")};
+  }
 `;
 
 const ChatHeader = styled.div`
-  padding: 20px;
-  border-bottom: 1px solid #ecf2eb;
+  padding: 14px 18px;
+  border-bottom: 1px solid #f0f7ee;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  background: white;
+`;
 
-  img {
-    width: 58px;
-    height: 58px;
-    object-fit: cover;
-    border-radius: 16px;
-  }
+// Mobile back button — visible only on small screens
+const MobileBackBtn = styled.button`
+  display: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid #e0ece0;
+  background: none;
+  color: #2f5a2a;
+  font-size: 1rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 
-  div {
-    min-width: 0;
-  }
-
-  h2 {
-    margin: 0;
-    color: #233a23;
-    font-size: 1.2rem;
-  }
-
-  p {
-    margin: 6px 0 0;
-    color: #5b6d57;
-    font-size: 0.92rem;
+  @media (max-width: 860px) {
+    display: flex;
   }
 `;
+
+const ChatHeaderAvatar = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #d7edd9;
+  flex-shrink: 0;
+`;
+
+const ChatHeaderInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const ChatHeaderName = styled.p`
+  margin: 0 0 2px;
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const ChatHeaderSub = styled.p`
+  margin: 0;
+  font-size: 0.75rem;
+  color: #7b8f7f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+// Delete conversation button — shows confirm prompt inline on first click
+const DeleteConvBtn = styled.button`
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #aac4aa;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #fdf0f0;
+    color: #a32d2d;
+  }
+`;
+
+const ConfirmDeleteRow = styled.div`
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+`;
+
+const ConfirmBtn = styled.button`
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  background: ${({ $danger }) => ($danger ? "#fdf0f0" : "#f0f7ee")};
+  color: ${({ $danger }) => ($danger ? "#a32d2d" : "#2f5a2a")};
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+// ─── Chat Body ────────────────────────────────────────────────────────────────
 
 const ChatBody = styled.div`
   flex: 1;
-  padding: 24px 24px 0;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   overflow-y: auto;
-  min-height: 420px;
+  min-height: 340px;
+  scrollbar-width: thin;
+  scrollbar-color: #d7edd9 transparent;
 `;
 
 const MessageBubble = styled.div`
-  max-width: 80%;
-  padding: 14px 16px;
-  border-radius: 22px;
-  background: ${({ fromOwner }) => (fromOwner ? "#d7f0d7" : "#f2f6f2")};
-  align-self: ${({ fromOwner }) => (fromOwner ? "flex-end" : "flex-start")};
-  color: #244423;
-  box-shadow: 0 8px 18px rgba(37, 76, 34, 0.08);
+  max-width: 72%;
+  padding: 10px 14px;
+  border-radius: ${({ $fromOwner }) =>
+    $fromOwner ? "18px 18px 4px 18px" : "18px 18px 18px 4px"};
+  background: ${({ $fromOwner }) => ($fromOwner ? "#2f5a2a" : "#f0f7ee")};
+  align-self: ${({ $fromOwner }) => ($fromOwner ? "flex-end" : "flex-start")};
+  animation: ${slideUp} 0.2s ease;
+`;
 
-  p {
-    margin: 0;
-    line-height: 1.6;
-  }
+const BubbleText = styled.p`
+  margin: 0 0 4px;
+  line-height: 1.55;
+  font-size: 0.9rem;
+  color: ${({ $fromOwner }) => ($fromOwner ? "white" : "#1a3318")};
+`;
 
-  span {
-    display: block;
-    margin-top: 8px;
-    color: #5b6d57;
-    font-size: 0.82rem;
+const BubbleMeta = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+`;
+
+const BubbleTime = styled.span`
+  font-size: 0.7rem;
+  color: ${({ $fromOwner }) =>
+    $fromOwner ? "rgba(255,255,255,0.6)" : "#aac4aa"};
+`;
+
+// Small ✕ button to delete own messages
+const DeleteMsgBtn = styled.button`
+  background: none;
+  border: none;
+  font-size: 0.65rem;
+  color: ${({ $fromOwner }) =>
+    $fromOwner ? "rgba(255,255,255,0.5)" : "#aac4aa"};
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+
+  &:hover {
+    color: ${({ $fromOwner }) =>
+      $fromOwner ? "rgba(255,255,255,0.9)" : "#a32d2d"};
   }
 `;
+
+// ─── Empty States ─────────────────────────────────────────────────────────────
+
+const EmptyWrap = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 8px;
+  text-align: center;
+`;
+
+const EmptyIcon = styled.div`
+  font-size: 2.2rem;
+`;
+
+const EmptyTitle = styled.p`
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const EmptyDesc = styled.p`
+  margin: 0;
+  font-size: 0.82rem;
+  color: #7b8f7f;
+`;
+
+// ─── Input Area ───────────────────────────────────────────────────────────────
 
 const InputArea = styled.form`
-  padding: 18px 20px 22px;
-  border-top: 1px solid #ecf2eb;
+  padding: 12px 16px;
+  border-top: 1px solid #f0f7ee;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  background: #f8fdef;
+  background: #f8fdf8;
+`;
 
-  input {
-    flex: 1;
-    border: 1px solid #dbe5d8;
-    border-radius: 14px;
-    padding: 14px 16px;
-    font-size: 1rem;
-    color: #243a23;
-    background: white;
+const MessageInput = styled.input`
+  flex: 1;
+  border: 1.5px solid #e0ece0;
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-size: 16px;
+  color: #1a3318;
+  background: white;
+  outline: none;
+  font-family: inherit;
+
+  &::placeholder {
+    color: #aac4aa;
   }
-
-  button {
-    border: none;
-    border-radius: 14px;
-    background: #2f5a2a;
-    color: white;
-    padding: 14px 20px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.2s ease;
-
-    &:hover {
-      background: #245026;
-    }
+  &:focus {
+    border-color: #2f5a2a;
   }
 `;
 
-// const initialConversations = [
-//   {
-//     id: 1,
-//     name: "Amina's Farm",
-//     role: "Seller",
-//     avatar: "/amina.jpg",
-//     latest: "Yes, I can deliver tomorrow morning.",
-//     unread: 2,
-//     messages: [
-//       {
-//         id: 1,
-//         fromOwner: false,
-//         text: "Hello! I need 10kg of spinach.",
-//         time: "09:12 AM",
-//       },
-//       {
-//         id: 2,
-//         fromOwner: true,
-//         text: "I have it ready. Would you like delivery?",
-//         time: "09:15 AM",
-//       },
-//       {
-//         id: 3,
-//         fromOwner: false,
-//         text: "Yes, please. Pickup at 10AM works.",
-//         time: "09:18 AM",
-//       },
-//     ],
-//   },
-//   {
-//     id: 2,
-//     name: "Market Buyer Group",
-//     role: "Buyer",
-//     avatar: "/chat.png",
-//     latest: "We are confirming the bulk order today.",
-//     unread: 0,
-//     messages: [
-//       {
-//         id: 1,
-//         fromOwner: true,
-//         text: "Can you confirm the quantity for tomatoes?",
-//         time: "Yesterday",
-//       },
-//       {
-//         id: 2,
-//         fromOwner: false,
-//         text: "We need 25kg by Friday.",
-//         time: "Yesterday",
-//       },
-//     ],
-//   },
-//   {
-//     id: 3,
-//     name: "Honey Harvest",
-//     role: "Seller",
-//     avatar: "/honeyfarm.jpg",
-//     latest: "The new batch is ready for inspection.",
-//     unread: 1,
-//     messages: [
-//       {
-//         id: 1,
-//         fromOwner: false,
-//         text: "Your honey order is ready for pickup.",
-//         time: "Mon",
-//       },
-//       {
-//         id: 2,
-//         fromOwner: true,
-//         text: "Great, I will collect after 2PM.",
-//         time: "Mon",
-//       },
-//     ],
-//   },
-// ];
+const SendBtn = styled.button`
+  border: none;
+  border-radius: 12px;
+  background: #2f5a2a;
+  color: white;
+  padding: 11px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  transition: background 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: #245026;
+  }
+  &:disabled {
+    background: #9db79b;
+    cursor: not-allowed;
+  }
+`;
+
+// ─── Loading Skeletons ────────────────────────────────────────────────────────
+
+const SkeletonBase = styled.div`
+  border-radius: 8px;
+  background: linear-gradient(90deg, #e8f0e8 25%, #f0f7f0 50%, #e8f0e8 75%);
+  background-size: 800px 100%;
+  animation: ${shimmer} 1.4s infinite;
+`;
+
+const SkeletonConvItem = () => (
+  <div
+    style={{
+      display: "flex",
+      gap: 12,
+      padding: "13px 16px",
+      borderBottom: "1px solid #f0f7ee",
+    }}
+  >
+    <SkeletonBase
+      style={{ width: 46, height: 46, borderRadius: "50%", flexShrink: 0 }}
+    />
+    <div style={{ flex: 1, display: "grid", gap: 8 }}>
+      <SkeletonBase style={{ height: 12, width: "55%" }} />
+      <SkeletonBase style={{ height: 10, width: "80%" }} />
+    </div>
+  </div>
+);
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const Messages = () => {
   const { user } = useAuth();
+  const { state } = useLocation();
+  const navigate = useNavigate();
 
   const { data: conversations = [], isLoading } = useConversations(user?.id);
   const [activeId, setActiveId] = useState(null);
   const { data: messages = [] } = useMessages(activeId);
-  const { mutate: sendMessage } = useSendMessage();
+  const { mutate: sendMessage, isPending: sending } = useSendMessage();
   const { mutate: markRead } = useMarkMessagesRead();
-
-  console.log(conversations)
+  const { mutate: deleteMessage } = useDeleteMessage();
+  const { mutate: deleteConversation } = useDeleteConversation();
 
   const [draft, setDraft] = useState("");
-  
-  // set first conversation as active
+  const [search, setSearch] = useState("");
+
+  // Controls inline delete confirmation — replaces window.confirm
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
+  // Mobile: show 'list' or 'chat' panel (full-width toggle below 860px)
+  const [mobileView, setMobileView] = useState("list");
+
+  // Ref to scroll chat to the bottom when new messages arrive
+  const messagesEndRef = useRef(null);
+
+  // Set active conversation from navigation state (e.g. from Notifications "Reply →")
+  // or default to the first conversation
   useEffect(() => {
-    if (conversations?.length > 0 && !activeId) {
+    if (state?.conversationId) {
+      setActiveId(state.conversationId);
+      setMobileView("chat");
+    } else if (conversations.length > 0 && !activeId) {
       setActiveId(conversations[0]?.id);
     }
-  }, [conversations]);
+  }, [conversations, state]);
 
-  const activeConversation = conversations?.find((c) => c.id === activeId);
-
-  // mark as read when opening
+  // Mark conversation as read whenever it's opened
   useEffect(() => {
     if (activeId && user?.id) {
       markRead({ conversation_id: activeId, user_id: user?.id });
     }
   }, [activeId]);
+
+  // Auto-scroll to the newest message whenever messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const activeConversation = conversations.find((c) => c.id === activeId);
+
+  // Returns the other participant's name and avatar
+  const getOtherPerson = (conversation) => {
+    if (!conversation) return { name: "User", avatar: "/user.jpg" };
+    const isBuyer = conversation.buyer_id === user?.id;
+    const other = isBuyer ? conversation.seller : conversation.buyer;
+    return {
+      name: other?.full_name ?? "User",
+      avatar: other?.avatar_url ?? "/user.jpg",
+    };
+  };
+
+  const onSelectConv = (id) => {
+    setActiveId(id);
+    setMobileView("chat");
+    setConfirmDeleteId(null);
+  };
 
   const onSend = (e) => {
     e.preventDefault();
@@ -314,77 +620,214 @@ const Messages = () => {
     });
     setDraft("");
   };
+
+  const onDeleteConversation = () => {
+    deleteConversation(activeId);
+    setActiveId(conversations.find((c) => c.id !== activeId)?.id ?? null);
+    setConfirmDeleteId(null);
+    setMobileView("list");
+  };
+
+  // Filter conversations by the search term against the other person's name
+  const filteredConvs = conversations.filter((c) => {
+    const { name } = getOtherPerson(c);
+    return name.toLowerCase().includes(search.toLowerCase());
+  });
+
+  const unreadTotal = conversations.filter((c) => c.unread_count > 0).length;
+  const otherPerson = getOtherPerson(activeConversation);
+
   return (
     <>
       <AppNavbar />
-      <PageContainer>
-        <PageTitle>Messages</PageTitle>
-        <MessagesLayout>
-          <ConversationList>
-            <ListHeader>
-              <h2>Conversations</h2>
-              <p>Chat with sellers and buyers from your network.</p>
-            </ListHeader>
-            {conversations?.map((conversation) => (
-              <ConversationItem
-                key={conversation.id}
-                active={conversation.id === activeId}
-                onClick={() => setActiveId(conversation.id)}
-              >
-                <img src={conversation.avatar} alt={conversation.name} />
-                <div>
-                  <h3>{conversation.seller.full_name}</h3>
-                  <p>{conversation.latest}</p>
-                </div>
-                {conversation.unread > 0 && (
-                  <span>• {conversation.unread}</span>
-                )}
-              </ConversationItem>
-            ))}
-          </ConversationList>
+      <Container>
+        {/* ── Hero ── */}
+        <Hero>
+          <HeroTitle>Messages</HeroTitle>
+          <HeroChips>
+            <HeroChip>
+              💬 {conversations.length} conversation
+              {conversations.length !== 1 ? "s" : ""}
+            </HeroChip>
+            {unreadTotal > 0 && <HeroChip>🟢 {unreadTotal} unread</HeroChip>}
+          </HeroChips>
+        </Hero>
 
-          <MessagePanel>
+        <Layout>
+          {/* ── Left: Conversation list ── */}
+          <ConvPanel $hidden={mobileView === "chat"}>
+            <ConvPanelHeader>
+              <ConvPanelTitle>Conversations</ConvPanelTitle>
+              <SearchInput
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name…"
+              />
+            </ConvPanelHeader>
+
+            <ConvList>
+              {/* Loading skeletons */}
+              {isLoading && (
+                <>
+                  <SkeletonConvItem />
+                  <SkeletonConvItem />
+                  <SkeletonConvItem />
+                </>
+              )}
+
+              {/* Empty state */}
+              {!isLoading && filteredConvs.length === 0 && (
+                <EmptyWrap>
+                  <EmptyIcon>💬</EmptyIcon>
+                  <EmptyTitle>
+                    {search ? "No results" : "No conversations yet"}
+                  </EmptyTitle>
+                  <EmptyDesc>
+                    {search
+                      ? `No contacts matching "${search}"`
+                      : "When buyers or sellers message you, they'll appear here."}
+                  </EmptyDesc>
+                </EmptyWrap>
+              )}
+
+              {/* Conversation rows */}
+              {filteredConvs.map((conv) => {
+                const other = getOtherPerson(conv);
+                const hasUnread = conv.unread_count > 0;
+                return (
+                  <ConvItem
+                    key={conv.id}
+                    $active={conv.id === activeId}
+                    onClick={() => onSelectConv(conv.id)}
+                  >
+                    <ConvAvatar>
+                      <img src={other.avatar} alt={other.name} />
+                      {hasUnread && <UnreadDot />}
+                    </ConvAvatar>
+                    <ConvMeta>
+                      <ConvName $unread={hasUnread}>{other.name}</ConvName>
+                      <ConvSub>
+                        {conv.listings?.title ?? "Listing"} Inquiry
+                      </ConvSub>
+                    </ConvMeta>
+                    {hasUnread && (
+                      <UnreadBadge>{conv.unread_count}</UnreadBadge>
+                    )}
+                    {conv.updated_at && (
+                      <ConvTime>{formatSmartDate(conv.updated_at)}</ConvTime>
+                    )}
+                  </ConvItem>
+                );
+              })}
+            </ConvList>
+          </ConvPanel>
+
+          {/* ── Right: Chat panel ── */}
+          <ChatPanel $hidden={mobileView === "list"}>
             {activeConversation ? (
               <>
+                {/* Chat header */}
                 <ChatHeader>
-                  <img
-                    src={activeConversation.avatar}
-                    alt={activeConversation.name}
+                  <MobileBackBtn onClick={() => setMobileView("list")}>
+                    ←
+                  </MobileBackBtn>
+                  <ChatHeaderAvatar
+                    src={otherPerson.avatar}
+                    alt={otherPerson.name}
                   />
-                  <div>
-                    <h2>{activeConversation.name}</h2>
-                    <p>{activeConversation.role}</p>
-                  </div>
+                  <ChatHeaderInfo>
+                    <ChatHeaderName>{otherPerson.name}</ChatHeaderName>
+                    <ChatHeaderSub>
+                      {activeConversation.listings?.title ?? "Listing"} Inquiry
+                    </ChatHeaderSub>
+                  </ChatHeaderInfo>
+
+                  {/* Inline delete confirmation — avoids window.confirm */}
+                  {confirmDeleteId === activeId ? (
+                    <ConfirmDeleteRow>
+                      <span style={{ fontSize: "0.75rem", color: "#7b8f7f" }}>
+                        Delete?
+                      </span>
+                      <ConfirmBtn $danger onClick={onDeleteConversation}>
+                        Yes
+                      </ConfirmBtn>
+                      <ConfirmBtn onClick={() => setConfirmDeleteId(null)}>
+                        No
+                      </ConfirmBtn>
+                    </ConfirmDeleteRow>
+                  ) : (
+                    <DeleteConvBtn onClick={() => setConfirmDeleteId(activeId)}>
+                      🗑
+                    </DeleteConvBtn>
+                  )}
                 </ChatHeader>
+
+                {/* Messages */}
                 <ChatBody>
-                  {activeConversation?.messages?.map((message) => (
-                    <MessageBubble
-                      key={message.id}
-                      fromOwner={message.sender_id === user?.id}
-                    >
-                      <p>{message.text}</p>
-                      <span>{formatSmartDate(message.created_at)}</span>
-                    </MessageBubble>
-                  ))}
+                  {messages.length === 0 && (
+                    <EmptyWrap>
+                      <EmptyIcon>👋</EmptyIcon>
+                      <EmptyTitle>Say hello to {otherPerson.name}!</EmptyTitle>
+                      <EmptyDesc>
+                        No messages yet — start the conversation below.
+                      </EmptyDesc>
+                    </EmptyWrap>
+                  )}
+
+                  {messages.map((msg) => {
+                    const fromOwner = msg.sender_id === user?.id;
+                    return (
+                      <MessageBubble key={msg.id} $fromOwner={fromOwner}>
+                        <BubbleText $fromOwner={fromOwner}>
+                          {msg.content}
+                        </BubbleText>
+                        <BubbleMeta>
+                          <BubbleTime $fromOwner={fromOwner}>
+                            {formatSmartDate(msg.created_at)}
+                          </BubbleTime>
+                          {/* Only show delete on own messages */}
+                          {fromOwner && (
+                            <DeleteMsgBtn
+                              $fromOwner={fromOwner}
+                              onClick={() => deleteMessage(msg.id)}
+                              title="Delete message"
+                            >
+                              ✕
+                            </DeleteMsgBtn>
+                          )}
+                        </BubbleMeta>
+                      </MessageBubble>
+                    );
+                  })}
+                  {/* Invisible anchor to scroll to */}
+                  <div ref={messagesEndRef} />
                 </ChatBody>
+
+                {/* Input */}
                 <InputArea onSubmit={onSend}>
-                  <input
+                  <MessageInput
                     value={draft}
-                    onChange={(event) => setDraft(event.target.value)}
-                    placeholder="Type your message..."
+                    onChange={(e) => setDraft(e.target.value)}
+                    placeholder={`Message ${otherPerson.name}…`}
+                    autoComplete="off"
                   />
-                  <button type="submit">Send</button>
+                  <SendBtn type="submit" disabled={!draft.trim() || sending}>
+                    {sending ? "…" : "Send →"}
+                  </SendBtn>
                 </InputArea>
               </>
             ) : (
-              <ListHeader>
-                <h2>Select a conversation</h2>
-                <p>Tap a seller or buyer to start chatting.</p>
-              </ListHeader>
+              <EmptyWrap>
+                <EmptyIcon>💬</EmptyIcon>
+                <EmptyTitle>No conversation selected</EmptyTitle>
+                <EmptyDesc>
+                  Pick a conversation from the left to start chatting.
+                </EmptyDesc>
+              </EmptyWrap>
             )}
-          </MessagePanel>
-        </MessagesLayout>
-      </PageContainer>
+          </ChatPanel>
+        </Layout>
+      </Container>
     </>
   );
 };

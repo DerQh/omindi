@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { useAuth } from "../../context/AuthContext";
 
-function DropDownMenu({ isOpen, toggleMenu }) {
-  // console.log("DropDownMenu rendered with isOpen:", isOpen);
+function DropDownMenu({ isOpen, toggleMenu, checkUser }) {
+  const { user } = useAuth();
 
   return (
     <DropDown isopen={isOpen}>
@@ -62,7 +63,7 @@ function DropDownMenu({ isOpen, toggleMenu }) {
       </Link>
       <Link to="/sign-up">
         <li>
-          <h4 onClick={() => toggleMenu()}>Sign Up/Log In</h4>
+          <h4 onClick={() => checkUser()}>Sign Up/Log In</h4>
         </li>
       </Link>
     </DropDown>

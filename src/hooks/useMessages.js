@@ -24,7 +24,7 @@ export function useConversations(user_id) {
         )
         .or(`buyer_id.eq.${user_id},seller_id.eq.${user_id}`);
 
-    //   console.log("conversations:", data, error);
+      //   console.log("conversations:", data, error);
       if (error) throw error;
       return data;
     },
@@ -57,7 +57,7 @@ export function useSendMessage() {
     mutationFn: async ({ conversation_id, sender_id, text }) => {
       const { data, error } = await supabase
         .from("messages")
-        .insert({ conversation_id, sender_id, text })
+        .insert({ conversation_id, sender_id, content: text })
         .select();
       if (error) throw error;
       return data;
@@ -120,6 +120,42 @@ export function useMarkMessagesRead() {
       queryClient.invalidateQueries({
         queryKey: ["messages", variables.conversation_id],
       });
+    },
+  });
+}
+
+// Delete messages
+
+export function useDeleteMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (message_id) => {
+      const { error } = await supabase
+        .from("messages")
+        .delete()
+        .eq("id", message_id);
+      if (error) throw error;
+    },
+    onSuccess: (data, message_id, context) => {
+      queryClient.invalidateQueries({ queryKey: ["messages"] });
+    },
+  });
+}
+
+// delete conversation
+export function useDeleteConversation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (conversation_id) => {
+      // messages cascade delete automatically
+      const { error } = await supabase
+        .from("conversations")
+        .delete()
+        .eq("id", conversation_id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
   });
 }
