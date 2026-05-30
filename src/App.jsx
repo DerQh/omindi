@@ -49,6 +49,7 @@ import Dashboard from "./components/mobile/Dashboard";
 import { EditListing } from "./components/mobile/EditListing";
 import AppHome from "./components/mobile/AppHome";
 import SalesDashboard from "./components/mobile/SalesDashboard";
+import Admin from "./components/mobile/Admin";
 
 function App() {
   // Create a client
@@ -98,6 +99,7 @@ function App() {
               <Route path="/events/:id" element={<EventDetail />} />
               <Route path="/followers" element={<Followers />} />
               <Route path="/edit-profile" element={<EditProfile />} />
+              <Route path="/admin" element={<Admin />} />
             </Route>
 
             {/* WEB ROUTES */}

@@ -856,7 +856,7 @@ function Merchandise() {
               <OptionBlock style={{ marginTop: 18 }}>
                 <OptionLabel>
                   Size
-                  <SizeGuideLink href="#">Size guide →</SizeGuideLink>
+                  <SizeGuideLink href="#">Size guide </SizeGuideLink>
                 </OptionLabel>
                 <SizePills>
                   {sizes.map((s) => (

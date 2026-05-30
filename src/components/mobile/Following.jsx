@@ -174,7 +174,9 @@ const SellerCard = styled.div`
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   cursor: pointer;
 
   &:hover {
@@ -200,7 +202,11 @@ const SellerCover = styled.div`
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.35));
+    background: linear-gradient(
+      to bottom,
+      transparent 40%,
+      rgba(0, 0, 0, 0.35)
+    );
   }
 `;
 
@@ -299,7 +305,9 @@ const EventCard = styled.div`
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-4px);
@@ -415,7 +423,9 @@ const FavCard = styled.div`
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   cursor: pointer;
 
   &:hover {
@@ -467,7 +477,7 @@ const HeartBtn = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   transition: transform 0.15s ease;
 
   &:hover {
@@ -523,17 +533,77 @@ const EmptyDesc = styled.p`
 
 const followData = {
   sellers: [
-    { id: 1, name: "Amina's Farm", category: "Vegetables", location: "Nairobi", rating: 4.8, reviews: 42, image: "/amina.jpg" },
-    { id: 2, name: "Maziwa Organics", category: "Dairy", location: "Kiambu", rating: 4.6, reviews: 30, image: "/maziwa.png" },
-    { id: 3, name: "Honey Harvest", category: "Honey", location: "Nanyuki", rating: 4.9, reviews: 55, image: "/honeyfarm.jpg" },
+    {
+      id: 1,
+      name: "Amina's Farm",
+      category: "Vegetables",
+      location: "Nairobi",
+      rating: 4.8,
+      reviews: 42,
+      image: "/amina.jpg",
+    },
+    {
+      id: 2,
+      name: "Maziwa Organics",
+      category: "Dairy",
+      location: "Kiambu",
+      rating: 4.6,
+      reviews: 30,
+      image: "/maziwa.png",
+    },
+    {
+      id: 3,
+      name: "Honey Harvest",
+      category: "Honey",
+      location: "Nanyuki",
+      rating: 4.9,
+      reviews: 55,
+      image: "/honeyfarm.jpg",
+    },
   ],
   events: [
-    { id: 1, title: "Local Farmers Market", date: "May 12, 2026", day: "12", month: "May", location: "Kasarani Grounds", description: "Browse fresh produce, meet followed sellers, and save favourite market finds." },
-    { id: 2, title: "Organic Crop Workshop", date: "May 20, 2026", day: "20", month: "May", location: "Nairobi Showground", description: "Discover new growing tips and join experts from the local farming community." },
+    {
+      id: 1,
+      title: "Local Farmers Market",
+      date: "May 12, 2026",
+      day: "12",
+      month: "May",
+      location: "Kasarani Grounds",
+      description:
+        "Browse fresh produce, meet followed sellers, and save favourite market finds.",
+    },
+    {
+      id: 2,
+      title: "Organic Crop Workshop",
+      date: "May 20, 2026",
+      day: "20",
+      month: "May",
+      location: "Nairobi Showground",
+      description:
+        "Discover new growing tips and join experts from the local farming community.",
+    },
   ],
   favorites: [
-    { id: 1, title: "Green Pepper Bundle", price: "Kes 14 / kg", seller: "Amina's Farm", location: "Nairobi", rating: 4.7, reviews: 18, image: "/pepper.png" },
-    { id: 2, title: "Wildflower Honey Jar", price: "Kes 19", seller: "Honey Harvest", location: "Kiambu", rating: 4.9, reviews: 26, image: "/honeyjar.jpeg" },
+    {
+      id: 1,
+      title: "Green Pepper Bundle",
+      price: "Kes 14 / kg",
+      seller: "Amina's Farm",
+      location: "Nairobi",
+      rating: 4.7,
+      reviews: 18,
+      image: "/pepper.png",
+    },
+    {
+      id: 2,
+      title: "Wildflower Honey Jar",
+      price: "Kes 19",
+      seller: "Honey Harvest",
+      location: "Kiambu",
+      rating: 4.9,
+      reviews: 26,
+      image: "/honeyjar.jpeg",
+    },
   ],
 };
 
@@ -595,29 +665,30 @@ const Following = () => {
         <Hero>
           <HeroTitle>Following</HeroTitle>
           <HeroSub>Your sellers, events & saved listings</HeroSub>
-          <StatRow>
-            <StatChip>
-              <StatIcon>🌿</StatIcon>
-              {followData.sellers.length} Sellers
-            </StatChip>
-            <StatChip>
-              <StatIcon>📅</StatIcon>
-              {followData.events.length} Events
-            </StatChip>
-            <StatChip>
-              <StatIcon>❤️</StatIcon>
-              {visibleFavs.length} Saved
-            </StatChip>
-          </StatRow>
         </Hero>
 
         {/* ── Tab bar floats over the hero bottom edge ── */}
         <TabBarWrapper>
           <TabBar>
             {[
-              { key: "sellers", label: "Sellers", icon: "🌿", count: followData.sellers.length },
-              { key: "events",  label: "Events",  icon: "📅", count: followData.events.length },
-              { key: "favorites", label: "Saved", icon: "❤️", count: visibleFavs.length },
+              {
+                key: "sellers",
+                label: "Sellers",
+                icon: "🌿",
+                count: followData.sellers.length,
+              },
+              {
+                key: "events",
+                label: "Events",
+                icon: "📅",
+                count: followData.events.length,
+              },
+              {
+                key: "favorites",
+                label: "Saved",
+                icon: "❤️",
+                count: visibleFavs.length,
+              },
             ].map(({ key, label, icon, count }) => (
               <Tab
                 key={key}
@@ -692,7 +763,9 @@ const Following = () => {
                       $active={interested.has(event.id)}
                       onClick={() => toggleInterested(event.id)}
                     >
-                      {interested.has(event.id) ? "✓ Interested" : "Mark as Interested"}
+                      {interested.has(event.id)
+                        ? "✓ Interested"
+                        : "Mark as Interested"}
                     </InterestedBtn>
                   </EventBody>
                 </EventCard>
@@ -704,14 +777,14 @@ const Following = () => {
         {/* ── Favorites tab ── */}
         {activeTab === "favorites" && (
           <ContentArea key="favorites">
-            <SectionLabel>
-              {visibleFavs.length} saved listings
-            </SectionLabel>
+            <SectionLabel>{visibleFavs.length} saved listings</SectionLabel>
             {visibleFavs.length === 0 ? (
               <EmptyState>
                 <EmptyIcon>💔</EmptyIcon>
                 <EmptyTitle>No saved listings</EmptyTitle>
-                <EmptyDesc>Browse listings and tap the heart to save them here.</EmptyDesc>
+                <EmptyDesc>
+                  Browse listings and tap the heart to save them here.
+                </EmptyDesc>
               </EmptyState>
             ) : (
               <Grid>
@@ -730,7 +803,9 @@ const Following = () => {
                     </FavCover>
                     <FavBody>
                       <FavTitle>{item.title}</FavTitle>
-                      <FavMeta>by {item.seller} · 📍 {item.location}</FavMeta>
+                      <FavMeta>
+                        by {item.seller} · 📍 {item.location}
+                      </FavMeta>
                       <RatingRow>
                         <Stars>{renderStars(item.rating)}</Stars>
                         <RatingText>{item.rating.toFixed(1)}</RatingText>

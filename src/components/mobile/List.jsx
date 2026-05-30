@@ -1,232 +1,442 @@
 import AppNavbar from "./AppNavbar";
-import styled from "styled-components";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import styled, { keyframes } from "styled-components";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useListings } from "../../hooks/useListings";
-import { formatSmartDate } from "../../hooks/dateFormat";
 import LoadingComponent from "./Loading";
 import { ListingCardTest } from "./ListingCard";
 import { useUser } from "../../hooks/useUser";
 
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest first" },
+  { value: "price_asc", label: "Price: Low → High" },
+  { value: "price_desc", label: "Price: High → Low" },
+];
+
 const List = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("newest");
   const navigate = useNavigate();
   const { data: user } = useUser();
+  const user_id = user?.id;
 
-  let user_id = user?.id;
-
-  // -------Fetch  listings from subapase and replace the hardcoded goods with real data
   const { data, isLoading, error } = useListings();
-
-  // ------Remove all objects in the array that seller_id == user_id
   const dataMain = data?.filter((item) => item.seller_id !== user?.id);
 
-  if (isLoading)
-    return (
-      <>
-        <LoadingComponent />
-      </>
-    );
+  const categories = useMemo(() => {
+    if (!dataMain) return ["All"];
+    const cats = [
+      ...new Set(dataMain.map((i) => i.category).filter(Boolean)),
+    ].sort();
+    return ["All", ...cats];
+  }, [dataMain]);
+
+  const filteredAndSorted = useMemo(() => {
+    let result = dataMain ?? [];
+    const search = searchTerm.toLowerCase();
+    if (search) {
+      result = result.filter(
+        (item) =>
+          item.title?.toLowerCase().includes(search) ||
+          item.description?.toLowerCase().includes(search) ||
+          item.category?.toLowerCase().includes(search) ||
+          item.location?.toLowerCase().includes(search),
+      );
+    }
+    if (activeCategory !== "All") {
+      result = result.filter((item) => item.category === activeCategory);
+    }
+    if (sortBy === "price_asc") {
+      result = [...result].sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (sortBy === "price_desc") {
+      result = [...result].sort((a, b) => (b.price || 0) - (a.price || 0));
+    }
+    return result;
+  }, [dataMain, searchTerm, activeCategory, sortBy]);
+
+  const handleCardClick = (item) =>
+    navigate(`/listing/${item.id}`, { state: { listing: item } });
+
+  if (isLoading) return <LoadingComponent />;
 
   if (error)
     return (
       <>
         <AppNavbar />
-        <StateContainer>
-          <StateCard>
-            <ErrorText>Something went wrong loading listings.</ErrorText>
-          </StateCard>
-        </StateContainer>
+        <ErrorWrap>
+          <ErrorCard>
+            <span>⚠️</span>
+            <p>Something went wrong loading listings.</p>
+          </ErrorCard>
+        </ErrorWrap>
       </>
     );
 
-  //-------Filter listings based on search term, checking title, description, category and location for matches
-  const filteredGoods = dataMain?.filter((listingItem) => {
-    const search = searchTerm.toLowerCase();
-
-    return (
-      listingItem.title?.toLowerCase().includes(search) ||
-      listingItem.description?.toLowerCase().includes(search) ||
-      listingItem.category?.toLowerCase().includes(search) ||
-      listingItem.location?.toLowerCase().includes(search)
-    );
-  });
-
-  const handleCardClick = (listingItem) => {
-    navigate(`/listing/${listingItem.id}`, { state: { listing: listingItem } });
-  };
+  const hasFilters = searchTerm || activeCategory !== "All";
 
   return (
     <>
       <AppNavbar />
-      <Container>
-        <Header>
-          <h1>List & Sell</h1>
-          <Button to="/newlist">Add a New Listing</Button>
-        </Header>
-        <SearchContainer>
-          <input
-            type="text"
-            placeholder="Search listings..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </SearchContainer>
-        <ListingsGrid>
-          {filteredGoods?.map((listingItem) => (
-            <ListingCardTest
-              listingItem={listingItem}
-              handleCardClick={handleCardClick}
-              user_id={user_id}
-              key={listingItem.id}
-            />
-          ))}
-        </ListingsGrid>
-      </Container>
+
+      {/* ── Filter bar — sibling of AppNavbar so sticky chains correctly ── */}
+      <FilterBar>
+        <FilterInner>
+          <CategoryChips>
+            {categories.map((cat) => (
+              <Chip
+                key={cat}
+                $active={activeCategory === cat}
+                onClick={() => setActiveCategory(cat)}
+              >
+                {cat}
+              </Chip>
+            ))}
+          </CategoryChips>
+
+          <SelectsRow>
+            <CategorySelect
+              value={activeCategory}
+              onChange={(e) => setActiveCategory(e.target.value)}
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </CategorySelect>
+
+            <SortSelect
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </SortSelect>
+          </SelectsRow>
+        </FilterInner>
+      </FilterBar>
+
+      <Page>
+        {/* ── Hero ── */}
+        <Hero>
+          <HeroInner>
+            <SearchWrap>
+              <SearchInput
+                type="text"
+                placeholder="Search by name, category, or location…"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <ClearBtn onClick={() => setSearchTerm("")}>✕</ClearBtn>
+              )}
+            </SearchWrap>
+          </HeroInner>
+        </Hero>
+
+        {/* ── Body ── */}
+        <Body>
+          <BodyInner>
+            <ResultsMeta>
+              <ResultsCount>
+                Total Listings {filteredAndSorted.length} 
+                {/* {filteredAndSorted.length !== 1 ? "s" : ""} */}
+                {activeCategory !== "All" ? ` in ${activeCategory}` : ""}
+                {searchTerm ? ` for "${searchTerm}"` : ""}
+              </ResultsCount>
+            </ResultsMeta>
+
+            {filteredAndSorted.length > 0 ? (
+              <Grid>
+                {filteredAndSorted.map((item) => (
+                  <ListingCardTest
+                    key={item.id}
+                    listingItem={item}
+                    handleCardClick={handleCardClick}
+                    user_id={user_id}
+                  />
+                ))}
+              </Grid>
+            ) : (
+              <EmptyState>
+                <EmptyIcon>🌾</EmptyIcon>
+                <EmptyTitle>No listings found</EmptyTitle>
+                <EmptyDesc>
+                  {hasFilters
+                    ? "Try adjusting your search or filters."
+                    : "No listings available right now — check back soon."}
+                </EmptyDesc>
+                {hasFilters && (
+                  <ClearFiltersBtn
+                    onClick={() => {
+                      setSearchTerm("");
+                      setActiveCategory("All");
+                    }}
+                  >
+                    Clear filters
+                  </ClearFiltersBtn>
+                )}
+              </EmptyState>
+            )}
+          </BodyInner>
+        </Body>
+      </Page>
     </>
   );
 };
 
 export default List;
 
-const Header1 = styled.div`
+// ─── Styled components ────────────────────────────────────────────────────────
+
+const Page = styled.div`
+  min-height: 100vh;
+  background: #f5f8f5;
+`;
+
+const Hero = styled.div`
+  background: #f5f8f5;
+  padding: 15px 24px 20px;
+`;
+
+const HeroInner = styled.div`
+  max-width: 960px;
+  margin: 0 auto;
+  animation: ${fadeUp} 0.4s ease;
+`;
+
+const SearchWrap = styled.div`
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e6efe8;
+`;
 
-  h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1f3a1d;
-    letter-spacing: -0.2px;
-    white-space: nowrap; /* ✅ prevents wrapping */
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 14px 44px;
+  border-radius: 14px;
+  border: 1px solid black;
+  backdrop-filter: blur(8px);
+  color: #0d0d0d;
+  font-size: 16px;
+  transition: background 0.2s;
+
+  &::placeholder {
+    color: rgba(11, 11, 11, 0.65);
+    font-size: 14px;
   }
-
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-
-    h1 {
-      font-size: 1.4rem;
-    }
+  &:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.25);
   }
 `;
 
-const Button = styled(Link)`
-  background: #2f5a2a;
+const ClearBtn = styled.button`
+  position: absolute;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
   color: white;
-  text-decoration: none;
-  font-size: 14px; /* slightly smaller */
-  font-weight: 500;
-  padding: 10px 18px; /* reduced padding */
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const FilterBar = styled.div`
+  background: #f5f8f5;
+  border-bottom: 1px solid #e8f0e8;
+  position: sticky;
+  top: 60px;
+  z-index: 50;
+`;
+
+const FilterInner = styled.div`
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+`;
+
+const CategoryChips = styled.div`
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const SelectsRow = styled.div`
+  display: flex;
+  gap: 8px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: space-between;
+  }
+`;
+
+const CategorySelect = styled.select`
+  display: none;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #cde5cf;
+  background: white;
+  color: #44554c;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+
+  &:focus {
+    border-color: #2f5a2a;
+  }
+
+  @media (max-width: 768px) {
+    display: block;
+  }
+`;
+
+const Chip = styled.button`
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1.5px solid ${({ $active }) => ($active ? "#2f5a2a" : "#cde5cf")};
+  background: ${({ $active }) => ($active ? "#2f5a2a" : "white")};
+  color: ${({ $active }) => ($active ? "white" : "#44554c")};
+  cursor: pointer;
+  transition: all 0.15s;
   white-space: nowrap;
 
   &:hover {
-    background: #244a23;
-  }
-`;
-const SearchContainer = styled.div`
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 40px;
-
-  input {
-    width: 100%;
-    max-width: 420px;
-    padding: 10px 14px; /* smaller */
-    border-radius: 8px;
-    border: 1px solid #dfe7e2;
-    background: #ffffff;
-    font-size: 14px; /* smaller */
-    color: #2c2c2c;
-    transition: all 0.2s ease;
-
-    &:focus {
-      outline: none;
-      border-color: #2f5a2a;
-      box-shadow: 0 0 0 2px rgba(47, 90, 42, 0.12);
-    }
+    border-color: #2f5a2a;
+    color: ${({ $active }) => ($active ? "white" : "#2f5a2a")};
   }
 `;
 
-//  - -- - - -  - -  - -
+const SortSelect = styled.select`
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #cde5cf;
+  background: white;
+  color: #44554c;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
 
-const Container = styled.div`
-  padding: 20px 30px;
-  text-align: center;
-  min-height: 100vh;
-  background: #f7fbff;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-
-  h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1f3a1d;
-    letter-spacing: -0.2px;
-    white-space: nowrap; /* ✅ prevents wrapping */
+  &:focus {
+    border-color: #2f5a2a;
   }
 `;
 
-const ListingsGrid = styled.div`
+const Body = styled.div`
+  padding: 24px 0 56px;
+`;
+
+const BodyInner = styled.div`
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+  animation: ${fadeUp} 0.35s ease;
+`;
+
+const ResultsMeta = styled.div`
+  margin-bottom: 16px;
+`;
+
+const ResultsCount = styled.p`
+  margin: 0;
+  font-size: 0.88rem;
+  color: #7b8f7f;
+  font-weight: 600;
+`;
+
+const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 `;
 
-// const goods_mock = [
-//   {
-//     id: 1,
-//     title: "Organic Cherry Tomatoes",
-//     price: "$12 / kg",
-//     description:
-//       "Fresh locally grown cherry tomatoes, sweet and ready for market.",
-//     category: "Produce",
-//     location: "Nairobi",
-//     inquiries: 3,
-//     favourites: 9,
-//     updated: "05/02/2026",
-//     image_url: "/tomatoes.jpg",
-//   },
-//   {
-//     id: 2,
-//     title: "Raw Honey Jar",
-//     price: "$18",
-//     description: "Cold-pressed wildflower honey in a 500g glass jar.",
-//     category: "Honey",
-//     location: "Kiambu",
-//     inquiries: 6,
-//     favourites: 12,
-//     updated: "04/30/2026",
-//     image_url: "/honey.jpg",
-//   },
-//   {
-//     id: 3,
-//     title: "Free-Range Eggs",
-//     price: "$5 / dozen",
-//     description:
-//       "Fresh free-range eggs from local farms, rich in flavor and nutrients.",
-//     category: "Dairy",
-//     location: "Nanyuki",
-//     inquiries: 9,
-//     favourites: 18,
-//     updated: "05/01/2026",
-//     image_url: "/eggs.jpg",
-//   },
-// ];
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 72px 24px;
+`;
+
+const EmptyIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 14px;
+`;
+
+const EmptyTitle = styled.p`
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const EmptyDesc = styled.p`
+  margin: 0 0 22px;
+  color: #7b8f7f;
+  font-size: 0.9rem;
+`;
+
+const ClearFiltersBtn = styled.button`
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  padding: 11px 24px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background: #245026;
+  }
+`;
+
+const ErrorWrap = styled.div`
+  min-height: 100vh;
+  background: #f5f8f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ErrorCard = styled.div`
+  text-align: center;
+  padding: 48px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
+
+  span {
+    font-size: 2rem;
+  }
+  p {
+    color: #7b8f7f;
+    margin: 12px 0 0;
+  }
+`;

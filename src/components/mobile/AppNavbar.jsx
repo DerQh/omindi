@@ -1,18 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import styled, { keyframes, createGlobalStyle } from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import { useUser } from "../../hooks/useUser";
 import { useAllCartItems } from "../../hooks/useCart";
-
-// ─── Global styles ────────────────────────────────────────────────────────────
-
-// On mobile only: push content up so nothing hides behind the fixed bottom nav
-const GlobalBottomPad = createGlobalStyle`
-  @media (max-width: 768px) {
-    body { padding-bottom: 72px; }
-  }
-`;
+import { useIsAdmin } from "../../hooks/useShopAdmin";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -85,13 +77,13 @@ const DesktopLinks = styled.div`
 `;
 
 const NavLink = styled.button`
-  background: none;
+  background: ${({ $admin, $active }) => $admin && $active ? "#1a3318" : $admin ? "#111827" : "none"};
   border: none;
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 0.88rem;
   font-weight: 600;
-  color: ${({ $active }) => ($active ? "#2f5a2a" : "#44554c")};
+  color: ${({ $admin, $active }) => $admin ? "white" : $active ? "#2f5a2a" : "#44554c"};
   cursor: pointer;
   white-space: nowrap;
   display: flex;
@@ -100,8 +92,8 @@ const NavLink = styled.button`
   transition: background 0.15s, color 0.15s;
 
   &:hover {
-    background: #d7ead7;
-    color: #2f5a2a;
+    background: ${({ $admin }) => $admin ? "#1f2937" : "#d7ead7"};
+    color: ${({ $admin }) => $admin ? "white" : "#2f5a2a"};
   }
 `;
 
@@ -267,82 +259,6 @@ const MenuIcon = styled.span`
   flex-shrink: 0;
 `;
 
-// ─── Bottom nav bar (mobile only) ─────────────────────────────────────────────
-
-// Only shown on screens ≤768px — desktop uses the inline links above
-const BottomBar = styled.nav`
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: white;
-  border-top: 1px solid #e8f0e8;
-  display: flex;
-  align-items: stretch;
-  height: 64px;
-  padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -4px 16px rgba(20, 57, 32, 0.07);
-
-  @media (min-width: 769px) { display: none; }
-`;
-
-const BottomItem = styled.button`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px 4px;
-  position: relative;
-  transition: background 0.15s;
-
-  &:hover { background: #f5f8f5; }
-  &:active { background: #eef7ee; }
-`;
-
-const BottomIcon = styled.span`
-  font-size: 1.3rem;
-  line-height: 1;
-  filter: ${({ $active }) => ($active ? "none" : "grayscale(40%) opacity(0.65)")};
-`;
-
-const BottomLabel = styled.span`
-  font-size: 0.6rem;
-  font-weight: ${({ $active }) => ($active ? "700" : "500")};
-  color: ${({ $active }) => ($active ? "#2f5a2a" : "#7b8f7f")};
-`;
-
-const ActiveDot = styled.span`
-  position: absolute;
-  top: 5px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #2f5a2a;
-`;
-
-const BottomBadge = styled.span`
-  position: absolute;
-  top: 5px;
-  right: calc(50% - 18px);
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  background: #e63946;
-  color: white;
-  border-radius: 999px;
-  font-size: 0.58rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
 // ─── Nav data ─────────────────────────────────────────────────────────────────
 
 // Shown inline on desktop
@@ -364,20 +280,12 @@ const DESKTOP_MENU_ITEMS = [
 // Dropdown on mobile — full list since there are no inline links
 const MOBILE_MENU_ITEMS = [
   { label: "View Profile",  icon: "👤", path: "/profile"       },
+  { label: "Messages",      icon: "💬", path: "/messages"      },
   { label: "Following",     icon: "👥", path: "/following"     },
   { label: "Notifications", icon: "🔔", path: "/notifications" },
   { label: "My Store",      icon: "🏪", path: "/dashboard"     },
   { label: "Community",     icon: "🌿", path: "/community"     },
   { label: "Shop",          icon: "🛍️", path: "/shop"          },
-];
-
-// Shown in the bottom nav on mobile
-const BOTTOM_ITEMS = [
-  { label: "Home",     icon: "🏠", path: "/mobile"   },
-  { label: "Browse",   icon: "🔍", path: "/list"     },
-  { label: "Cart",     icon: "🛒", path: "/cart",  cartBadge: true },
-  { label: "Messages", icon: "💬", path: "/messages" },
-  { label: "Profile",  icon: "👤", path: "/profile"  },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -391,14 +299,19 @@ export default function AppNavbar() {
   const ref = useRef(null);
 
   const { data: cartItems } = useAllCartItems(userData?.id);
+  const { data: isAdminUser } = useIsAdmin(userData?.id);
   const cartCount  = cartItems?.length ?? 0;
   const fullName   = userData?.user_metadata?.full_name || userData?.user_metadata?.username || "User";
   const email      = userData?.email ?? "";
   const image_url  = userData?.profile?.avatar_url;
 
-  // Pick the right dropdown list based on screen width
+  // Pick the right dropdown list based on screen width, then append the
+  // Admin Panel item at the end — only visible to users with is_admin = true.
   const isDesktop = window.innerWidth > 768;
-  const menuItems = isDesktop ? DESKTOP_MENU_ITEMS : MOBILE_MENU_ITEMS;
+  const baseItems = isDesktop ? DESKTOP_MENU_ITEMS : MOBILE_MENU_ITEMS;
+  const menuItems = isAdminUser
+    ? [...baseItems, { label: "Admin Panel", icon: "⚙️", path: "/admin" }]
+    : baseItems;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -421,8 +334,6 @@ export default function AppNavbar() {
 
   return (
     <>
-      <GlobalBottomPad />
-
       {/* ── Top bar ── */}
       <Nav>
         <NavInner>
@@ -443,6 +354,12 @@ export default function AppNavbar() {
               {item.label}
             </NavLink>
           ))}
+          {/* Admin link — only rendered when the logged-in user is an admin */}
+          {isAdminUser && (
+            <NavLink $active={isActive("/admin")} onClick={() => navigate("/admin")} $admin>
+              ⚙️ Admin
+            </NavLink>
+          )}
         </DesktopLinks>
 
         {/* Cart + avatar — always visible */}
@@ -479,7 +396,6 @@ export default function AppNavbar() {
                 <DDivider />
 
                 <MenuItem $danger onClick={handleSignOut}>
-                  <MenuIcon>↩</MenuIcon>
                   Sign Out
                 </MenuItem>
               </DropdownWrap>
@@ -489,22 +405,6 @@ export default function AppNavbar() {
         </NavInner>
       </Nav>
 
-      {/* ── Bottom nav — mobile only ── */}
-      <BottomBar>
-        {BOTTOM_ITEMS.map((item) => {
-          const active = isActive(item.path);
-          return (
-            <BottomItem key={item.path} onClick={() => navigate(item.path)} aria-label={item.label}>
-              {active && <ActiveDot />}
-              <BottomIcon $active={active}>{item.icon}</BottomIcon>
-              <BottomLabel $active={active}>{item.label}</BottomLabel>
-              {item.cartBadge && cartCount > 0 && (
-                <BottomBadge>{cartCount}</BottomBadge>
-              )}
-            </BottomItem>
-          );
-        })}
-      </BottomBar>
     </>
   );
 }

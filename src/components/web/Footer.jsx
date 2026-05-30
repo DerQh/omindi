@@ -335,7 +335,7 @@ export default function FooterContainer() {
       {/* ── Bottom legal bar ── */}
       <BottomBar>
         <Copyright>
-          © {new Date().getFullYear()} Afarmer. Built with ❤️ in Kenya.
+          © {new Date().getFullYear()} Afarmer™. Built By Sana Fred.
         </Copyright>
         <LegalLinks>
           <LegalLink href="#">Terms of Service</LegalLink>

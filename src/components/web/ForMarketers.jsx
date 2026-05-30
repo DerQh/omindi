@@ -1,262 +1,347 @@
-import styled from "styled-components";
-import BodyComponent from "./BodyUpComponent";
+import styled, { keyframes } from "styled-components";
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
-import { useNavigate } from "react-router-dom";
 
-const MainContainer = styled.div`
-  /* display: flex;
-  flex-direction: column;
-  gap: 20px; */
-`;
-const ImageDiv = styled.div`
-  width: 100%;
-  height: auto;
-  padding: 40px 0;
-  img {
-    width: 100%;
-    height: auto;
-  }
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
-const Container = styled.div`
-  padding: 20px 40px;
-  background-color: #f0f4f6;
-  color: #000000;
-  @media (max-width: 1200px) {
-    padding: 60px;
-  }
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
-  @media (max-width: 768px) {
-    padding: 50px;
-  }
+const BENEFITS = [
+  {
+    icon: "🏪",
+    title: "One Hub for Your Whole Market",
+    text: "Create a profile for your farmers market, list all your vendors, upcoming events, and seasonal highlights — all in one discoverable place.",
+  },
+  {
+    icon: "📣",
+    title: "Promote Beyond Market Day",
+    text: "Stay connected with your community year-round. Post event updates, new vendor arrivals, and seasonal produce guides that keep shoppers coming back.",
+  },
+  {
+    icon: "🤝",
+    title: "Connect Vendors & Shoppers",
+    text: "Help vendors build direct relationships with buyers. Shoppers can follow their favourite stalls, message sellers, and plan their visits ahead of time.",
+  },
+  {
+    icon: "🆓",
+    title: "Free to Get Started",
+    text: "Create your market profile and post up to 3 listings at no cost. Upgrade for unlimited listings when your market is ready to grow.",
+  },
+];
 
-  @media (max-width: 480px) {
-    padding: 30px;
-  }
+const FAQS = [
+  {
+    q: "How do I list my products on AFARMER™?",
+    a: "AFARMER™ helps buyers and sellers connect. Create a free profile, add your listings, and buyers can find you through search. Transactions happen in person — no fees involved.",
+  },
+  {
+    q: "I'm a Market Manager — can I use AFARMER?",
+    a: "Absolutely. Create a profile for your market and use it to connect with vendors and customers on and off the app. We encourage market managers to use AFARMER to promote their market, events, and highlight their vendors.",
+  },
+  {
+    q: "What kinds of products can I list?",
+    a: "AFARMER supports a wide range of locally sourced goods — fresh produce, meat, dairy, honey, baked goods, specialty food items, and more. Whether you're a small-scale farmer or artisanal producer, there's a place for your products.",
+  },
+  {
+    q: "Can I use AFARMER for wholesale buying and selling?",
+    a: "Yes. Our platform is flexible enough to accommodate wholesale arrangements. Buyers can contact sellers directly to discuss quantities, pricing, and delivery terms.",
+  },
+  {
+    q: "Is there a cost for buyers?",
+    a: "No. Browsing and contacting sellers is completely free for buyers. There are no transaction fees — payments happen between you and the seller directly.",
+  },
+];
 
-  p {
-    font-size: 16px;
-    letter-spacing: 3px;
-    font-weight: 500;
-    line-height: 27.2px;
-    margin-bottom: 45px;
-    /* font-family: "Montserrat", sans-serif; */
-    &:nth-child(3) {
-      font-size: 20px;
-      line-height: 32px;
-      font-weight: 500;
-      letter-spacing: 1px;
-      margin-bottom: 45px;
-    }
-  }
-  h1 {
-    font-size: 42px;
-    line-height: 43.2px;
-    font-weight: 700;
-    line-height: 54.2px;
-    font-family: "Dosis", sans-serif;
-  }
-  button {
-    font-family: "Dosis", sans-serif;
-    padding: 10px 20px;
-    background-color: #5c9132;
-    color: #ffffff;
-    border: none;
-    border-radius: 5px;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-
-    &:hover {
-      background-color: #37b3e3;
-    }
-  }
-`;
-
-const FaqContainer = styled.div`
-  padding: 20px 40px;
-  background-color: #f0f4f6;
-  color: #000000;
-
-  div {
-    margin-bottom: 30px;
-    p {
-      font-size: 16px;
-      letter-spacing: 3px;
-      font-weight: 700;
-      line-height: 27.2px;
-      margin-bottom: 15px;
-    }
-    ul {
-      list-style-type: disc;
-      padding-left: 20px;
-      li {
-        font-size: 16px;
-        letter-spacing: 1px;
-        font-weight: 400;
-        line-height: 27.2px;
-        margin-bottom: 10px;
-      }
-    }
-  }
-
-  @media (max-width: 1200px) {
-    padding: 60px;
-  }
-
-  @media (max-width: 768px) {
-    padding: 50px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 30px;
-  }
-`;
-
-const HowToUseContainer = styled.div`
-  padding: 20px 40px;
-  color: #000000;
-  h2 {
-    text-align: center;
-    font-size: 32px;
-    line-height: 43.2px;
-    font-weight: 700;
-    line-height: 54.2px;
-    font-family: "Dosis", sans-serif;
-    margin-bottom: 30px;
-  }
-`;
-
-const FeedbackContainer = styled.div`
-  padding: 20px 40px;
-  background-color: #fff;
-  color: #000000;
-  p {
-    text-align: center;
-    font-size: 16px;
-    letter-spacing: 3px;
-    font-weight: 500;
-    line-height: 27.2px;
-    margin-bottom: 45px;
-    font-family: "Montserrat", sans-serif;
-    &:nth-child(3) {
-      font-size: 20px;
-      line-height: 32px;
-      font-weight: 500;
-      letter-spacing: 1px;
-      margin-bottom: 45px;
-    }
-  }
-`;
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const ForMarketers = () => {
   const navigate = useNavigate();
-  const subheading = "FOR EVERYONE IN THE FARMERS MARKET COMMUNITY";
-  const heading = "GROW YOUR FARMERS MARKET";
-  const description =
-    "Grow your local food community and stay connected beyond market days.";
-  const bgcolor = "white";
-
+  const [openFaq, setOpenFaq] = React.useState(null);
   return (
     <>
       <Navbar />
-      <MainContainer>
-        <BodyComponent
-          subheading={subheading}
-          heading={heading}
-          description={description}
-          bgcolor={bgcolor}
-        />
 
-        <ImageDiv>
-          <img src="/market.png" alt="market picture" />
-        </ImageDiv>
+      {/* ── Hero ── */}
+      <Hero>
+        <HeroInner>
+          <Eyebrow>For Farmers Market Communities</Eyebrow>
+          <HeroTitle>Grow Your<br />Farmers Market</HeroTitle>
+          <HeroSub>
+            Connect vendors and shoppers, promote events, and build a thriving
+            local food community — beyond just market days.
+          </HeroSub>
+          <HeroActions>
+            <PrimaryBtn onClick={() => navigate("/sign-up")}>Get Started Free</PrimaryBtn>
+            <OutlineBtn onClick={() => navigate("/pricing")}>View Pricing</OutlineBtn>
+          </HeroActions>
+          <HeroNote>Free to join · No transaction fees</HeroNote>
+        </HeroInner>
+      </Hero>
 
-        <Container>
-          <p>AFARMER MAKES IT EASY</p>
-          <h2>BEGIN YOUR JOURNEY TODAY AT NO COST!</h2>
-          <p>
-            Set up your free profile and list up to 3 items simultaneously. If
-            you require additional listings, upgrade to unlimited for only $10
-            per month.
-          </p>
-          <button onClick={() => navigate("/sign-up")}>
-            Get Started Today{" "}
-          </button>
-        </Container>
-      </MainContainer>
+      {/* ── Market image ── */}
+      <ImageBanner>
+        <img src="/market.png" alt="Farmers market" />
+      </ImageBanner>
 
-      <HowToUseContainer>
-        <h2>How to use Afarmer</h2>
-        <ImageDiv>
-          <img src="/howtouse1.png" alt="how to use  picture" />
-        </ImageDiv>
-        <ImageDiv>
-          <img src="/howtouse2.png" alt="how to use picture" />
-        </ImageDiv>
-      </HowToUseContainer>
-      <FaqContainer>
-        <h2>FAQ</h2>
-        <div>
-          <p>
-            Q: How do I list my products on Afarmer? <br />
-          </p>
-          <ul>
-            <li>
-              Afarmer helps buyers and sellers connect. Transactions occur in
-              person and outside the app, with no transaction fees involved!
-            </li>
-          </ul>
-        </div>
+      {/* ── Benefits ── */}
+      <Section>
+        <Inner>
+          <SectionLabel>Why AFARMER™</SectionLabel>
+          <SectionTitle>Everything Your Market Community Needs</SectionTitle>
+          <SectionDivider />
+          <BenefitsGrid>
+            {BENEFITS.map((b) => (
+              <BenefitCard key={b.title}>
+                <BenefitIcon>{b.icon}</BenefitIcon>
+                <BenefitTitle>{b.title}</BenefitTitle>
+                <BenefitText>{b.text}</BenefitText>
+              </BenefitCard>
+            ))}
+          </BenefitsGrid>
+        </Inner>
+      </Section>
 
-        <div>
-          <p>
-            Q: I’m a Market Manager, can I use Afarmer? <br />
-          </p>
-          <ul>
-            <li>
-              Absolutely! You can create a profile and listings for your market!
-              This profile can also be used to connect with your market vendors,
-              both on and off the app. We encourage market managers to use
-              Afarmer as a tool to connect with their vendors and customers, and
-              to promote their market and events.
-            </li>
-          </ul>
-        </div>
+      {/* ── Start today strip ── */}
+      <StartStrip>
+        <StartInner>
+          <StartLabel>Begin Your Journey Today at No Cost</StartLabel>
+          <StartTitle>Set Up a Free Profile in Minutes</StartTitle>
+          <StartSub>
+            Create your market or vendor profile, post up to 3 listings, and
+            start connecting with local buyers immediately. Need more? Upgrade
+            to unlimited listings for just Kes 10 per month.
+          </StartSub>
+          <PrimaryBtn onClick={() => navigate("/sign-up")}>
+            Get Started Today
+          </PrimaryBtn>
+        </StartInner>
+      </StartStrip>
 
-        <div>
-          <p>
-            Q: What kinds of products are available for wholesale purchase and
-            sale on Afarmer? <br />
-          </p>
-          <ul>
-            <li>
-              Afarmer supports a wide range of locally sourced and produced
-              goods, including but not limited to fresh produce, meat, dairy,
-              honey, baked goods, and specialty food items. Our platform is
-              flexible to accommodate the diverse offerings of farms and
-              producers. Whether you’re a small-scale farmer, artisanal
-              producer, or commercial grower, Afarmer provides a space to
-              showcase your products and connect with consumer and wholesale
-              buyers who value locally sourced goods.
-            </li>
-          </ul>
-        </div>
-      </FaqContainer>
-      <FeedbackContainer>
-        <p>
-          "I began using Afarmer about a month ago when we struggled to attract
-          new customers in our area. Already, several people have contacted us,
-          mentioning they discovered us on Afarmer and inquiring about our
-          animal raising practices and produce care. I will keep using Afarmer
-          to help promote our new small homestead." - Benard Onyango
-        </p>
-      </FeedbackContainer>
+      {/* ── FAQ ── */}
+      <Section $alt>
+        <Inner>
+          <SectionLabel>FAQ</SectionLabel>
+          <SectionTitle>Common Questions</SectionTitle>
+          <SectionDivider />
+          <FaqList>
+            {FAQS.map((faq, i) => (
+              <FaqItem key={i}>
+                <FaqQuestion onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                  {faq.q}
+                  <FaqChevron $open={openFaq === i}>›</FaqChevron>
+                </FaqQuestion>
+                {openFaq === i && <FaqAnswer>{faq.a}</FaqAnswer>}
+              </FaqItem>
+            ))}
+          </FaqList>
+        </Inner>
+      </Section>
+
+      {/* ── Testimonial ── */}
+      <TestimonialSection>
+        <TestimonialInner>
+          <QuoteMark>"</QuoteMark>
+          <TestimonialText>
+            I began using AFARMER™ about a month ago when we struggled to attract
+            new customers in our area. Already, several people have contacted us,
+            mentioning they discovered us on AFARMER™ and inquiring about our
+            animal raising practices and produce care. I will keep using AFARMER™
+            to help promote our new small homestead.
+          </TestimonialText>
+          <TestimonialAuthor>— Benard Onyango, Local Farmer</TestimonialAuthor>
+        </TestimonialInner>
+      </TestimonialSection>
+
+      {/* ── CTA ── */}
+      <CtaBanner>
+        <CtaTitle>Ready to Grow Your Market Community?</CtaTitle>
+        <CtaSub>Join farmers and market managers already connecting on AFARMER™.</CtaSub>
+        <PrimaryBtn onClick={() => navigate("/sign-up")}>Start for Free</PrimaryBtn>
+      </CtaBanner>
+
       <FooterContainer />
     </>
   );
 };
 
+// Need React for useState
+import React from "react";
 export default ForMarketers;
+
+// ─── Styled components ────────────────────────────────────────────────────────
+
+const Hero = styled.section`
+  background: linear-gradient(140deg, #1a2e3b 0%, #1e4a3a 55%, #2f5a2a 100%);
+  padding: 96px 24px 112px; text-align: center;
+  position: relative; overflow: hidden;
+  &::before {
+    content: ""; position: absolute;
+    width: 400px; height: 400px; border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    top: -120px; right: -80px;
+  }
+`;
+const HeroInner = styled.div`
+  max-width: 680px; margin: 0 auto;
+  position: relative; z-index: 1;
+  animation: ${fadeUp} 0.6s ease;
+`;
+const Eyebrow = styled.span`
+  display: inline-block;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: rgba(255,255,255,0.88);
+  font-size: 0.74rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 6px 16px; border-radius: 999px; margin-bottom: 20px;
+`;
+const HeroTitle = styled.h1`
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800; color: white;
+  letter-spacing: -0.5px; margin: 0 0 18px; line-height: 1.15;
+`;
+const HeroSub = styled.p`
+  font-size: 1.05rem; color: rgba(255,255,255,0.78);
+  line-height: 1.7; margin: 0 0 32px;
+`;
+const HeroActions = styled.div`
+  display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+`;
+const PrimaryBtn = styled.button`
+  background: white; color: #2f5a2a; border: none;
+  padding: 14px 30px; border-radius: 999px;
+  font-size: 0.95rem; font-weight: 800; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+`;
+const OutlineBtn = styled.button`
+  background: transparent; color: white;
+  border: 2px solid rgba(255,255,255,0.45);
+  padding: 14px 30px; border-radius: 999px;
+  font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  &:hover { border-color: white; background: rgba(255,255,255,0.08); }
+`;
+const HeroNote = styled.p`
+  margin: 16px 0 0; font-size: 0.78rem;
+  color: rgba(255,255,255,0.5); font-weight: 500;
+`;
+
+const ImageBanner = styled.div`
+  width: 100%; background: #f5f8f5;
+  img { width: 100%; height: auto; display: block; max-height: 480px; object-fit: cover; }
+`;
+
+const Section = styled.section`
+  padding: 80px 24px;
+  background: ${({ $alt }) => ($alt ? "#f5f8f5" : "white")};
+`;
+const Inner = styled.div`max-width: 1000px; margin: 0 auto;`;
+const SectionLabel = styled.p`
+  text-align: center; font-size: 0.74rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: #4e9643; margin: 0 0 10px;
+`;
+const SectionTitle = styled.h2`
+  text-align: center;
+  font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 800;
+  color: #1a3318; margin: 0 0 14px; letter-spacing: -0.3px;
+`;
+const SectionDivider = styled.div`
+  width: 44px; height: 4px;
+  background: linear-gradient(90deg, #2f5a2a, #4e9643);
+  border-radius: 999px; margin: 0 auto 52px;
+`;
+
+const BenefitsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+`;
+const BenefitCard = styled.div`
+  background: white; border-radius: 18px; padding: 28px 24px;
+  border: 1px solid #e8f5e9;
+  box-shadow: 0 3px 16px rgba(20,57,32,0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+  &:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(20,57,32,0.1); }
+`;
+const BenefitIcon  = styled.div`font-size: 1.8rem; margin-bottom: 14px;`;
+const BenefitTitle = styled.h3`font-size: 0.97rem; font-weight: 800; color: #1a3318; margin: 0 0 8px;`;
+const BenefitText  = styled.p`font-size: 0.87rem; color: #6b7280; line-height: 1.7; margin: 0;`;
+
+const StartStrip = styled.section`
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-top: 1px solid #d1fae5; border-bottom: 1px solid #d1fae5;
+  padding: 72px 24px; text-align: center;
+`;
+const StartInner = styled.div`max-width: 600px; margin: 0 auto;`;
+const StartLabel = styled.p`
+  font-size: 0.74rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: #4e9643; margin: 0 0 10px;
+`;
+const StartTitle = styled.h2`
+  font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800;
+  color: #1a3318; margin: 0 0 14px; letter-spacing: -0.3px;
+`;
+const StartSub = styled.p`
+  font-size: 0.95rem; color: #4b5563; line-height: 1.75; margin: 0 0 28px;
+`;
+
+const FaqList = styled.div`
+  display: flex; flex-direction: column; gap: 0;
+  border-radius: 16px; overflow: hidden;
+  box-shadow: 0 4px 24px rgba(20,57,32,0.07);
+  max-width: 720px; margin: 0 auto;
+`;
+const FaqItem = styled.div`
+  background: white; border-bottom: 1px solid #f3f4f6;
+  &:last-child { border-bottom: none; }
+`;
+const FaqQuestion = styled.button`
+  width: 100%; display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+  padding: 20px 24px; background: none; border: none;
+  text-align: left; font-size: 0.93rem; font-weight: 700;
+  color: #1a3318; cursor: pointer; transition: background 0.15s;
+  &:hover { background: #fafcfa; }
+`;
+const FaqChevron = styled.span`
+  font-size: 1.4rem; color: #2f5a2a; flex-shrink: 0;
+  transition: transform 0.2s;
+  transform: ${({ $open }) => ($open ? "rotate(90deg)" : "rotate(0deg)")};
+`;
+const FaqAnswer = styled.div`
+  padding: 0 24px 20px;
+  font-size: 0.9rem; color: #4b5563; line-height: 1.75;
+`;
+
+const TestimonialSection = styled.section`
+  background: #1a3318; padding: 72px 24px; text-align: center;
+`;
+const TestimonialInner = styled.div`max-width: 680px; margin: 0 auto;`;
+const QuoteMark = styled.div`
+  font-size: 4rem; color: #4e9643; line-height: 1; margin-bottom: 8px;
+`;
+const TestimonialText = styled.p`
+  font-size: 1.05rem; color: rgba(255,255,255,0.85);
+  line-height: 1.8; font-style: italic; margin: 0 0 20px;
+`;
+const TestimonialAuthor = styled.p`
+  font-size: 0.85rem; font-weight: 700;
+  color: #4e9643; margin: 0; letter-spacing: 0.04em;
+`;
+
+const CtaBanner = styled.section`
+  background: linear-gradient(135deg, #1a3318 0%, #2f5a2a 100%);
+  padding: 80px 24px; text-align: center;
+`;
+const CtaTitle = styled.h2`
+  font-size: clamp(1.4rem, 3vw, 2.1rem); font-weight: 800;
+  color: white; margin: 0 0 12px; letter-spacing: -0.3px;
+`;
+const CtaSub = styled.p`
+  color: rgba(255,255,255,0.72); font-size: 1rem; margin: 0 0 28px;
+`;

@@ -1,7 +1,7 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import {
   useAllCartItems,
   useCartItemDeleteId,
@@ -11,381 +11,466 @@ import { useUser } from "../../hooks/useUser";
 import LoadingComponent from "./Loading";
 import ConfirmModule from "./ConfirmModule";
 
-const Container = styled.div`
-  min-height: 100vh;
-  background: #f7fbff;
-  padding: 20px 24px;
+// ─── Animations ───────────────────────────────────────────────────────────────
+
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 24px;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-`;
-
-const BackButton = styled.button`
-  background: #2f5a2a;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16px;
-
-  &:hover {
-    background: #245026;
-  }
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  color: #2f5a2a;
-  flex: 1;
-  text-align: center;
-`;
-
-const Card = styled.div`
-  max-width: 900px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(20, 57, 32, 0.08);
-  overflow: hidden;
-`;
-
-const Content = styled.div`
-  padding: 32px;
-`;
-
-const CartSummary = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 28px;
-`;
-
-const SummaryBlock = styled.div`
-  background: #f0f7ee;
-  padding: 18px 20px;
-  border-radius: 14px;
-  min-width: 180px;
-  text-align: center;
-
-  h3 {
-    margin: 0 0 8px;
-    color: #2f5a2a;
-  }
-
-  p {
-    margin: 0;
-    color: #2f5a2a;
-    font-weight: 700;
-    font-size: 1.2rem;
-  }
-`;
-
-const CartItem = styled.div`
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 20px;
-  align-items: start;
-  padding: 24px;
-  border-bottom: 1px solid #ebf2eb;
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const ItemImage = styled.img`
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 16px;
-  background: #d7e9ff;
-`;
-
-const ItemMeta = styled.div`
-  display: grid;
-  gap: 12px;
-`;
-
-const ItemName = styled.h2`
-  margin: 0;
-  color: #2f5a2a;
-  font-size: 1.4rem;
-`;
-
-const ItemPrice = styled.span`
-  color: #2f5a2a;
-  font-weight: 700;
-`;
-
-const QuantityControls = styled.div`
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
-`;
-
-const QuantityButton = styled.button`
-  background: #e5f4ff;
-  color: #2f5a2a;
-  border: 2px solid #2f5a2a;
-  padding: 10px 16px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 700;
-
-  &:hover {
-    background: #d7e9ff;
-  }
-`;
-
-const QuantityLabel = styled.span`
-  min-width: 30px;
-  text-align: center;
-  font-weight: 700;
-  color: #2f5a2a;
-`;
-
-const ItemActions = styled.div`
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-`;
-
-const ActionButton = styled.button`
-  background: #e5f4ff;
-  color: #2f5a2a;
-  border: 2px solid #2f5a2a;
-  padding: 12px 18px;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-
-  &:hover {
-    background: #d7e9ff;
-  }
-`;
-
-const TotalRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-top: 24px;
-  flex-wrap: wrap;
-`;
-
-const TotalLabel = styled.p`
-  margin: 0;
-  font-size: 1rem;
-  color: #7b8f7f;
-`;
-
-const TotalValue = styled.p`
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #2f5a2a;
-`;
-
-const EmptyMessage = styled.div`
-  text-align: center;
-  padding: 40px 20px;
-  color: #2f5a2a;
-`;
-
-const PrimaryButton = styled.button`
-  background-color: #2f5a2a;
-  color: white;
-  border: none;
-  padding: 16px 22px;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: #245026;
-  }
-`;
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const Cart = () => {
   const navigate = useNavigate();
   const { data: user, isLoading: isLoadingUser } = useUser();
   const { data: cartItems, isLoading } = useAllCartItems(user?.id);
-  const { mutate: mutateUpdateItem, isPending: isPendingUpdate } =
-    useUpdateCartItem();
-  const { mutate: mutateDeleteItem, isPending: isDeletingItem } =
-    useCartItemDeleteId();
-  const [showConfirm, setShowConfirm] = useState(false);
+  const { mutate: mutateUpdateItem, isPending: isPendingUpdate } = useUpdateCartItem();
+  const { mutate: mutateDeleteItem, isPending: isDeletingItem } = useCartItemDeleteId();
 
-  const totalItems = cartItems?.reduce(
-    (sum, item) => sum + (item.quantity || 0),
+  // Track which item is pending removal (null = no confirm open)
+  const [confirmItemId, setConfirmItemId] = useState(null);
+
+  const totalItems = cartItems?.reduce((sum, item) => sum + (item.quantity || 0), 0) ?? 0;
+  const totalCost  = cartItems?.reduce(
+    (sum, item) => sum + (item.listings?.price ?? 0) * (item.quantity ?? 1),
     0,
-  );
-
-  const totalCost = cartItems?.reduce((sum, item) => {
-    return sum + (item.listings?.price ?? 0) * (item.quantity ?? 1);
-  }, 0);
-
-  // FUNCTIONS
+  ) ?? 0;
 
   const handleUpdateNum = (type, item) => {
-    const user_id = user?.id;
-    const listing_id = item?.listing_id;
-    const cart_id = item?.id;
-
-    if (type === "increment") {
-      mutateUpdateItem({ user_id, listing_id, cart_id, type: "increment" });
-    } else {
-      mutateUpdateItem({ user_id, listing_id, cart_id, type: "decrement" });
-    }
-  };
-  const handleContinueShopping = () => {
-    navigate("/list");
+    mutateUpdateItem({
+      user_id:    user?.id,
+      listing_id: item?.listing_id,
+      cart_id:    item?.id,
+      type,
+    });
   };
 
-  // sets the confrim module ON and deletes/Cancels delete  item
   const handleConfirmDelete = (item_id) => {
-    setShowConfirm(false);
-    console.log("remove item from cart", item_id, cartItems);
     mutateDeleteItem({ item_id, user_id: user?.id });
+    setConfirmItemId(null);
   };
 
-  const removeFromCart = () => {
-    setShowConfirm(true);
-  };
+  if (isLoading || isLoadingUser) return <LoadingComponent />;
+
   return (
     <>
-      {isLoading || isLoadingUser ? (
-        <>
-          <LoadingComponent></LoadingComponent>
-        </>
-      ) : (
-        <>
-          <AppNavbar />
-          <Container>
-            <Header>
-              <BackButton onClick={() => navigate(-1)}>←</BackButton>
-              <Title>My Cart</Title>
-            </Header>
-
-            <Card>
-              <Content>
-                {cartItems?.length === 0 ? (
-                  <EmptyMessage>
-                    <h2>Your cart is empty</h2>
-                    <p>
-                      Browse listings and add items to your cart to see them
-                      here.
-                    </p>
-                    <PrimaryButton
-                      onClick={handleContinueShopping}
-                      style={{ marginTop: "24px" }}
-                    >
-                      Browse Listings
-                    </PrimaryButton>
-                  </EmptyMessage>
-                ) : (
-                  <>
-                    <CartSummary>
-                      <SummaryBlock>
-                        <h3>Total items</h3>
-                        <p>{totalItems}</p>
-                      </SummaryBlock>
-                      <SummaryBlock>
-                        <h3>Products</h3>
-                        <p>{cartItems?.length}</p>
-                      </SummaryBlock>
-                    </CartSummary>
-
-                    {cartItems?.map((item) => (
-                      <CartItem key={item.id}>
-                        {showConfirm && (
-                          <ConfirmModule
-                            text="Do you want to delete the item in the cart ? "
-                            onConfirm={() => handleConfirmDelete(item.id)}
-                            onCancel={() => setShowConfirm(false)}
-                          />
-                        )}
-                        <ItemImage
-                          src={item.listings?.image_url}
-                          alt={item.listings.title}
-                        />
-                        <ItemMeta>
-                          <ItemName>{item.listings?.title} </ItemName>
-                          <ItemPrice>Kes {item.listings?.price}</ItemPrice>
-                          <QuantityControls>
-                            <QuantityButton
-                              onClick={() => handleUpdateNum("decrement", item)}
-                              disable={isPendingUpdate}
-                            >
-                              -
-                            </QuantityButton>
-                            <QuantityLabel>{item?.quantity}</QuantityLabel>
-                            <QuantityButton
-                              disable={isPendingUpdate}
-                              onClick={() => handleUpdateNum("increment", item)}
-                            >
-                              +
-                            </QuantityButton>
-                          </QuantityControls>
-                          <ItemActions>
-                            <ActionButton
-                              onClick={() => removeFromCart(item.id)}
-                            >
-                              Remove
-                            </ActionButton>
-                          </ItemActions>
-                        </ItemMeta>
-                      </CartItem>
-                    ))}
-
-                    <TotalRow>
-                      <TotalLabel>TOTAL COST </TotalLabel>
-                      <TotalValue>Kes {totalCost?.toLocaleString()}</TotalValue>
-                    </TotalRow>
-
-                    <ItemActions style={{ marginTop: "24px" }}>
-                      <PrimaryButton onClick={handleContinueShopping}>
-                        Continue shopping
-                      </PrimaryButton>
-                      <ActionButton>Clear cart</ActionButton>
-                    </ItemActions>
-                    <ItemActions style={{ marginTop: "16px" }}>
-                      <PrimaryButton
-                        onClick={() =>
-                          navigate("/checkout", {
-                            state: { cartItems, totalCost },
-                          })
-                        }
-                      >
-                        Proceed to Checkout
-                      </PrimaryButton>
-                    </ItemActions>
-                  </>
-                )}
-              </Content>
-            </Card>
-          </Container>
-        </>
+      {confirmItemId && (
+        <ConfirmModule
+          text="Remove this item from your cart?"
+          onConfirm={() => handleConfirmDelete(confirmItemId)}
+          onCancel={() => setConfirmItemId(null)}
+        />
       )}
+
+      <AppNavbar />
+
+      <Page>
+        {/* ── Page header ── */}
+        <PageHeader>
+          <HeaderInner>
+            <RoundBack onClick={() => navigate(-1)} aria-label="Go back">←</RoundBack>
+            <HeaderTitle>My Cart</HeaderTitle>
+            {cartItems?.length > 0 && (
+              <CountBadge>{cartItems.length} item{cartItems.length !== 1 ? "s" : ""}</CountBadge>
+            )}
+          </HeaderInner>
+        </PageHeader>
+
+        <Body>
+          <Inner>
+            {cartItems?.length === 0 ? (
+              /* ── Empty state ── */
+              <EmptyWrap>
+                <EmptyIcon>🛒</EmptyIcon>
+                <EmptyTitle>Your cart is empty</EmptyTitle>
+                <EmptyDesc>Browse listings and add items to your cart to see them here.</EmptyDesc>
+                <BrowseBtn onClick={() => navigate("/list")}>Browse Listings</BrowseBtn>
+              </EmptyWrap>
+            ) : (
+              <>
+                {/* ── Item list ── */}
+                <ItemsCard>
+                  {cartItems.map((item, idx) => (
+                    <CartRow key={item.id} $last={idx === cartItems.length - 1}>
+                      <ItemImg
+                        src={item.listings?.image_url}
+                        alt={item.listings?.title}
+                      />
+                      <ItemBody>
+                        <ItemTitle>{item.listings?.title}</ItemTitle>
+                        <ItemPrice>
+                          Kes {item.listings?.price}
+                          {item.listings?.unit ? ` / ${item.listings.unit}` : ""}
+                        </ItemPrice>
+
+                        <QtyRow>
+                          <QtyBtn
+                            onClick={() => handleUpdateNum("decrement", item)}
+                            disabled={isPendingUpdate || item.quantity <= 1}
+                            aria-label="Decrease quantity"
+                          >
+                            −
+                          </QtyBtn>
+                          <QtyNum>{item.quantity}</QtyNum>
+                          <QtyBtn
+                            onClick={() => handleUpdateNum("increment", item)}
+                            disabled={isPendingUpdate}
+                            aria-label="Increase quantity"
+                          >
+                            +
+                          </QtyBtn>
+                          <LineTotal>
+                            Kes {((item.listings?.price ?? 0) * (item.quantity ?? 1)).toLocaleString()}
+                          </LineTotal>
+                        </QtyRow>
+
+                        <RemoveBtn
+                          onClick={() => setConfirmItemId(item.id)}
+                          disabled={isDeletingItem}
+                        >
+                          🗑 Remove
+                        </RemoveBtn>
+                      </ItemBody>
+                    </CartRow>
+                  ))}
+                </ItemsCard>
+
+                {/* ── Order summary ── */}
+                <SummaryCard>
+                  <SummaryTitle>Order Summary</SummaryTitle>
+
+                  <SummaryRow>
+                    <SummaryLabel>Products</SummaryLabel>
+                    <SummaryValue>{cartItems.length}</SummaryValue>
+                  </SummaryRow>
+                  <SummaryRow>
+                    <SummaryLabel>Total qty</SummaryLabel>
+                    <SummaryValue>{totalItems}</SummaryValue>
+                  </SummaryRow>
+
+                  <SummaryDivider />
+
+                  <SummaryRow $total>
+                    <SummaryLabel $total>Total</SummaryLabel>
+                    <SummaryValue $total>Kes {totalCost.toLocaleString()}</SummaryValue>
+                  </SummaryRow>
+
+                  <CheckoutBtn
+                    onClick={() => navigate("/checkout", { state: { cartItems, totalCost } })}
+                  >
+                    Proceed to Checkout
+                  </CheckoutBtn>
+                  <ContinueBtn onClick={() => navigate("/list")}>
+                    Continue Shopping
+                  </ContinueBtn>
+                </SummaryCard>
+              </>
+            )}
+          </Inner>
+        </Body>
+      </Page>
     </>
   );
 };
 
 export default Cart;
+
+// ─── Styled components ────────────────────────────────────────────────────────
+
+const Page = styled.div`
+  min-height: 100vh;
+  background: #f5f8f5;
+`;
+
+const PageHeader = styled.div`
+  background: white;
+  border-bottom: 1px solid #e8f0e8;
+  padding: 0 24px;
+`;
+
+const HeaderInner = styled.div`
+  max-width: 680px;
+  margin: 0 auto;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+`;
+
+const RoundBack = styled.button`
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid #e8f0e8;
+  background: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+
+  &:hover { background: #f0f7ee; }
+`;
+
+const HeaderTitle = styled.h1`
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1a3318;
+  flex: 1;
+`;
+
+const CountBadge = styled.span`
+  background: #eef7ee;
+  color: #2f5a2a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #cde5cf;
+`;
+
+const Body = styled.div`
+  padding: 24px 24px 56px;
+`;
+
+const Inner = styled.div`
+  max-width: 680px;
+  margin: 0 auto;
+  animation: ${fadeUp} 0.35s ease;
+`;
+
+/* ── Empty state ── */
+
+const EmptyWrap = styled.div`
+  text-align: center;
+  padding: 72px 24px;
+`;
+
+const EmptyIcon = styled.div`
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+`;
+
+const EmptyTitle = styled.p`
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const EmptyDesc = styled.p`
+  margin: 0 0 24px;
+  color: #7b8f7f;
+  font-size: 0.9rem;
+  line-height: 1.6;
+`;
+
+const BrowseBtn = styled.button`
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  padding: 13px 28px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover { background: #245026; }
+`;
+
+/* ── Items ── */
+
+const ItemsCard = styled.div`
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
+  overflow: hidden;
+  margin-bottom: 16px;
+`;
+
+const CartRow = styled.div`
+  display: flex;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: ${({ $last }) => ($last ? "none" : "1px solid #f0f7ee")};
+  align-items: flex-start;
+`;
+
+const ItemImg = styled.img`
+  width: 90px;
+  height: 90px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #eef7ee;
+  flex-shrink: 0;
+
+  @media (max-width: 400px) {
+    width: 72px;
+    height: 72px;
+  }
+`;
+
+const ItemBody = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const ItemTitle = styled.h3`
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a3318;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ItemPrice = styled.span`
+  font-size: 0.88rem;
+  color: #2f5a2a;
+  font-weight: 700;
+`;
+
+const QtyRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+`;
+
+const QtyBtn = styled.button`
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1.5px solid #cde5cf;
+  background: white;
+  color: #2f5a2a;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #2f5a2a;
+    color: white;
+    border-color: #2f5a2a;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+`;
+
+const QtyNum = styled.span`
+  min-width: 24px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const LineTotal = styled.span`
+  margin-left: auto;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #2f5a2a;
+`;
+
+const RemoveBtn = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #a32d2d;
+  cursor: pointer;
+  width: fit-content;
+  transition: opacity 0.15s;
+
+  &:hover:not(:disabled) { opacity: 0.7; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+`;
+
+/* ── Order summary ── */
+
+const SummaryCard = styled.div`
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
+  padding: 24px;
+`;
+
+const SummaryTitle = styled.h3`
+  margin: 0 0 18px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #7b8f7f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+`;
+
+const SummaryRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${({ $total }) => ($total ? "20px" : "10px")};
+`;
+
+const SummaryLabel = styled.span`
+  font-size: ${({ $total }) => ($total ? "1rem" : "0.88rem")};
+  font-weight: ${({ $total }) => ($total ? "700" : "500")};
+  color: ${({ $total }) => ($total ? "#1a3318" : "#7b8f7f")};
+`;
+
+const SummaryValue = styled.span`
+  font-size: ${({ $total }) => ($total ? "1.3rem" : "0.88rem")};
+  font-weight: 700;
+  color: #2f5a2a;
+`;
+
+const SummaryDivider = styled.div`
+  height: 1px;
+  background: #f0f7ee;
+  margin: 14px 0 18px;
+`;
+
+const CheckoutBtn = styled.button`
+  width: 100%;
+  padding: 15px;
+  border-radius: 14px;
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+
+  &:hover { background: #245026; }
+`;
+
+const ContinueBtn = styled.button`
+  width: 100%;
+  padding: 13px;
+  border-radius: 14px;
+  background: white;
+  color: #2f5a2a;
+  border: 1.5px solid #cde5cf;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: #eef7ee; border-color: #2f5a2a; }
+`;

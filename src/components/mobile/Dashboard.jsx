@@ -795,7 +795,6 @@ const Dashboard = () => {
         <TopBar>
           <TitleGroup>
             <Eyebrow>Store Management</Eyebrow>
-            <PageTitle>My Store</PageTitle>
             <PageSub>Manage your listings and fulfil incoming orders.</PageSub>
           </TitleGroup>
           {/* <AddBtn onClick={() => navigate("/newlist")}>+ New Listing</AddBtn> */}

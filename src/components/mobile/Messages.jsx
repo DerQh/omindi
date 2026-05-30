@@ -41,8 +41,7 @@ const Container = styled.div`
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
 const Hero = styled.div`
-  background: linear-gradient(135deg, #2f5a2a 0%, #3d7a35 60%, #4e9643 100%);
-  padding: 28px 24px 64px;
+  padding: 28px 24px 38px;
   position: relative;
   overflow: hidden;
 
@@ -59,31 +58,6 @@ const Hero = styled.div`
   }
 `;
 
-const HeroTitle = styled.h1`
-  margin: 0 0 6px;
-  color: white;
-  font-size: 1.6rem;
-  font-weight: 800;
-`;
-
-const HeroChips = styled.div`
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-`;
-
-const HeroChip = styled.div`
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 999px;
-  padding: 6px 14px;
-  color: white;
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`;
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
@@ -642,22 +616,16 @@ const Messages = () => {
       <AppNavbar />
       <Container>
         {/* ── Hero ── */}
-        <Hero>
-          <HeroTitle>Messages</HeroTitle>
-          <HeroChips>
-            <HeroChip>
-              💬 {conversations.length} conversation
-              {conversations.length !== 1 ? "s" : ""}
-            </HeroChip>
-            {unreadTotal > 0 && <HeroChip>🟢 {unreadTotal} unread</HeroChip>}
-          </HeroChips>
-        </Hero>
+        <Hero></Hero>
 
         <Layout>
           {/* ── Left: Conversation list ── */}
           <ConvPanel $hidden={mobileView === "chat"}>
             <ConvPanelHeader>
-              <ConvPanelTitle>Conversations</ConvPanelTitle>
+              <ConvPanelTitle>
+                {conversations.length} conversation
+                {conversations.length !== 1 ? "s" : ""}
+              </ConvPanelTitle>
               <SearchInput
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}

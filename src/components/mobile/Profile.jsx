@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import { useProfile } from "../../hooks/useProfile";
 import LoadingComponent from "./Loading";
-import { useUserListings } from "../../hooks/useListings";
+import { useUserListings, useDeleteListing } from "../../hooks/useListings";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -59,31 +60,6 @@ const Cover = styled.div`
     background: rgba(255, 255, 255, 0.04);
     bottom: -40px;
     left: 24px;
-  }
-`;
-
-// Edit profile shortcut floated on the cover (top-right)
-const CoverEditBtn = styled.button`
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  color: white;
-  font-size: 0.82rem;
-  font-weight: 700;
-  padding: 7px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.35);
   }
 `;
 
@@ -202,29 +178,6 @@ const PrimaryBtn = styled.button`
 
   &:hover {
     background: #245026;
-  }
-`;
-
-const SecondaryBtn = styled.button`
-  flex: 1;
-  min-width: 140px;
-  padding: 12px 18px;
-  border-radius: 12px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  cursor: pointer;
-  background: white;
-  color: #2f5a2a;
-  border: 2px solid #cde5cf;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  &:hover {
-    background: #eef7ee;
-    border-color: #2f5a2a;
   }
 `;
 
@@ -369,7 +322,9 @@ const ListingCard = styled.div`
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 3px 14px rgba(20, 57, 32, 0.07);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   cursor: pointer;
 
   &:hover {
@@ -418,9 +373,13 @@ const ListingTitle = styled.h4`
   text-overflow: ellipsis;
 `;
 
-// Inline edit button on each listing card
+const CardActions = styled.div`
+  display: flex;
+  gap: 6px;
+`;
+
 const EditListingBtn = styled.button`
-  width: 100%;
+  flex: 1;
   padding: 8px;
   border-radius: 8px;
   font-size: 0.82rem;
@@ -436,6 +395,75 @@ const EditListingBtn = styled.button`
     color: white;
     border-color: #2f5a2a;
   }
+`;
+
+const DeleteListingBtn = styled.button`
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #fff0f0;
+  color: #a32d2d;
+  border: 1px solid #f5c2c2;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #a32d2d;
+    color: white;
+    border-color: #a32d2d;
+  }
+`;
+
+const ConfirmRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+`;
+
+const ConfirmText = styled.p`
+  margin: 0 0 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #a32d2d;
+  text-align: center;
+`;
+
+const ConfirmActions = styled.div`
+  display: flex;
+  gap: 6px;
+`;
+
+const ConfirmYes = styled.button`
+  flex: 1;
+  padding: 7px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #a32d2d;
+  color: white;
+  border: none;
+  transition: background 0.2s;
+
+  &:hover { background: #8a2020; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+`;
+
+const ConfirmNo = styled.button`
+  flex: 1;
+  padding: 7px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #f0f7ee;
+  color: #2f5a2a;
+  border: 1px solid #cde5cf;
+  transition: background 0.2s;
+
+  &:hover { background: #d7edd7; }
 `;
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
@@ -473,7 +501,9 @@ const EmptyBtn = styled.button`
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  &:hover { background: #245026; }
+  &:hover {
+    background: #245026;
+  }
 `;
 
 // Static map embed URL — replace with a dynamic one based on profileData?.location when geocoding is wired up
@@ -485,12 +515,17 @@ const DEFAULT_MAP_URL =
 const Profile = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   // profileData shape: { farm_name, description, location, avatar_url, ... }
   const { data: profileData, isLoading } = useProfile(user?.id);
 
   // userListings: array of listing objects from Supabase
-  const { data: userListings, isLoading: isLoadingListings } = useUserListings(user?.id);
+  const { data: userListings, isLoading: isLoadingListings } = useUserListings(
+    user?.id,
+  );
+
+  const { mutate: deleteListing, isPending: isDeleting } = useDeleteListing(user?.id);
 
   if (isLoading || isLoadingListings) return <LoadingComponent />;
 
@@ -507,13 +542,8 @@ const Profile = () => {
     <>
       <AppNavbar />
       <Container>
-
-        {/* ── Cover with edit shortcut ── */}
-        <Cover>
-          <CoverEditBtn onClick={() => navigate("/edit-profile")}>
-            ✏️ Edit Profile
-          </CoverEditBtn>
-        </Cover>
+        {/* ── Cover ── */}
+        <Cover />
 
         {/* ── Profile identity ── */}
         <ProfileSection>
@@ -526,24 +556,20 @@ const Profile = () => {
 
           <NameRow>
             <FarmName>{farmName}</FarmName>
-            {isComplete && <CompleteBadge>✓ Complete</CompleteBadge>}
+            {isComplete && <CompleteBadge>✓</CompleteBadge>}
           </NameRow>
 
-          {location && (
-            <LocationRow>📍 {location}</LocationRow>
-          )}
+          {location && <LocationRow>📍 {location}</LocationRow>}
 
           <BioText>
-            {description || "No farm description yet. Click Edit Profile to add one."}
+            {description ||
+              "No farm description yet. Click Edit Profile to add one."}
           </BioText>
 
           <ActionRow>
             <PrimaryBtn onClick={() => navigate("/edit-profile")}>
-              ✏️ Edit Profile
+              Edit Profile
             </PrimaryBtn>
-            <SecondaryBtn onClick={() => navigate("/add-listing")}>
-              + New Listing
-            </SecondaryBtn>
           </ActionRow>
         </ProfileSection>
 
@@ -572,7 +598,7 @@ const Profile = () => {
           <SectionCard>
             <SectionHeader>
               <SectionTitle>
-                🛒 Posted Listings
+                Posted Listings
                 <SectionCount>· {listingsCount}</SectionCount>
               </SectionTitle>
               <AddListingLink onClick={() => navigate("/add-listing")}>
@@ -589,18 +615,45 @@ const Profile = () => {
                   >
                     <ListingImageWrap>
                       <img src={item.image_url} alt={item.title} />
-                      <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
+                      <PriceBadge>
+                        Kes {item.price}/{item.unit}
+                      </PriceBadge>
                     </ListingImageWrap>
                     <ListingBody>
                       <ListingTitle>{item.title}</ListingTitle>
-                      <EditListingBtn
-                        onClick={(e) => {
-                          e.stopPropagation(); // prevent card click when editing
-                          navigate(`/edit-listing/${item.id}`);
-                        }}
-                      >
-                        ✏️ Edit
-                      </EditListingBtn>
+                      {confirmDeleteId === item.id ? (
+                        <ConfirmRow onClick={(e) => e.stopPropagation()}>
+                          <ConfirmText>Delete this listing?</ConfirmText>
+                          <ConfirmActions>
+                            <ConfirmYes
+                              disabled={isDeleting}
+                              onClick={() =>
+                                deleteListing(item.id, {
+                                  onSuccess: () => setConfirmDeleteId(null),
+                                })
+                              }
+                            >
+                              {isDeleting ? "Deleting…" : "Yes, delete"}
+                            </ConfirmYes>
+                            <ConfirmNo onClick={() => setConfirmDeleteId(null)}>
+                              Cancel
+                            </ConfirmNo>
+                          </ConfirmActions>
+                        </ConfirmRow>
+                      ) : (
+                        <CardActions onClick={(e) => e.stopPropagation()}>
+                          <EditListingBtn
+                            onClick={() => navigate(`/edit-listing/${item.id}`)}
+                          >
+                            ✏️ Edit
+                          </EditListingBtn>
+                          <DeleteListingBtn
+                            onClick={() => setConfirmDeleteId(item.id)}
+                          >
+                            🗑 Delete
+                          </DeleteListingBtn>
+                        </CardActions>
+                      )}
                     </ListingBody>
                   </ListingCard>
                 ))}
@@ -609,7 +662,9 @@ const Profile = () => {
               <EmptyState>
                 <EmptyIcon>🌱</EmptyIcon>
                 <EmptyTitle>No listings yet</EmptyTitle>
-                <EmptyDesc>Post your first product so buyers can find you.</EmptyDesc>
+                <EmptyDesc>
+                  Post your first product so buyers can find you.
+                </EmptyDesc>
                 <EmptyBtn onClick={() => navigate("/add-listing")}>
                   + Add First Listing
                 </EmptyBtn>
@@ -642,7 +697,6 @@ const Profile = () => {
             )}
           </SectionCard>
         </Section>
-
       </Container>
     </>
   );

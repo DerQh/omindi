@@ -1,539 +1,630 @@
-import { useContext, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import { useAddOrder, useAddOrderItems } from "../../hooks/useOrders";
 import { useCartItemsAllDelete } from "../../hooks/useCart";
 import { useNotifyOrder } from "../../hooks/useNotification";
 
+// ─── Animations ───────────────────────────────────────────────────────────────
+
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+// ─── Payment options ──────────────────────────────────────────────────────────
+
+const PAYMENT_METHODS = [
+  { value: "cash",   label: "Cash on Delivery", icon: "💵" },
+  { value: "mobile", label: "Mobile Money",      icon: "📱" },
+  { value: "bank",   label: "Bank Transfer",     icon: "🏦" },
+];
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const Checkout = () => {
-  const navigate = useNavigate();
-  // --- HOOKS
-  const { state } = useLocation();
-  const { user } = useAuth(); // context that fetches user information that is alreadt fetched on the database
+  const navigate        = useNavigate();
+  const { state }       = useLocation();
+  const { user }        = useAuth();
   const { cartItems, totalCost } = state;
-  const { mutate: mutateDeleteAllOrders, isPending: isPendingDeleteOrders } =
-    useCartItemsAllDelete();
 
-  const { mutateAsync: mutateAddOrder, isPending: isPendingAddOrder } =
-    useAddOrder();
-  const { mutateAsync: mutateddOrderItems } = useAddOrderItems();
-  const { mutateAsync: mutateAsyncAddNotification, isPending } =
-    useNotifyOrder();
+  const { mutate:      mutateDeleteAllOrders } = useCartItemsAllDelete();
+  const { mutateAsync: mutateAddOrder,   isPending: isPendingOrder } = useAddOrder();
+  const { mutateAsync: mutateAddItems  }                             = useAddOrderItems();
+  const { mutateAsync: mutateNotify    }                             = useNotifyOrder();
 
-  // ----- STATES ---------
-  const [completed, setCompleted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [address, setAddress] = useState("");
-  const [phone, setPhone] = useState("");
+  const [address,       setAddress]       = useState("");
+  const [phone,         setPhone]         = useState("");
+  const [notes,         setNotes]         = useState("");
+  const [errors,        setErrors]        = useState({});
 
-  // console.log(cartItems, totalCost);
-  const totalCount = cartItems.reduce(
-    (sum, item) => sum + (item.quantity || 0),
-    0,
-  );
+  const totalCount = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
-  let user_id = user?.id;
-
-  // --------TEST FUNCTION FOR CARTITEMS TO GROUP THE ORDERS  THEM BY SELLERS
   const orderGroupedBySeller = Object.values(
-    cartItems?.reduce((acc, row) => {
-      const sellerId = row.listings.seller_id;
-
-      if (!acc[sellerId]) {
-        acc[sellerId] = {
-          seller_id: sellerId,
-          items: [],
-          totalCost: 0,
-        };
-      }
-
-      acc[sellerId].items.push(row);
-
-      const price = row.listings.price ?? 0;
-      const qty = row.quantity ?? 0;
-
-      acc[sellerId].totalCost += price * qty;
-
+    cartItems.reduce((acc, row) => {
+      const sid = row.listings.seller_id;
+      if (!acc[sid]) acc[sid] = { seller_id: sid, items: [], totalCost: 0 };
+      acc[sid].items.push(row);
+      acc[sid].totalCost += (row.listings.price ?? 0) * (row.quantity ?? 0);
       return acc;
     }, {}),
   );
-  // console.log(orderGroupedBySeller);
 
-  // --------- FUNCTIONS
-
-  //  -- VALIDATE  phone functions
-  const validatePhone = (phone) => {
-    const cleaned = phone.replace(/\s/g, "");
-    return /^(07|01)\d{8}$/.test(cleaned); // Kenyan format
+  const validate = () => {
+    const e = {};
+    if (!address.trim())    e.address = "Delivery address is required.";
+    if (!phone.trim())      e.phone   = "Mobile number is required.";
+    else if (!/^(07|01)\d{8}$/.test(phone.replace(/\s/g, "")))
+      e.phone = "Enter a valid Kenyan number e.g. 0712 345 678";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  // --- CHECKOUT FUNCTION USE ASYNC  function
   const handleCheckout = async () => {
-    if (!address.trim()) {
-      alert("Please enter your delivery address.");
-      return;
-    }
-    if (!phone.trim()) {
-      alert("Please enter your mobile number.");
-      return;
-    }
-    if (!validatePhone(phone)) {
-      alert("Please enter a valid Kenyan mobile number e.g. 0712 345 678");
-      return;
-    }
-    let orderIds = []; // collect all order ids
+    if (!validate()) return;
 
+    const orderIds = [];
     for (const group of orderGroupedBySeller) {
-      const orderRows = await mutateAddOrder({
-        user_id,
-        payment_method: paymentMethod,
+      const rows = await mutateAddOrder({
+        user_id:          user?.id,
+        payment_method:   paymentMethod,
         delivery_address: address,
-        total_cost: group.totalCost,
-        mobile_no: phone,
+        total_cost:       group.totalCost,
+        mobile_no:        phone,
       });
-      let orderDataId = orderRows?.[0]?.id;
-      orderIds.push(orderDataId); // save it
+      const orderId = rows?.[0]?.id;
+      orderIds.push(orderId);
 
-      // --- INSERT order notification (call after order is created)
-      mutateAsyncAddNotification({
-        user_id,
-        orderId: orderDataId,
-        status: "pending",
-        total: group.totalCost,
+      mutateNotify({
+        user_id: user?.id,
+        orderId,
+        status:  "pending",
+        total:   group.totalCost,
         payment: paymentMethod,
       });
 
       for (const item of group.items) {
-        await mutateddOrderItems({
-          order_id: orderDataId,
-          listing_id: item.listing_id,
-          quantity: item.quantity,
+        await mutateAddItems({
+          order_id:          orderId,
+          listing_id:        item.listing_id,
+          quantity:          item.quantity,
           price_at_purchase: item.listings?.price,
         });
       }
     }
-    // CLEAR CART
-    mutateDeleteAllOrders({ user_id });
-    // console.log(orderIds);
 
-    // navigate with the first order id (or all of them)
+    mutateDeleteAllOrders({ user_id: user?.id });
+
     navigate("/order-confirmation", {
-      state: {
-        orderGroupedBySeller,
-        totalCost,
-        paymentMethod,
-        address,
-        orderId: orderIds, // first order id
-      },
+      state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: orderIds },
     });
-
-    // mutateAddOrder(
-    //   {
-    //     user_id,
-    //     payment_method: paymentMethod,
-    //     delivery_address: address,
-    //     total_cost: totalCost,
-    //     mobile_no: phone,
-    //   },
-    //   {
-    //     // FETCH THE MUTATED DATA ABOVE AS (DATA)
-    //     onSuccess: (data) => {
-    //       let orderDataId = data[0]?.id;
-    //       navigate("/order-confirmation", {
-    //         state: { cartItems, totalCost, paymentMethod, address },
-    //       });
-    //       mutateDeleteAllOrders({
-    //         user_id,
-    //       });
-    //       cartItems?.forEach((item) => {
-    //         mutateddOrderItems({
-    //           order_id: orderDataId,
-    //           listing_id: item.listing_id,
-    //           quantity: item.quantity,
-    //           price_at_purchase: item.listings?.price,
-    //         });
-    //       });
-    //       alert("✅ Order successfully, ®AFARMER");
-    //     },
-    //   },
-    // );
   };
 
-  const handleContinueShopping = () => {
-    navigate("/list");
-  };
+  if (cartItems?.length === 0)
+    return (
+      <>
+        <AppNavbar />
+        <EmptyWrap>
+          <EmptyCard>
+            <span>🛒</span>
+            <p>No items ready for checkout.</p>
+            <GoBackBtn onClick={() => navigate("/list")}>Browse Listings</GoBackBtn>
+          </EmptyCard>
+        </EmptyWrap>
+      </>
+    );
 
   return (
     <>
       <AppNavbar />
-      <Container>
-        <Header>
-          <BackButton onClick={() => navigate(-1)}>←</BackButton>
-          <Title>Checkout</Title>
-        </Header>
+      <Page>
 
-        <Card>
-          <Content>
-            {cartItems?.length === 0 ? (
-              <EmptyMessage>
-                <h2>No items ready for checkout</h2>
-                <p>
-                  Add something to your cart first, then come back to complete
-                  your order.
-                </p>
-                <CheckoutButton onClick={handleContinueShopping}>
-                  Browse listings
-                </CheckoutButton>
-              </EmptyMessage>
-            ) : (
-              <>
-                <SummaryRow>
-                  <SummaryBlock>
-                    <SummaryLabel>Items to purchase</SummaryLabel>
-                    <SummaryValue>{totalCount}</SummaryValue>
-                  </SummaryBlock>
-                  <SummaryBlock>
-                    <SummaryLabel>Products</SummaryLabel>
-                    <SummaryValue>{cartItems.length}</SummaryValue>
-                  </SummaryBlock>
-                </SummaryRow>
+        {/* ── Header ── */}
+        <PageHeader>
+          <HeaderInner>
+            <RoundBack onClick={() => navigate(-1)} aria-label="Go back">←</RoundBack>
+            <HeaderTitle>Checkout</HeaderTitle>
+            <HeaderMeta>{cartItems.length} item{cartItems.length !== 1 ? "s" : ""}</HeaderMeta>
+          </HeaderInner>
+        </PageHeader>
 
-                <ItemList>
-                  {cartItems?.map((item) => (
-                    <CheckoutItem key={item.id}>
-                      <ItemImage
-                        src={item.listings?.image_url}
-                        alt={item.listings?.title}
-                      />
-                      <ItemDetails>
-                        <ItemName>{item.listings?.title}</ItemName>
-                        <ItemMeta>Kes {item.listings?.price}</ItemMeta>
-                        <ItemMeta>Quantity: {item.quantity}</ItemMeta>
-                      </ItemDetails>
-                    </CheckoutItem>
+        {/* ── Body ── */}
+        <Body>
+          <TwoCol>
+
+            {/* ── Left: order items grouped by seller ── */}
+            <LeftCol>
+              <ColTitle>
+                Your Order
+                {orderGroupedBySeller.length > 1 && (
+                  <SellerCountNote> · {orderGroupedBySeller.length} sellers</SellerCountNote>
+                )}
+              </ColTitle>
+
+              {orderGroupedBySeller.map((group, gi) => (
+                <ItemsCard key={group.seller_id}>
+                  <SellerHeader>
+                    <SellerIcon>🏪</SellerIcon>
+                    <SellerHeaderName>
+                      {group.items[0]?.listings?.seller_name || "Farmer"}
+                    </SellerHeaderName>
+                    <SellerSubtotal>Kes {group.totalCost.toLocaleString()}</SellerSubtotal>
+                  </SellerHeader>
+
+                  {group.items.map((item, idx) => (
+                    <OrderRow key={item.id} $last={idx === group.items.length - 1}>
+                      <OrderImg src={item.listings?.image_url} alt={item.listings?.title} />
+                      <OrderMeta>
+                        <OrderName>{item.listings?.title}</OrderName>
+                        <OrderSub>Kes {item.listings?.price} × {item.quantity}</OrderSub>
+                      </OrderMeta>
+                      <OrderLineTotal>
+                        Kes {((item.listings?.price ?? 0) * (item.quantity ?? 1)).toLocaleString()}
+                      </OrderLineTotal>
+                    </OrderRow>
                   ))}
-                </ItemList>
+                </ItemsCard>
+              ))}
 
-                <FormSection>
-                  <FormLabel>Payment Method</FormLabel>
-                  <PaymentOptions>
-                    <PaymentOption>
-                      <input
+              <TotalCard>
+                <TotalRow>
+                  <TotalLabel>Total ({totalCount} items)</TotalLabel>
+                  <TotalAmount>Kes {totalCost?.toLocaleString()}</TotalAmount>
+                </TotalRow>
+              </TotalCard>
+            </LeftCol>
+
+            {/* ── Right: form ── */}
+            <RightCol>
+
+              {/* Payment method */}
+              <FormCard>
+                <ColTitle>Payment Method</ColTitle>
+                <PaymentGrid>
+                  {PAYMENT_METHODS.map((method) => (
+                    <PaymentCard
+                      key={method.value}
+                      $active={paymentMethod === method.value}
+                      onClick={() => setPaymentMethod(method.value)}
+                    >
+                      <PayIcon>{method.icon}</PayIcon>
+                      <PayLabel>{method.label}</PayLabel>
+                      <PayRadio
                         type="radio"
                         name="payment"
-                        value="cash"
-                        checked={paymentMethod === "cash"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        value={method.value}
+                        checked={paymentMethod === method.value}
+                        onChange={() => setPaymentMethod(method.value)}
                       />
-                      Cash on Delivery
-                    </PaymentOption>
-                    <PaymentOption>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="mobile"
-                        checked={paymentMethod === "mobile"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                      />
-                      Mobile Money
-                    </PaymentOption>
-                    <PaymentOption>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="bank"
-                        checked={paymentMethod === "bank"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                      />
-                      Bank Transfer
-                    </PaymentOption>
-                  </PaymentOptions>
-                  <FormLabel htmlFor="address">Delivery Address</FormLabel>
-                  <FormTextarea
+                    </PaymentCard>
+                  ))}
+                </PaymentGrid>
+              </FormCard>
+
+              {/* Delivery details */}
+              <FormCard>
+                <ColTitle>Delivery Details</ColTitle>
+
+                <Field>
+                  <FieldLabel htmlFor="address">Delivery Address</FieldLabel>
+                  <FieldTextarea
                     id="address"
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Enter your full delivery address..."
+                    onChange={(e) => { setAddress(e.target.value); setErrors((p) => ({ ...p, address: "" })); }}
+                    placeholder="Enter your full delivery address…"
+                    $error={!!errors.address}
                   />
-                  <FormLabel htmlFor="phone">Mobile Number</FormLabel>
-                  <FormInput
+                  {errors.address && <FieldError>{errors.address}</FieldError>}
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="phone">Mobile Number</FieldLabel>
+                  <FieldInput
                     id="phone"
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => { setPhone(e.target.value); setErrors((p) => ({ ...p, phone: "" })); }}
                     placeholder="e.g. 0712 345 678"
+                    $error={!!errors.phone}
                   />
-                </FormSection>
+                  {errors.phone && <FieldError>{errors.phone}</FieldError>}
+                </Field>
 
-                <CheckoutButton onClick={handleCheckout}>
-                  Confirm purchase
-                </CheckoutButton>
-                <CancelButton
-                  onClick={handleContinueShopping}
-                  style={{ marginTop: "16px" }}
-                >
-                  Continue browsing
-                </CancelButton>
+                <Field>
+                  <FieldLabel htmlFor="notes">
+                    Delivery Notes <OptionalTag>(optional)</OptionalTag>
+                  </FieldLabel>
+                  <FieldTextarea
+                    id="notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="e.g. Leave at the gate, call on arrival…"
+                  />
+                </Field>
+              </FormCard>
 
-                {completed && (
-                  <Confirmation>
-                    <strong>Success!</strong> Your order is complete. The seller
-                    will contact you about pickup or delivery.
-                  </Confirmation>
-                )}
-              </>
-            )}
-          </Content>
-        </Card>
-      </Container>
+              {/* Confirm */}
+              <ConfirmBtn onClick={handleCheckout} disabled={isPendingOrder}>
+                {isPendingOrder ? "Placing order…" : `Confirm Order `}
+              </ConfirmBtn>
+              <CancelBtn onClick={() => navigate(-1)}>Back to Cart</CancelBtn>
+
+            </RightCol>
+          </TwoCol>
+        </Body>
+      </Page>
     </>
   );
 };
 
 export default Checkout;
-const Container = styled.div`
+
+// ─── Styled components ────────────────────────────────────────────────────────
+
+const Page = styled.div`
   min-height: 100vh;
-  background: #f7fbff;
-  padding: 20px 24px;
+  background: #f5f8f5;
 `;
 
-const Header = styled.div`
+const PageHeader = styled.div`
+  background: white;
+  border-bottom: 1px solid #e8f0e8;
+  padding: 0 24px;
+`;
+
+const HeaderInner = styled.div`
+  max-width: 960px;
+  margin: 0 auto;
+  height: 60px;
   display: flex;
   align-items: center;
-  margin-bottom: 24px;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
+  gap: 14px;
 `;
 
-const BackButton = styled.button`
-  background: #2f5a2a;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 1.2rem;
+const RoundBack = styled.button`
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid #e8f0e8;
+  background: white;
+  font-size: 1.1rem;
   cursor: pointer;
-  width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 16px;
+  flex-shrink: 0;
+  transition: background 0.15s;
 
-  &:hover {
-    background: #245026;
-  }
+  &:hover { background: #f0f7ee; }
 `;
 
-const Title = styled.h1`
+const HeaderTitle = styled.h1`
   margin: 0;
-  color: #2f5a2a;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1a3318;
   flex: 1;
-  text-align: center;
 `;
 
-const Card = styled.div`
-  max-width: 900px;
+const HeaderMeta = styled.span`
+  background: #eef7ee;
+  color: #2f5a2a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #cde5cf;
+`;
+
+const Body = styled.div`
+  padding: 24px;
+  padding-bottom: 56px;
+`;
+
+const TwoCol = styled.div`
+  max-width: 960px;
   margin: 0 auto;
-  background: white;
-  border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(20, 57, 32, 0.08);
-  overflow: hidden;
-`;
-
-const Content = styled.div`
-  padding: 32px;
-`;
-
-const ItemList = styled.div`
   display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 20px;
-  margin-bottom: 28px;
-`;
-
-const CheckoutItem = styled.div`
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 18px;
   align-items: start;
-  padding: 22px;
-  border: 1px solid #ebf2eb;
-  border-radius: 18px;
+  animation: ${fadeUp} 0.35s ease;
 
-  @media (max-width: 640px) {
+  @media (max-width: 720px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const ItemImage = styled.img`
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 16px;
-  background: #d7e9ff;
-`;
+const LeftCol  = styled.div`display: flex; flex-direction: column; gap: 16px;`;
+const RightCol = styled.div`display: flex; flex-direction: column; gap: 16px;`;
 
-const ItemDetails = styled.div`
-  display: grid;
-  gap: 8px;
-`;
-
-const ItemName = styled.h2`
-  margin: 0;
-  color: #2f5a2a;
-  font-size: 1.3rem;
-`;
-
-const ItemMeta = styled.p`
-  margin: 0;
+const ColTitle = styled.h2`
+  margin: 0 0 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
   color: #7b8f7f;
-  line-height: 1.6;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 `;
 
-const SummaryRow = styled.div`
-  display: grid;
+/* ── Order items ── */
+
+const SellerCountNote = styled.span`
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #7b8f7f;
+  text-transform: none;
+  letter-spacing: 0;
+`;
+
+const ItemsCard = styled.div`
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
+  overflow: hidden;
+  margin-bottom: 12px;
+`;
+
+const SellerHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: #f8faf6;
+  border-bottom: 1px solid #f0f7ee;
+`;
+
+const SellerIcon = styled.span`font-size: 0.95rem;`;
+
+const SellerHeaderName = styled.span`
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const SellerSubtotal = styled.span`
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #2f5a2a;
+`;
+
+const TotalCard = styled.div`
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
+  overflow: hidden;
+`;
+
+const OrderRow = styled.div`
+  display: flex;
+  align-items: center;
   gap: 12px;
-  margin-bottom: 26px;
+  padding: 14px 18px;
+  border-bottom: ${({ $last }) => ($last ? "none" : "1px solid #f0f7ee")};
 `;
 
-const SummaryBlock = styled.div`
-  padding: 20px;
-  background: #f0f7ee;
-  border-radius: 16px;
+const OrderImg = styled.img`
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #eef7ee;
+  flex-shrink: 0;
+`;
+
+const OrderMeta = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const OrderName = styled.p`
+  margin: 0 0 3px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a3318;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const OrderSub = styled.p`
+  margin: 0;
+  font-size: 0.78rem;
+  color: #7b8f7f;
+`;
+
+const OrderLineTotal = styled.span`
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #2f5a2a;
+  flex-shrink: 0;
+`;
+
+const TotalRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 16px 18px;
+  background: #f8faf6;
 `;
 
-const SummaryLabel = styled.span`
+const TotalLabel = styled.span`
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #7b8f7f;
-  font-size: 1rem;
 `;
 
-const SummaryValue = styled.span`
-  color: #2f5a2a;
-  font-weight: 700;
+const TotalAmount = styled.span`
   font-size: 1.1rem;
-`;
-
-const FormSection = styled.div`
-  margin-bottom: 28px;
-`;
-
-const FormLabel = styled.label`
-  display: block;
-  font-weight: 700;
-  margin-bottom: 8px;
+  font-weight: 800;
   color: #2f5a2a;
 `;
 
-const FormInput = styled.input`
-  width: 90%;
-  padding: 16px;
-  border: 2px solid #d7e9ff;
-  border-radius: 14px;
-  background: #f7fbff;
-  color: #2f5a2a;
-  font-size: 1rem;
-  margin-bottom: 16px;
-  outline: none;
+/* ── Form ── */
 
-  &:focus {
-    border-color: #2f5a2a;
-  }
+const FormCard = styled.div`
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
+  padding: 20px;
 `;
 
-const FormTextarea = styled.textarea`
-  width: 90%;
-  min-height: 80px;
-  padding: 16px;
-  border: 2px solid #d7e9ff;
-  border-radius: 14px;
-  background: #f7fbff;
-  color: #2f5a2a;
-  font-size: 1rem;
-  resize: vertical;
-  outline: none;
-
-  &:focus {
-    border-color: #2f5a2a;
-  }
+const PaymentGrid = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 `;
 
-const PaymentOptions = styled.div`
-  display: grid;
-  gap: 12px;
-  margin-bottom: 16px;
-`;
-
-const PaymentOption = styled.label`
+const PaymentCard = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  border: 2px solid #d7e9ff;
+  padding: 14px 16px;
   border-radius: 12px;
-  background: #f7fbff;
+  border: 1.5px solid ${({ $active }) => ($active ? "#2f5a2a" : "#e8f0e8")};
+  background: ${({ $active }) => ($active ? "#eef7ee" : "white")};
   cursor: pointer;
+  transition: all 0.15s;
 
-  input {
-    margin: 0;
-  }
-
-  &:hover {
-    border-color: #2f5a2a;
-  }
+  &:hover { border-color: #2f5a2a; }
 `;
 
-const CheckoutButton = styled.button`
+const PayIcon = styled.span`font-size: 1.2rem; flex-shrink: 0;`;
+
+const PayLabel = styled.span`
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a3318;
+`;
+
+const PayRadio = styled.input`
+  accent-color: #2f5a2a;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+`;
+
+const Field = styled.div`
+  margin-bottom: 16px;
+  &:last-child { margin-bottom: 0; }
+`;
+
+const FieldLabel = styled.label`
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1a3318;
+  margin-bottom: 8px;
+`;
+
+const inputBase = `
   width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid;
+  font-size: 0.95rem;
+  color: #1a3318;
+  background: #fafcfa;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+  font-family: inherit;
+`;
+
+const FieldInput = styled.input`
+  ${inputBase}
+  border-color: ${({ $error }) => ($error ? "#e63946" : "#e8f0e8")};
+  &:focus { border-color: ${({ $error }) => ($error ? "#e63946" : "#2f5a2a")}; }
+`;
+
+const FieldTextarea = styled.textarea`
+  ${inputBase}
+  border-color: ${({ $error }) => ($error ? "#e63946" : "#e8f0e8")};
+  &:focus { border-color: ${({ $error }) => ($error ? "#e63946" : "#2f5a2a")}; }
+  min-height: 88px;
+  resize: vertical;
+`;
+
+const OptionalTag = styled.span`
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #7b8f7f;
+`;
+
+const FieldError = styled.p`
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: #e63946;
+  font-weight: 600;
+`;
+
+/* ── CTA ── */
+
+const ConfirmBtn = styled.button`
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
   background: #2f5a2a;
   color: white;
   border: none;
-  padding: 18px 24px;
-  border-radius: 14px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.2s;
 
-  &:hover {
-    background: #245026;
-  }
+  &:hover:not(:disabled) { background: #245026; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
-const CancelButton = styled.button`
+const CancelBtn = styled.button`
   width: 100%;
-  background: #e5f4ff;
-  color: #2f5a2a;
-  border: 2px solid #2f5a2a;
-  padding: 18px 24px;
+  padding: 14px;
   border-radius: 14px;
-  font-size: 1.1rem;
+  background: white;
+  color: #2f5a2a;
+  border: 1.5px solid #cde5cf;
+  font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
 
-  &:hover {
-    background: #d7e9ff;
-  }
+  &:hover { background: #eef7ee; border-color: #2f5a2a; }
 `;
 
-const Confirmation = styled.div`
-  margin-top: 24px;
-  padding: 22px;
-  background: #eef9f0;
-  border: 1px solid #cde5cf;
-  border-radius: 16px;
-  color: #2f5a2a;
+/* ── Empty state ── */
+
+const EmptyWrap = styled.div`
+  min-height: 100vh;
+  background: #f5f8f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
-const EmptyMessage = styled.div`
+const EmptyCard = styled.div`
   text-align: center;
-  padding: 40px 20px;
-  color: #2f5a2a;
+  padding: 48px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
+
+  span { font-size: 2.5rem; }
+  p { color: #7b8f7f; margin: 12px 0 20px; }
+`;
+
+const GoBackBtn = styled.button`
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  padding: 11px 24px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover { background: #245026; }
 `;

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
 // fetch all listings
@@ -13,6 +13,22 @@ export function useListings() {
       if (error) throw error;
       // console.log("Fetched listings:", data);
       return data;
+    },
+  });
+}
+
+export function useDeleteListing(user_id) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (listingId) => {
+      const { error } = await supabase
+        .from("listings")
+        .delete()
+        .eq("id", listingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listing", user_id] });
     },
   });
 }

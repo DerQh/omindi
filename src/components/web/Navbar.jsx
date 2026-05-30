@@ -38,7 +38,6 @@ const NAV_ITEMS = [
       { label: "Wholesalers", path: "/wholesale" },
     ],
   },
-  { label: "Seller's Guide", path: "/sellers-guide" },
   {
     label: "About",
     children: [
@@ -462,6 +461,7 @@ export default function Navbar() {
     setMobileOpen(false);
     navigate(path);
   };
+
 
   const handleCta = () => {
     go(user ? "/mobile" : "/sign-up");

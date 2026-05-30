@@ -28,7 +28,7 @@ const Page = styled.div`
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
 const Hero = styled.section`
-  background: linear-gradient(135deg, #0f2210 0%, #1e3d1a 35%, #2f5a2a 70%, #3d7a35 100%);
+  /* background: linear-gradient(135deg, #0f2210 0%, #1e3d1a 35%, #2f5a2a 70%, #3d7a35 100%); */
   padding: 80px 32px 100px;
   position: relative;
   overflow: hidden;
@@ -62,19 +62,19 @@ const HeroLeft = styled.div`
 
 const HeroEyebrow = styled.p`
   margin: 0 0 16px;
-  font-size: 0.75rem;
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: #030303;
 `;
 
 const HeroTitle = styled.h1`
   margin: 0 0 20px;
-  font-size: clamp(2rem, 4.5vw, 3.2rem);
-  font-weight: 900;
-  color: white;
-  letter-spacing: -0.04em;
+  font-size: clamp(2.9rem, 4.5vw, 3.2rem);
+  font-weight: 700;
+  color: #030303;
+  letter-spacing: -0.05em;
   line-height: 1.08;
 `;
 
@@ -85,11 +85,14 @@ const HeroGreen = styled.span`
 const HeroSub = styled.p`
   margin: 0 0 36px;
   font-size: 1.05rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #030303;
   line-height: 1.75;
   max-width: 480px;
 
-  @media (max-width: 900px) { margin-left: auto; margin-right: auto; }
+  @media (max-width: 900px) {
+    margin-left: auto;
+    margin-right: auto;
+  }
 `;
 
 const HeroCtas = styled.div`
@@ -98,7 +101,9 @@ const HeroCtas = styled.div`
   flex-wrap: wrap;
   margin-bottom: 48px;
 
-  @media (max-width: 900px) { justify-content: center; }
+  @media (max-width: 900px) {
+    justify-content: center;
+  }
 `;
 
 const CtaPrimary = styled.button`
@@ -112,13 +117,17 @@ const CtaPrimary = styled.button`
   cursor: pointer;
   transition: all 0.2s;
 
-  &:hover { background: #eef7ee; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
+  &:hover {
+    background: #eef7ee;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  }
 `;
 
 const CtaSecondary = styled.button`
-  background: rgba(255,255,255,0.12);
-  border: 1.5px solid rgba(255,255,255,0.3);
-  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(15, 14, 14, 0.3);
+  color: #030303;
   padding: 14px 28px;
   border-radius: 12px;
   font-size: 0.95rem;
@@ -126,7 +135,10 @@ const CtaSecondary = styled.button`
   cursor: pointer;
   transition: all 0.2s;
 
-  &:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+  }
 `;
 
 const DownloadRow = styled.div`
@@ -134,15 +146,22 @@ const DownloadRow = styled.div`
   gap: 12px;
   flex-wrap: wrap;
 
-  @media (max-width: 900px) { justify-content: center; }
+  @media (max-width: 900px) {
+    justify-content: center;
+  }
 
   img {
     height: 42px;
     cursor: pointer;
-    transition: transform 0.2s, opacity 0.2s;
+    transition:
+      transform 0.2s,
+      opacity 0.2s;
     border-radius: 8px;
 
-    &:hover { transform: translateY(-2px); opacity: 0.9; }
+    &:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
+    }
   }
 `;
 
@@ -156,10 +175,12 @@ const AppMockup = styled.img`
   max-width: 340px;
   width: 100%;
   border-radius: 28px;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
   animation: ${float} 5s ease-in-out infinite;
 
-  @media (max-width: 900px) { max-width: 260px; }
+  @media (max-width: 900px) {
+    max-width: 260px;
+  }
 `;
 
 // ─── Stats Strip ──────────────────────────────────────────────────────────────
@@ -176,7 +197,9 @@ const StatsInner = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 
-  @media (max-width: 700px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 700px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const StatItem = styled.div`
@@ -184,11 +207,17 @@ const StatItem = styled.div`
   text-align: center;
   border-right: 1px solid #f0f7ee;
 
-  &:last-child { border-right: none; }
+  &:last-child {
+    border-right: none;
+  }
 
   @media (max-width: 700px) {
-    &:nth-child(2) { border-right: none; }
-    &:nth-child(3) { border-right: 1px solid #f0f7ee; }
+    &:nth-child(2) {
+      border-right: none;
+    }
+    &:nth-child(3) {
+      border-right: 1px solid #f0f7ee;
+    }
   }
 `;
 
@@ -216,7 +245,9 @@ const Section = styled.section`
   margin: 0 auto;
   padding: ${({ $pad }) => $pad || "72px 32px"};
 
-  @media (max-width: 600px) { padding: 48px 16px; }
+  @media (max-width: 600px) {
+    padding: 48px 16px;
+  }
 `;
 
 // Section header trio — eyebrow → title → subtitle — all use consistent positive spacing
@@ -258,7 +289,9 @@ const HowItWorksGrid = styled.div`
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const HowCard = styled.div`
@@ -266,7 +299,9 @@ const HowCard = styled.div`
   border-radius: 20px;
   padding: 36px 28px;
   box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   animation: ${fadeUp} 0.4s ease ${({ $i }) => `${$i * 0.1}s`} both;
 
   &:hover {
@@ -318,7 +353,9 @@ const HowLink = styled.button`
   align-items: center;
   gap: 6px;
 
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 // ─── Feature Showcase ─────────────────────────────────────────────────────────
@@ -328,7 +365,9 @@ const FeatureGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 
-  @media (max-width: 700px) { grid-template-columns: 1fr; }
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const FeatureCard = styled.div`
@@ -386,10 +425,12 @@ const CtaBanner = styled.section`
   &::after {
     content: "";
     position: absolute;
-    width: 320px; height: 320px;
+    width: 320px;
+    height: 320px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    right: -80px; top: -80px;
+    background: rgba(255, 255, 255, 0.04);
+    right: -80px;
+    top: -80px;
   }
 
   @media (max-width: 700px) {
@@ -409,7 +450,7 @@ const CtaBannerTitle = styled.h2`
 
 const CtaBannerSub = styled.p`
   margin: 0;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   font-size: 0.95rem;
   line-height: 1.65;
 `;
@@ -429,7 +470,10 @@ const CtaBannerBtn = styled.button`
   position: relative;
   z-index: 1;
 
-  &:hover { background: #8de08d; transform: translateY(-2px); }
+  &:hover {
+    background: #8de08d;
+    transform: translateY(-2px);
+  }
 `;
 
 // ─── Wholesale / Inquiry Form ─────────────────────────────────────────────────
@@ -442,7 +486,9 @@ const FormCard = styled.div`
   max-width: 640px;
   margin: 0 auto;
 
-  @media (max-width: 600px) { padding: 24px; }
+  @media (max-width: 600px) {
+    padding: 24px;
+  }
 `;
 
 const FormGrid = styled.div`
@@ -450,7 +496,9 @@ const FormGrid = styled.div`
   grid-template-columns: ${({ $cols }) => $cols || "1fr"};
   gap: 18px;
 
-  @media (max-width: 600px) { grid-template-columns: 1fr; }
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Field = styled.div`
@@ -484,7 +532,9 @@ const inputBase = `
   &:focus { border-color: #2f5a2a; background: white; }
 `;
 
-const Input = styled.input`${inputBase}`;
+const Input = styled.input`
+  ${inputBase}
+`;
 
 const Textarea = styled.textarea`
   ${inputBase}
@@ -503,11 +553,18 @@ const SubmitBtn = styled.button`
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.18s, transform 0.12s;
+  transition:
+    background 0.18s,
+    transform 0.12s;
   margin-top: 6px;
 
-  &:hover { background: #1e3d1a; transform: translateY(-2px); }
-  &:active { transform: translateY(0); }
+  &:hover {
+    background: #1e3d1a;
+    transform: translateY(-2px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
 const SuccessMsg = styled.div`
@@ -527,7 +584,9 @@ const TestimonialWrap = styled.section`
   background: white;
   padding: 72px 32px;
 
-  @media (max-width: 600px) { padding: 48px 16px; }
+  @media (max-width: 600px) {
+    padding: 48px 16px;
+  }
 `;
 
 const TestimonialInner = styled.div`
@@ -616,12 +675,36 @@ const HOW_ITEMS = [
 ];
 
 const FEATURES = [
-  { icon: "📍", title: "Map-based Discovery",    desc: "Find farms and fresh produce near you on an interactive map." },
-  { icon: "💬", title: "Direct Messaging",        desc: "Chat with sellers and buyers without leaving the app." },
-  { icon: "🛒", title: "Seamless Checkout",       desc: "Order from multiple sellers in one checkout with M-Pesa support." },
-  { icon: "🔔", title: "Real-time Notifications", desc: "Stay updated on orders, messages, and price drops instantly." },
-  { icon: "🌿", title: "Verified Sellers",        desc: "All sellers are vetted to ensure product quality and reliability." },
-  { icon: "📦", title: "Order Tracking",          desc: "Track every order from confirmation through to delivery." },
+  {
+    icon: "📍",
+    title: "Map-based Discovery",
+    desc: "Find farms and fresh produce near you on an interactive map.",
+  },
+  {
+    icon: "💬",
+    title: "Direct Messaging",
+    desc: "Chat with sellers and buyers without leaving the app.",
+  },
+  {
+    icon: "🛒",
+    title: "Seamless Checkout",
+    desc: "Order from multiple sellers in one checkout with M-Pesa support.",
+  },
+  {
+    icon: "🔔",
+    title: "Real-time Notifications",
+    desc: "Stay updated on orders, messages, and price drops instantly.",
+  },
+  {
+    icon: "🌿",
+    title: "Verified Sellers",
+    desc: "All sellers are vetted to ensure product quality and reliability.",
+  },
+  {
+    icon: "📦",
+    title: "Order Tracking",
+    desc: "Track every order from confirmation through to delivery.",
+  },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -632,7 +715,13 @@ function Body() {
   const navigate = useNavigate();
 
   // Wholesale inquiry form state — swap handleSubmit for a real API call when ready
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", institution: "", interest: "" });
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    institution: "",
+    interest: "",
+  });
   const [submitted, setSubmitted] = useState(false);
 
   // Helper to update a single form field without replacing the whole object
@@ -650,8 +739,12 @@ function Body() {
 
       {/* ── Hero ── */}
       <Hero>
-        <HeroDecor style={{ width: 600, height: 600, top: -250, right: -180 }} />
-        <HeroDecor style={{ width: 300, height: 300, bottom: -80, left: -60 }} />
+        <HeroDecor
+          style={{ width: 600, height: 600, top: -250, right: -180 }}
+        />
+        <HeroDecor
+          style={{ width: 300, height: 300, bottom: -80, left: -60 }}
+        />
         <HeroInner>
           <HeroLeft>
             <HeroEyebrow>The Marketplace for Local Food & Farms</HeroEyebrow>
@@ -660,7 +753,7 @@ function Body() {
             </HeroTitle>
             <HeroSub>
               Discover, buy, and sell fresh local produce directly. Connect with
-              trusted farmers and buyers across Kenya — no middlemen, no markup.
+              trusted farmers and buyers across Kenya. No middlemen, no markup.
             </HeroSub>
             <HeroCtas>
               <CtaPrimary onClick={() => navigate("/sign-up")}>
@@ -673,7 +766,11 @@ function Body() {
           </HeroLeft>
 
           <HeroRight>
-            <AppMockup loading="lazy" src="/app screenshot.png" alt="Afarmer app screenshot" />
+            <AppMockup
+              loading="lazy"
+              src="/app screenshot.png"
+              alt="Afarmer app screenshot"
+            />
           </HeroRight>
         </HeroInner>
       </Hero>
@@ -681,10 +778,22 @@ function Body() {
       {/* ── Stats strip — update numbers as the platform grows ── */}
       <StatsStrip>
         <StatsInner>
-          <StatItem><StatNumber>500+</StatNumber><StatLabel>Active Farms</StatLabel></StatItem>
-          <StatItem><StatNumber>12K+</StatNumber><StatLabel>Buyers</StatLabel></StatItem>
-          <StatItem><StatNumber>8K+</StatNumber><StatLabel>Listings</StatLabel></StatItem>
-          <StatItem><StatNumber>30+</StatNumber><StatLabel>Counties</StatLabel></StatItem>
+          <StatItem>
+            <StatNumber>500+</StatNumber>
+            <StatLabel>Active Farms</StatLabel>
+          </StatItem>
+          <StatItem>
+            <StatNumber>12K+</StatNumber>
+            <StatLabel>Buyers</StatLabel>
+          </StatItem>
+          <StatItem>
+            <StatNumber>8K+</StatNumber>
+            <StatLabel>Listings</StatLabel>
+          </StatItem>
+          <StatItem>
+            <StatNumber>30+</StatNumber>
+            <StatLabel>Counties</StatLabel>
+          </StatItem>
         </StatsInner>
       </StatsStrip>
 
@@ -704,7 +813,9 @@ function Body() {
               </HowIcon>
               <HowTitle>{item.title}</HowTitle>
               <HowText>{item.text}</HowText>
-              <HowLink onClick={() => navigate(item.link)}>Learn more →</HowLink>
+              <HowLink onClick={() => navigate(item.link)}>
+                Learn more →
+              </HowLink>
             </HowCard>
           ))}
         </HowItWorksGrid>
@@ -737,10 +848,12 @@ function Body() {
       <Section>
         <CtaBanner>
           <div style={{ position: "relative", zIndex: 1 }}>
-            <CtaBannerTitle>Start buying and selling locally today</CtaBannerTitle>
+            <CtaBannerTitle>
+              Start buying and selling locally today
+            </CtaBannerTitle>
             <CtaBannerSub>
-              Join thousands of Kenyan farmers and buyers already on the platform.
-              Free to sign up, free to list.
+              Join thousands of Kenyan farmers and buyers already on the
+              platform. Free to sign up, free to list.
             </CtaBannerSub>
           </div>
           <CtaBannerBtn onClick={() => navigate("/sign-up")}>
@@ -760,35 +873,72 @@ function Body() {
           </SectionSub>
           <FormCard>
             {submitted ? (
-              <SuccessMsg>✓ Thank you! We'll be in touch within 1–2 business days.</SuccessMsg>
+              <SuccessMsg>
+                ✓ Thank you! We'll be in touch within 1–2 business days.
+              </SuccessMsg>
             ) : (
               <form onSubmit={handleSubmit}>
                 <FormGrid $cols="1fr 1fr" style={{ marginBottom: 18 }}>
                   <Field>
                     <FieldLabel htmlFor="firstName">First Name *</FieldLabel>
-                    <Input id="firstName" value={form.firstName} onChange={(e) => set("firstName", e.target.value)} placeholder="e.g. Amina" required />
+                    <Input
+                      id="firstName"
+                      value={form.firstName}
+                      onChange={(e) => set("firstName", e.target.value)}
+                      placeholder="e.g. Amina"
+                      required
+                    />
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="lastName">Last Name *</FieldLabel>
-                    <Input id="lastName" value={form.lastName} onChange={(e) => set("lastName", e.target.value)} placeholder="e.g. Wanjiru" required />
+                    <Input
+                      id="lastName"
+                      value={form.lastName}
+                      onChange={(e) => set("lastName", e.target.value)}
+                      placeholder="e.g. Wanjiru"
+                      required
+                    />
                   </Field>
                 </FormGrid>
                 <FormGrid style={{ marginBottom: 18 }}>
                   <Field>
                     <FieldLabel htmlFor="email">Email Address *</FieldLabel>
-                    <Input id="email" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@company.com" required />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => set("email", e.target.value)}
+                      placeholder="you@company.com"
+                      required
+                    />
                   </Field>
                 </FormGrid>
                 <FormGrid style={{ marginBottom: 18 }}>
                   <Field>
-                    <FieldLabel htmlFor="institution">Institution / Company *</FieldLabel>
-                    <Input id="institution" value={form.institution} onChange={(e) => set("institution", e.target.value)} placeholder="e.g. Nairobi Hospital" required />
+                    <FieldLabel htmlFor="institution">
+                      Institution / Company *
+                    </FieldLabel>
+                    <Input
+                      id="institution"
+                      value={form.institution}
+                      onChange={(e) => set("institution", e.target.value)}
+                      placeholder="e.g. Nairobi Hospital"
+                      required
+                    />
                   </Field>
                 </FormGrid>
                 <FormGrid style={{ marginBottom: 24 }}>
                   <Field>
-                    <FieldLabel htmlFor="interest">What produce are you interested in sourcing? *</FieldLabel>
-                    <Textarea id="interest" value={form.interest} onChange={(e) => set("interest", e.target.value)} placeholder="e.g. 50kg tomatoes weekly, fresh dairy, organic vegetables…" required />
+                    <FieldLabel htmlFor="interest">
+                      What produce are you interested in sourcing? *
+                    </FieldLabel>
+                    <Textarea
+                      id="interest"
+                      value={form.interest}
+                      onChange={(e) => set("interest", e.target.value)}
+                      placeholder="e.g. 50kg tomatoes weekly, fresh dairy, organic vegetables…"
+                      required
+                    />
                   </Field>
                 </FormGrid>
                 <SubmitBtn type="submit">Submit Inquiry →</SubmitBtn>

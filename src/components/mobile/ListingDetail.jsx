@@ -1,7 +1,7 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { useUser } from "../../hooks/useUser";
 import { useDeleteListing } from "../../hooks/useDeleteListing";
 import LoadingComponent from "./Loading";
@@ -9,305 +9,62 @@ import ConfirmModule from "./ConfirmModule";
 import {
   useAddItem,
   useCartItemCheck,
-  useUpdateCartItem,
 } from "../../hooks/useCart";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStartConversation } from "../../hooks/useMessages";
 
-const Container = styled.div`
-  min-height: 100vh;
-  background: #f7fbff;
-  padding: 20px 24px;
+// ─── Animations ───────────────────────────────────────────────────────────────
+
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 24px;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-`;
+// ─── Component ────────────────────────────────────────────────────────────────
 
-const BackButton = styled.button`
-  background: #2f5a2a;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 1.2rem; 
-  cursor: pointer;
-  width: 40px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16px;
-
-  &:hover {
-    background: #245026;
-  }
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  /* color: #2f5a2a; */
-  flex: 1;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f3a1d;
-  letter-spacing: -0.2px;
-  white-space: nowrap;
-`;
-
-const DetailCard = styled.div`
-  max-width: 900px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(20, 57, 32, 0.08);
-  overflow: hidden;
-`;
-
-const ImageSection = styled.div`
-  width: 100%;
-  height: 400px;
-  background: #d7e9ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-const ContentSection = styled.div`
-  padding: 32px;
-`;
-
-const ProductName = styled.h2`
-  margin: 0 0 16px;
-  color: #2f5a2a;
-  font-size: 1.6rem;
-`;
-
-const Price = styled.p`
-  font-size: 1.6rem;
-  color: #2f5a2a;
-  font-weight: 700;
-  margin: 0 0 24px;
-`;
-
-const InfoGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
-  padding: 24px;
-  background: #f0f7ee;
-  border-radius: 12px;
-`;
-
-const InfoItem = styled.div`
-  p {
-    margin: 0 0 8px;
-    color: #7b8f7f;
-    font-size: 0.95rem;
-  }
-
-  span {
-    display: block;
-    color: #2f5a2a;
-    font-weight: 600;
-    font-size: 1.1rem;
-  }
-`;
-
-const DescriptionSection = styled.div`
-  margin-bottom: 32px;
-
-  h3 {
-    color: #2f5a2a;
-    margin: 0 0 12px;
-    font-size: 1.3rem;
-  }
-
-  p {
-    color: #44554c;
-    line-height: 1.7;
-    margin: 0;
-  }
-`;
-
-const SellerSection = styled.div`
-  background: #f0f7ee;
-  padding: 24px;
-  border-radius: 12px;
-  margin-bottom: 32px;
-
-  h3 {
-    color: #2f5a2a;
-    margin: 0 0 16px;
-    font-size: 1.2rem;
-  }
-`;
-
-const SellerInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-
-  img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  div {
-    p {
-      margin: 0;
-      color: #2f5a2a;
-      font-weight: 600;
-    }
-
-    span {
-      font-size: 0.95rem;
-      color: #7b8f7f;
-    }
-  }
-`;
-
-const ActionButtons = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const CartButton = styled.button`
-  background-color: #ffc107;
-  color: #2f5a2a;
-  border: none;
-  padding: 16px 24px;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: #e0a800;
-  }
-`;
-
-const BuyButton = styled.button`
-  background-color: #2f5a2a;
-  color: white;
-  border: none;
-  padding: 16px 24px;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: #245026;
-    box-shadow: 0 4px 12px rgba(47, 90, 42, 0.3);
-  }
-`;
-
-const InquireButton = styled.button`
-  background-color: #e5f4ff;
-  color: #2f5a2a;
-  border: 2px solid #2f5a2a;
-  padding: 16px 24px;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: #d7e9ff;
-  }
-`;
-
-// COMPONENT STARTS HERE
 const ListingDetail = () => {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const navigate      = useNavigate();
+  const queryClient   = useQueryClient();
+  const location      = useLocation();
+  const listing       = location.state?.listing;
 
-  // GET USER INFO
   const { data: user, isLoading } = useUser();
-  // GET LISTING INFO FROM NAVIGATION STATE
-  const location = useLocation();
-  const listing = location.state?.listing;
-  // DELETE AN ITEM
   const { mutate: deleteListing, isLoading: isDeleting } = useDeleteListing();
   const { mutate: mutateAddItem, isPending } = useAddItem();
   const { mutate: startConversation } = useStartConversation();
 
-  const { data: isItemInCart, isLoading: isLoadingItemCheck } =
-    useCartItemCheck({
-      user_id: user?.id,
-      listing_id: listing?.id,
-    });
+  const { data: isItemInCart } = useCartItemCheck({
+    user_id:    user?.id,
+    listing_id: listing?.id,
+  });
 
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleBack = () => {
-    navigate(-1);
-  };
+  const isSeller = user?.id === listing?.seller_id;
 
   const handleGreenBtn = () => {
-    let user_id = user?.id;
-    let listing_id = listing?.id;
-    if (user?.id === listing.seller_id) {
-      // navigate("/edit-listing", { state: { listing } });
+    if (isSeller) {
       alert("Edit functionality coming soon!");
     } else {
       if (isItemInCart) {
-        alert("Item is already in the cart");
         navigate("/cart");
       } else {
         mutateAddItem(
-          { user_id, listing_id },
-          {
-            onSuccess: () => {
-              navigate("/cart", { state: { listing } });
-            },
-          },
+          { user_id: user?.id, listing_id: listing?.id },
+          { onSuccess: () => navigate("/cart", { state: { listing } }) },
         );
       }
     }
   };
 
-  // --- ADD ITEMS TO CART / DELETE ITEM
   const handleOrangeBtn = () => {
-    let user_id = user?.id;
-    let listing_id = listing?.id;
-    if (user?.id === listing.seller_id) {
-      // CONFIRM BEFORE DELETING
-      setShowConfirm(true); // Replaces window.confirm
+    if (isSeller) {
+      setShowConfirm(true);
     } else {
       if (isItemInCart) {
         alert("Item is already in the cart");
       } else {
-        mutateAddItem({
-          user_id,
-          listing_id,
-        });
+        mutateAddItem({ user_id: user?.id, listing_id: listing?.id });
       }
     }
   };
@@ -320,213 +77,435 @@ const ListingDetail = () => {
   const handleInquire = () => {
     startConversation(
       {
-        buyer_id: user?.id,
-        seller_id: listing?.seller_id,
+        buyer_id:   user?.id,
+        seller_id:  listing?.seller_id,
         listing_id: listing?.id,
       },
       {
-        onSuccess: (conversation) => {
-          console.log("conversation:", conversation); // check this
-          navigate("/messages", { state: { conversationId: conversation.id } });
-        },
+        onSuccess: (conversation) =>
+          navigate("/messages", { state: { conversationId: conversation.id } }),
         onError: (e) => console.log("error:", e),
       },
     );
   };
 
-  const handleEdit = () => {
-    // navigate("/edit-listing", { state: { listing } });
-  };
+  if (isLoading) return <LoadingComponent />;
 
-  if (isLoading) {
+  if (!listing)
     return (
       <>
-        <LoadingComponent />
+        <AppNavbar />
+        <NotFoundWrap>
+          <NotFoundCard>
+            <span>🔍</span>
+            <p>Listing not found.</p>
+            <BackBtn onClick={() => navigate(-1)}>Go back</BackBtn>
+          </NotFoundCard>
+        </NotFoundWrap>
       </>
     );
-  }
-  if (!listing) {
-    return (
-      <Container>
-        <AppNavbar />
-        <Header>
-          <BackButton onClick={handleBack}>←</BackButton>
-          <Title>Listing Not Found</Title>
-        </Header>
-      </Container>
-    );
-  }
 
   return (
     <>
-      {/* CONFIRMATION MODAL */}
       {showConfirm && (
         <ConfirmModule
-          text="Do you want to delete this listing"
+          text="Do you want to delete this listing?"
           onConfirm={handleConfirmDelete}
           onCancel={() => setShowConfirm(false)}
         />
       )}
 
       <AppNavbar />
-      <Container>
-        <Header>
-          <BackButton onClick={handleBack}>←</BackButton>
-          <Title>Product Details</Title>
-        </Header>
 
-        <DetailCard>
-          <ImageSection>
-            <img src={listing.image_url} alt={listing.image_url} />
-          </ImageSection>
+      <Page>
+        {/* ── Hero image ── */}
+        <HeroWrap>
+          {listing.image_url ? (
+            <img src={listing.image_url} alt={listing.title} />
+          ) : (
+            <NoImage>🌱</NoImage>
+          )}
+          <FloatBack onClick={() => navigate(-1)} aria-label="Go back">
+            ←
+          </FloatBack>
+          {listing.category && (
+            <FloatCategory>{listing.category}</FloatCategory>
+          )}
+        </HeroWrap>
 
-          <ContentSection>
-            <ProductName>{listing.title}</ProductName>
-            <Price>
-              Kes {listing.price}
-              {listing.unit ? ` / ${listing.unit}` : ""}
-            </Price>
+        {/* ── Content ── */}
+        <ContentSheet>
+          <Inner>
 
-            <InfoGrid>
-              <InfoItem>
-                <p>Category</p>
-                <span>{listing.category}</span>
-              </InfoItem>
-              <InfoItem>
-                <p>Location</p>
-                <span>{listing.location}</span>
-              </InfoItem>
-              <InfoItem>
-                <p>Availability</p>
-                <span>Yes</span>
-              </InfoItem>
-              <InfoItem>
-                <p>Minimum Order</p>
-                <span>{listing.minimumOrder}</span>
-              </InfoItem>
-            </InfoGrid>
+            {/* Title + price */}
+            <TitleRow>
+              <ProductTitle>{listing.title}</ProductTitle>
+              <PriceTag>
+                Kes {listing.price}
+                {listing.unit ? ` / ${listing.unit}` : ""}
+              </PriceTag>
+            </TitleRow>
 
-            <DescriptionSection>
-              <h3>Description</h3>
-              <p>{listing.description}</p>
-            </DescriptionSection>
-
-            <SellerSection>
-              <h3>Seller Information</h3>
-              <SellerInfo onClick={() => navigate(`/follower/${listing.id}`)}>
-                <img
-                  // src="https://picsum.photos/200/200"
-                  src={
-                    listing.seller_image_url || "https://picsum.photos/200/200"
-                  }
-                  alt={listing.image_url}
-                />
-                <div>
-                  <p>{listing.seller_name}</p>
-                  <span>
-                    {/* ⭐ {listing.rating} ({listing.reviews}
-                    reviews) */}
-                    ⭐ 4.8 (24 reviews)
-                  </span>
-                </div>
-              </SellerInfo>
-            </SellerSection>
-
-            <ActionButtons>
-              <BuyButton onClick={handleGreenBtn}>
-                {user?.id === listing.seller_id ? "Edit" : "Buy Now"}
-              </BuyButton>
-
-              <CartButton onClick={handleOrangeBtn} disabled={isDeleting}>
-                {user?.id === listing.seller_id ? "Delete" : "Add to Cart"}
-              </CartButton>
-              {/* IF SELLER , DO NOT SHOW INQUIRY BUTTON */}
-              {user?.id === listing.seller_id ? (
-                ""
-              ) : (
-                <InquireButton onClick={handleInquire}>
-                  Send Inquiry
-                </InquireButton>
+            {/* Info chips */}
+            <ChipRow>
+              {listing.location && (
+                <InfoChip>📍 {listing.location}</InfoChip>
               )}
-            </ActionButtons>
-          </ContentSection>
-        </DetailCard>
-      </Container>
+              {listing.minimumOrder && (
+                <InfoChip>Min: {listing.minimumOrder}</InfoChip>
+              )}
+              <InfoChip $green>Available</InfoChip>
+            </ChipRow>
+
+            <Divider />
+
+            {/* Description */}
+            {listing.description && (
+              <Section>
+                <SectionTitle>Description</SectionTitle>
+                <DescText>{listing.description}</DescText>
+              </Section>
+            )}
+
+            <Divider />
+
+            {/* Seller */}
+            <Section>
+              <SectionTitle>Seller</SectionTitle>
+              <SellerCard onClick={() => navigate(`/follower/${listing.seller_id}`)}>
+                <SellerAvatar
+                  src={listing.seller_image_url || "/user.jpg"}
+                  alt={listing.seller_name}
+                />
+                <SellerInfo>
+                  <SellerName>{listing.seller_name || "Farmer"}</SellerName>
+                  <SellerMeta>⭐ 4.8 · 24 reviews</SellerMeta>
+                </SellerInfo>
+                <SellerArrow>›</SellerArrow>
+              </SellerCard>
+            </Section>
+
+            <Divider />
+
+            {/* Actions */}
+            <Actions>
+              {isSeller ? (
+                <>
+                  <ActionBtn $variant="primary" onClick={handleGreenBtn}>
+                    ✏️ Edit Listing
+                  </ActionBtn>
+                  <ActionBtn
+                    $variant="danger"
+                    onClick={handleOrangeBtn}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting…" : "🗑 Delete"}
+                  </ActionBtn>
+                </>
+              ) : (
+                <>
+                  <ActionBtn $variant="primary" onClick={handleGreenBtn} disabled={isPending}>
+                    {isPending ? "Adding…" : isItemInCart ? "View Cart" : "Buy Now"}
+                  </ActionBtn>
+                  <ActionBtn $variant="secondary" onClick={handleOrangeBtn} disabled={isPending}>
+                    {isItemInCart ? "Already in Cart" : "Add to Cart"}
+                  </ActionBtn>
+                  <ActionBtn $variant="outline" onClick={handleInquire}>
+                    Send Inquiry
+                  </ActionBtn>
+                </>
+              )}
+            </Actions>
+
+          </Inner>
+        </ContentSheet>
+      </Page>
     </>
   );
 };
 
 export default ListingDetail;
 
-// // Sample listings data
-// const goods = [
-//   {
-//     id: 1,
-//     name: "Organic Cherry Tomatoes",
-//     price: "Kes 12 / kg",
-//     description:
-//       "Fresh locally grown cherry tomatoes, sweet and ready for market. These tomatoes are grown without any chemical pesticides and are perfect for salads, cooking, or canning. Harvested fresh daily and available year-round.",
-//     category: "Produce",
-//     location: "Alendu",
-//     inquiries: 3,
-//     favourites: 9,
-//     updated: "05/02/2026",
-//     image: "/tomatoes.jpg",
-//     seller: {
-//       name: "Kevin  Otieno",
-//       rating: 4.8,
-//       reviews: 24,
-//       image: "https://picsum.photos/200",
-//     },
-//     fullDescription:
-//       "We specialize in organic farming practices. Our cherry tomatoes are grown in rich, nutrient-dense soil without synthetic fertilizers. Each batch is carefully monitored and harvested at peak ripeness to ensure maximum flavor and nutrition.",
-//     availability: "Year-round",
-//     minOrder: "1 kg",
-//   },
-//   {
-//     id: 2,
-//     name: "Raw Honey Jar",
-//     price: "Kes 18",
-//     description:
-//       "Cold-pressed wildflower honey in a 500g glass jar. Pure, unfiltered, and unpasteurized to retain all natural enzymes and nutrients.",
-//     category: "Honey",
-//     location: "Nyamasaria",
-//     inquiries: 6,
-//     favourites: 12,
-//     updated: "04/30/2026",
-//     image: "/honey.jpg",
-//     seller: {
-//       name: "Sarah Kipchoge",
-//       rating: 4.9,
-//       reviews: 42,
-//       image: "https://picsum.photos/200",
-//     },
-//     fullDescription:
-//       "Our honey comes from beehives located in pristine wildflower fields. We practice sustainable beekeeping and never use antibiotics or chemicals. The honey is raw, unheated, and retains all its beneficial properties.",
-//     availability: "Available",
-//     minOrder: "1 jar",
-//   },
-//   {
-//     id: 3,
-//     name: "Free-Range Eggs",
-//     price: "Kes 5 / dozen",
-//     description:
-//       "Fresh free-range eggs from local farms, rich in flavor and nutrients.",
-//     category: "Dairy",
-//     location: "NanyNyamware",
-//     inquiries: 9,
-//     favourites: 18,
-//     updated: "05/01/2026",
-//     image: "/eggs.jpg",
-//     seller: {
-//       name: "Steven Odhiambo",
-//       rating: 4.7,
-//       reviews: 56,
-//       image: "https://picsum.photos/200",
-//     },
-//     fullDescription:
-//       "Our hens are raised on open pasture with access to natural grasses and insects. No cage confinement or artificial supplements. The eggs have deep orange yolks and superior taste due to the hens' natural diet.",
-//     availability: "Daily",
-//     minOrder: "1 dozen",
-//   },
-// ];
+// ─── Styled components ────────────────────────────────────────────────────────
+
+const Page = styled.div`
+  min-height: 100vh;
+  background: #f5f8f5;
+`;
+
+const HeroWrap = styled.div`
+  position: relative;
+  width: 100%;
+  height: 380px;
+  background: #eef7ee;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @media (max-width: 600px) { height: 260px; }
+`;
+
+const NoImage = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+`;
+
+const FloatBack = styled.button`
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(6px);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+  transition: background 0.15s;
+
+  &:hover { background: white; }
+`;
+
+const FloatCategory = styled.span`
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(255,255,255,0.9);
+  color: #2f5a2a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(4px);
+`;
+
+const ContentSheet = styled.div`
+  background: white;
+  border-radius: 24px 24px 0 0;
+  margin-top: -20px;
+  position: relative;
+  z-index: 1;
+  min-height: calc(100vh - 340px);
+  padding-bottom: 40px;
+`;
+
+const Inner = styled.div`
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 28px 0;
+  animation: ${fadeUp} 0.35s ease;
+
+  @media (max-width: 600px) { padding: 22px 20px 0; }
+`;
+
+const TitleRow = styled.div`
+  margin-bottom: 16px;
+`;
+
+const ProductTitle = styled.h1`
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1a3318;
+  letter-spacing: -0.3px;
+
+  @media (max-width: 600px) { font-size: 1.35rem; }
+`;
+
+const PriceTag = styled.div`
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #2f5a2a;
+`;
+
+const ChipRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+`;
+
+const InfoChip = styled.span`
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: ${({ $green }) => ($green ? "#eef7ee" : "#f5f8f5")};
+  color: ${({ $green }) => ($green ? "#2f5a2a" : "#44554c")};
+  border: 1.5px solid ${({ $green }) => ($green ? "#cde5cf" : "#e2ebe2")};
+`;
+
+const Divider = styled.div`
+  height: 1px;
+  background: #f0f7ee;
+  margin: 24px 0;
+`;
+
+const Section = styled.div``;
+
+const SectionTitle = styled.h3`
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #7b8f7f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+`;
+
+const DescText = styled.p`
+  margin: 0;
+  font-size: 0.95rem;
+  color: #44554c;
+  line-height: 1.75;
+`;
+
+const SellerCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: #f8faf6;
+  border-radius: 14px;
+  border: 1px solid #e8f0e8;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #eef7ee; }
+`;
+
+const SellerAvatar = styled.img`
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #d7ead7;
+  flex-shrink: 0;
+`;
+
+const SellerInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const SellerName = styled.p`
+  margin: 0 0 3px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const SellerMeta = styled.span`
+  font-size: 0.82rem;
+  color: #7b8f7f;
+`;
+
+const SellerArrow = styled.span`
+  font-size: 1.4rem;
+  color: #b0c4b0;
+  flex-shrink: 0;
+`;
+
+const Actions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const ActionBtn = styled.button`
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  ${({ $variant }) =>
+    $variant === "primary" && `
+      background: #2f5a2a;
+      color: white;
+      border: none;
+      &:hover:not(:disabled) { background: #245026; box-shadow: 0 4px 16px rgba(47,90,42,0.3); }
+    `}
+
+  ${({ $variant }) =>
+    $variant === "secondary" && `
+      background: #ffc107;
+      color: #2f5a2a;
+      border: none;
+      &:hover:not(:disabled) { background: #e0a800; }
+    `}
+
+  ${({ $variant }) =>
+    $variant === "outline" && `
+      background: white;
+      color: #2f5a2a;
+      border: 2px solid #cde5cf;
+      &:hover:not(:disabled) { background: #eef7ee; border-color: #2f5a2a; }
+    `}
+
+  ${({ $variant }) =>
+    $variant === "danger" && `
+      background: #fff0f0;
+      color: #a32d2d;
+      border: 2px solid #f5c2c2;
+      &:hover:not(:disabled) { background: #a32d2d; color: white; border-color: #a32d2d; }
+    `}
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+`;
+
+const NotFoundWrap = styled.div`
+  min-height: 100vh;
+  background: #f5f8f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const NotFoundCard = styled.div`
+  text-align: center;
+  padding: 48px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(20,57,32,0.07);
+
+  span { font-size: 2.5rem; }
+  p { color: #7b8f7f; margin: 12px 0 20px; }
+`;
+
+const BackBtn = styled.button`
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover { background: #245026; }
+`;

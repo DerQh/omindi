@@ -8,14 +8,6 @@ const BodyComponent = ({ heading, subheading, description, bgcolor }) => {
       <p>{subheading}</p>
       <h1>{heading}</h1>
       <p>{description}</p>
-      <DownloadContainer>
-        <a onClick={() => navigate("/sign-up")}>
-          <img src="/app store.png" alt="google play logo" />
-        </a>
-        <a onClick={() => navigate("/sign-up")}>
-          <img src="/google store.png" alt="app store logo" />
-        </a>
-      </DownloadContainer>
     </MainContainer>
   );
 };

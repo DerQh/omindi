@@ -700,7 +700,7 @@ function SignupLogin() {
                       type="text"
                       value={formData.username}
                       onChange={handleChange}
-                      placeholder="e.g. Amina Wanjiru"
+                      placeholder="e.g. Odinga Raila"
                       $hasError={!!errors.username}
                       required
                     />
@@ -795,7 +795,7 @@ function SignupLogin() {
                   {isLoading ? (
                     <><Spinner /> {isLogin ? "Signing in…" : "Creating account…"}</>
                   ) : (
-                    isLogin ? "Sign In →" : "Create Account →"
+                    isLogin ? "Sign In" : "Create Account"
                   )}
                 </SubmitBtn>
               </form>
@@ -812,7 +812,7 @@ function SignupLogin() {
           )}
         </FormCard>
 
-        <BackToHome to="/">← Back to home</BackToHome>
+        <BackToHome to="/">Back to home</BackToHome>
       </RightPanel>
 
     </Page>

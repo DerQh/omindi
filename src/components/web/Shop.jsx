@@ -5,7 +5,11 @@ import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 import { shopProducts as staticProducts } from "../../data/shopProducts";
 import { useAuth } from "../../context/AuthContext";
-import { useIsAdmin, useShopItems, useDeleteShopItem } from "../../hooks/useShopAdmin";
+import {
+  useIsAdmin,
+  useShopItems,
+  useDeleteShopItem,
+} from "../../hooks/useShopAdmin";
 import AddShopItem from "./AddShopItem";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
@@ -28,13 +32,13 @@ const FILTERS = ["All", "Apparel", "Accessories"];
 
 const badgeConfig = {
   Bestseller: { bg: "#2f5a2a", color: "white" },
-  New:        { bg: "#1a5a8a", color: "white" },
-  Limited:    { bg: "#a32d2d", color: "white" },
+  New: { bg: "#1a5a8a", color: "white" },
+  Limited: { bg: "#a32d2d", color: "white" },
 };
 
 const renderStars = (rating) =>
   Array.from({ length: 5 }, (_, i) =>
-    i < Math.floor(rating) ? "★" : i < rating ? "★" : "☆"
+    i < Math.floor(rating) ? "★" : i < rating ? "★" : "☆",
   ).join("");
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -47,8 +51,7 @@ const Page = styled.div`
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
 const Hero = styled.div`
-  background: linear-gradient(135deg, #0f2210 0%, #1e3d1a 40%, #2f5a2a 75%, #3d7a35 100%);
-  padding: 96px 32px 110px;
+  padding: 96px 32px 50px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -57,26 +60,27 @@ const Hero = styled.div`
 const HeroDecor = styled.div`
   position: absolute;
   border-radius: 50%;
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   pointer-events: none;
 `;
 
 const HeroEyebrow = styled.p`
   margin: 0 0 16px;
-  font-size: 0.75rem;
-  font-weight: 800;
+  font-size: clamp(0.9rem, 3vw, 3rem);
+
+  font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.5);
+  color: black;
 `;
 
 const HeroTitle = styled.h1`
   margin: 0 auto 16px;
   max-width: 680px;
   font-size: clamp(2.4rem, 6vw, 3.6rem);
-  font-weight: 900;
-  color: white;
-  letter-spacing: -0.04em;
+  font-weight: 700;
+  color: black;
+  letter-spacing: -0.02em;
   line-height: 1.05;
 `;
 
@@ -88,7 +92,7 @@ const HeroSub = styled.p`
   margin: 0 auto 36px;
   max-width: 520px;
   font-size: 1.05rem;
-  color: rgba(255,255,255,0.65);
+  color: black;
   line-height: 1.7;
 `;
 
@@ -104,7 +108,7 @@ const HeroCtaPrimary = styled.a`
   background: white;
   color: #2f5a2a;
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 14px 32px;
   border-radius: 12px;
   text-decoration: none;
@@ -114,14 +118,14 @@ const HeroCtaPrimary = styled.a`
   &:hover {
     background: #eef7ee;
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   }
 `;
 
 const HeroCtaSecondary = styled.a`
-  background: rgba(255,255,255,0.12);
-  border: 1.5px solid rgba(255,255,255,0.3);
-  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(0, 0, 0, 0.3);
+  color: black;
   font-size: 0.95rem;
   font-weight: 700;
   padding: 14px 32px;
@@ -131,7 +135,7 @@ const HeroCtaSecondary = styled.a`
   transition: all 0.2s;
 
   &:hover {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
   }
 `;
@@ -144,9 +148,9 @@ const HeroChips = styled.div`
 `;
 
 const HeroChip = styled.span`
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.18);
-  color: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(5, 5, 5, 0.18);
+  color: black;
   font-size: 0.8rem;
   font-weight: 600;
   padding: 6px 16px;
@@ -170,7 +174,9 @@ const StatsInner = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 
-  @media (max-width: 700px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 700px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const StatItem = styled.div`
@@ -180,10 +186,14 @@ const StatItem = styled.div`
   gap: 14px;
   border-right: 1px solid #e8f0e8;
 
-  &:last-child { border-right: none; }
+  &:last-child {
+    border-right: none;
+  }
 
   @media (max-width: 700px) {
-    &:nth-child(2) { border-right: none; }
+    &:nth-child(2) {
+      border-right: none;
+    }
   }
 `;
 
@@ -221,7 +231,9 @@ const ShowcaseWrap = styled.div`
   margin: 56px auto 0;
   padding: 0 32px;
 
-  @media (max-width: 600px) { padding: 0 16px; }
+  @media (max-width: 600px) {
+    padding: 0 16px;
+  }
 `;
 
 const SectionEyebrow = styled.p`
@@ -246,7 +258,9 @@ const CategoryCards = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 
-  @media (max-width: 600px) { grid-template-columns: 1fr; }
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const CategoryCard = styled.button`
@@ -260,18 +274,20 @@ const CategoryCard = styled.button`
   display: flex;
   align-items: flex-end;
   padding: 24px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.16);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
   }
 
   &::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.55), transparent 60%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 60%);
   }
 `;
 
@@ -291,7 +307,7 @@ const CategoryCardTitle = styled.h3`
 const CategoryCardCount = styled.p`
   margin: 0;
   font-size: 0.82rem;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255, 255, 255, 0.75);
 `;
 
 const CategoryArrow = styled.span`
@@ -299,8 +315,8 @@ const CategoryArrow = styled.span`
   bottom: 24px;
   right: 24px;
   z-index: 1;
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
   width: 36px;
   height: 36px;
@@ -312,7 +328,7 @@ const CategoryArrow = styled.span`
   transition: background 0.2s;
 
   ${CategoryCard}:hover & {
-    background: rgba(255,255,255,0.35);
+    background: rgba(255, 255, 255, 0.35);
   }
 `;
 
@@ -323,7 +339,9 @@ const SectionWrap = styled.div`
   margin: 56px auto 0;
   padding: 0 32px;
 
-  @media (max-width: 600px) { padding: 0 16px; }
+  @media (max-width: 600px) {
+    padding: 0 16px;
+  }
 `;
 
 const SectionHeader = styled.div`
@@ -342,7 +360,9 @@ const SeeAllLink = styled.a`
   text-decoration: none;
   cursor: pointer;
 
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 // ─── Filter Tabs ──────────────────────────────────────────────────────────────
@@ -362,7 +382,7 @@ const FilterTabs = styled.div`
   background: white;
   border-radius: 12px;
   padding: 4px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
 `;
 
 const FilterTab = styled.button`
@@ -403,14 +423,16 @@ const Card = styled.div`
   background: white;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
   animation: ${fadeUp} 0.4s ease both;
   animation-delay: ${({ $i }) => `${$i * 0.07}s`};
 
   &:hover {
     transform: translateY(-6px);
-    box-shadow: 0 20px 48px rgba(0,0,0,0.12);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12);
   }
 `;
 
@@ -464,7 +486,11 @@ const LowStockChip = styled.span`
 const HoverOverlay = styled.div`
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(20,50,20,0.6) 0%, transparent 55%);
+  background: linear-gradient(
+    to top,
+    rgba(20, 50, 20, 0.6) 0%,
+    transparent 55%
+  );
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -568,7 +594,9 @@ const ShopBtn = styled(Link)`
   white-space: nowrap;
   transition: background 0.18s;
 
-  &:hover { background: #1e3d1a; }
+  &:hover {
+    background: #1e3d1a;
+  }
 `;
 
 // ─── Newsletter CTA ───────────────────────────────────────────────────────────
@@ -592,10 +620,12 @@ const NewsletterWrap = styled.div`
   &::after {
     content: "";
     position: absolute;
-    width: 300px; height: 300px;
+    width: 300px;
+    height: 300px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    right: -60px; top: -80px;
+    background: rgba(255, 255, 255, 0.04);
+    right: -60px;
+    top: -80px;
     pointer-events: none;
   }
 
@@ -619,7 +649,7 @@ const NewsletterTitle = styled.h2`
 
 const NewsletterSub = styled.p`
   margin: 0;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   font-size: 0.9rem;
   line-height: 1.6;
 `;
@@ -629,7 +659,9 @@ const NewsletterForm = styled.form`
   gap: 10px;
   flex-shrink: 0;
 
-  @media (max-width: 600px) { width: 100%; }
+  @media (max-width: 600px) {
+    width: 100%;
+  }
 `;
 
 const NewsletterInput = styled.input`
@@ -642,7 +674,10 @@ const NewsletterInput = styled.input`
   outline: none;
   font-family: inherit;
 
-  @media (max-width: 600px) { flex: 1; width: auto; }
+  @media (max-width: 600px) {
+    flex: 1;
+    width: auto;
+  }
 `;
 
 const NewsletterBtn = styled.button`
@@ -657,7 +692,9 @@ const NewsletterBtn = styled.button`
   white-space: nowrap;
   transition: background 0.18s;
 
-  &:hover { background: #8de08d; }
+  &:hover {
+    background: #8de08d;
+  }
 `;
 
 const Spacer = styled.div`
@@ -683,9 +720,13 @@ const AdminDeleteBtn = styled.button`
   opacity: 0;
   transition: opacity 0.2s;
 
-  ${Card}:hover & { opacity: 1; }
+  ${Card}:hover & {
+    opacity: 1;
+  }
 
-  &:hover { background: #a32d2d; }
+  &:hover {
+    background: #a32d2d;
+  }
 `;
 
 const AdminAddBtn = styled.button`
@@ -702,7 +743,10 @@ const AdminAddBtn = styled.button`
   gap: 8px;
   transition: all 0.2s;
 
-  &:hover { background: #eef7ee; transform: translateY(-2px); }
+  &:hover {
+    background: #eef7ee;
+    transform: translateY(-2px);
+  }
 `;
 
 function Shop() {
@@ -733,10 +777,14 @@ function Shop() {
 
   const bestsellers = products.filter((p) => p.badge === "Bestseller");
   const apparelCount = products.filter((p) => p.category === "Apparel").length;
-  const accessoriesCount = products.filter((p) => p.category === "Accessories").length;
+  const accessoriesCount = products.filter(
+    (p) => p.category === "Accessories",
+  ).length;
 
   const scrollToShop = () =>
-    document.getElementById("all-products")?.scrollIntoView({ behavior: "smooth" });
+    document
+      .getElementById("all-products")
+      ?.scrollIntoView({ behavior: "smooth" });
 
   return (
     <Page>
@@ -744,34 +792,31 @@ function Shop() {
 
       {/* ── Hero ── */}
       <Hero>
-        <HeroDecor style={{ width: 600, height: 600, top: -250, right: -150 }} />
-        <HeroDecor style={{ width: 300, height: 300, bottom: -100, left: -80 }} />
+        <HeroDecor
+          style={{ width: 600, height: 600, top: -250, right: -150 }}
+        />
+        <HeroDecor
+          style={{ width: 300, height: 300, bottom: -100, left: -80 }}
+        />
         <HeroEyebrow>Official Merchandise</HeroEyebrow>
         <HeroTitle>
           Gear Up for <HeroGreen>Local Farming</HeroGreen>
         </HeroTitle>
         <HeroSub>
-          Premium Afarmer merchandise. Every item you wear or carry supports
+          Premium Afarmer™ merchandise. Every item you wear or carry supports
           farmers and buyers connecting across Kenya.
         </HeroSub>
         <HeroCtas>
-          <HeroCtaPrimary onClick={scrollToShop}>Shop All Products</HeroCtaPrimary>
-          <HeroCtaSecondary onClick={() => setActiveFilter("Apparel")}>
-            Browse Apparel
+          <HeroCtaSecondary onClick={scrollToShop}>
+            Buy Merchandise
           </HeroCtaSecondary>
-          {/* Admin-only: add new item button */}
+
           {isAdmin && (
             <AdminAddBtn onClick={() => setShowAddModal(true)}>
-              ＋ Add Item
+              Add Item
             </AdminAddBtn>
           )}
         </HeroCtas>
-        <HeroChips>
-          <HeroChip>🌿 {products.length} Products</HeroChip>
-          <HeroChip>🚚 Nationwide Delivery</HeroChip>
-          <HeroChip>✓ Official Gear</HeroChip>
-          <HeroChip>↩ Easy Returns</HeroChip>
-        </HeroChips>
       </Hero>
 
       {/* ── Stats strip ── */}
@@ -781,7 +826,7 @@ function Shop() {
             <StatIconBox>🌿</StatIconBox>
             <StatText>
               <StatVal>100% Authentic</StatVal>
-              <StatDesc>Official Afarmer products only</StatDesc>
+              <StatDesc>Official Afarmer™ products only</StatDesc>
             </StatText>
           </StatItem>
           <StatItem>
@@ -815,21 +860,31 @@ function Shop() {
         <CategoryCards>
           <CategoryCard
             $bg="#2f5a2a"
-            onClick={() => { setActiveFilter("Apparel"); scrollToShop(); }}
+            onClick={() => {
+              setActiveFilter("Apparel");
+              scrollToShop();
+            }}
           >
             <CategoryCardContent>
               <CategoryCardTitle>Apparel</CategoryCardTitle>
-              <CategoryCardCount>{apparelCount} items — T-shirts, Hoodies, Hats</CategoryCardCount>
+              <CategoryCardCount>
+                {apparelCount} items — T-shirts, Hoodies, Hats
+              </CategoryCardCount>
             </CategoryCardContent>
             <CategoryArrow>→</CategoryArrow>
           </CategoryCard>
           <CategoryCard
             $bg="#1a3d5a"
-            onClick={() => { setActiveFilter("Accessories"); scrollToShop(); }}
+            onClick={() => {
+              setActiveFilter("Accessories");
+              scrollToShop();
+            }}
           >
             <CategoryCardContent>
               <CategoryCardTitle>Accessories</CategoryCardTitle>
-              <CategoryCardCount>{accessoriesCount} items — Mugs, Tote Bags</CategoryCardCount>
+              <CategoryCardCount>
+                {accessoriesCount} items — Mugs, Tote Bags
+              </CategoryCardCount>
             </CategoryCardContent>
             <CategoryArrow>→</CategoryArrow>
           </CategoryCard>
@@ -842,7 +897,9 @@ function Shop() {
           <SectionHeader>
             <div>
               <SectionEyebrow>Fan Favourites</SectionEyebrow>
-              <SectionTitle style={{ marginBottom: 0 }}>Bestsellers</SectionTitle>
+              <SectionTitle style={{ marginBottom: 0 }}>
+                Bestsellers
+              </SectionTitle>
             </div>
             <SeeAllLink onClick={scrollToShop}>See all products →</SeeAllLink>
           </SectionHeader>
@@ -852,17 +909,25 @@ function Shop() {
                 <CardImageWrap>
                   <img loading="lazy" src={product.image} alt={product.alt} />
                   {product.badge && (
-                    <BadgeChip $badge={product.badge}>{product.badge}</BadgeChip>
+                    <BadgeChip $badge={product.badge}>
+                      {product.badge}
+                    </BadgeChip>
                   )}
                   {product.stock <= 8 && (
                     <LowStockChip>Only {product.stock} left</LowStockChip>
                   )}
                   {/* Admin-only delete button — visible on card hover */}
-                  {isAdmin && !staticProducts.find((s) => s.id === product.id) && (
-                    <AdminDeleteBtn onClick={(e) => { e.preventDefault(); deleteItem(product.id); }}>
-                      🗑 Remove
-                    </AdminDeleteBtn>
-                  )}
+                  {isAdmin &&
+                    !staticProducts.find((s) => s.id === product.id) && (
+                      <AdminDeleteBtn
+                        onClick={(e) => {
+                          e.preventDefault();
+                          deleteItem(product.id);
+                        }}
+                      >
+                        🗑 Remove
+                      </AdminDeleteBtn>
+                    )}
                   <HoverOverlay>
                     <QuickViewBtn>Quick View</QuickViewBtn>
                   </HoverOverlay>
@@ -878,7 +943,7 @@ function Shop() {
                   </RatingRow>
                   <CardFooter>
                     <Price>Kes {product.price.toLocaleString()}</Price>
-                    <ShopBtn to={`/shop/item/${product.id}`}>Buy Now →</ShopBtn>
+                    <ShopBtn to={`/shop/item/${product.id}`}>Buy Now</ShopBtn>
                   </CardFooter>
                 </CardBody>
               </Card>
@@ -892,7 +957,9 @@ function Shop() {
         <SectionHeader>
           <div>
             <SectionEyebrow>Full Collection</SectionEyebrow>
-            <SectionTitle style={{ marginBottom: 0 }}>All Products</SectionTitle>
+            <SectionTitle style={{ marginBottom: 0 }}>
+              All Products
+            </SectionTitle>
           </div>
         </SectionHeader>
 
@@ -926,11 +993,17 @@ function Shop() {
                   <LowStockChip>Only {product.stock} left</LowStockChip>
                 )}
                 {/* Admin-only delete — only for DB products, not static ones */}
-                {isAdmin && !staticProducts.find((s) => s.id === product.id) && (
-                  <AdminDeleteBtn onClick={(e) => { e.preventDefault(); deleteItem(product.id); }}>
-                    🗑 Remove
-                  </AdminDeleteBtn>
-                )}
+                {isAdmin &&
+                  !staticProducts.find((s) => s.id === product.id) && (
+                    <AdminDeleteBtn
+                      onClick={(e) => {
+                        e.preventDefault();
+                        deleteItem(product.id);
+                      }}
+                    >
+                      🗑 Remove
+                    </AdminDeleteBtn>
+                  )}
                 <HoverOverlay>
                   <QuickViewBtn>Quick View</QuickViewBtn>
                 </HoverOverlay>
@@ -946,7 +1019,7 @@ function Shop() {
                 </RatingRow>
                 <CardFooter>
                   <Price>Kes {product.price.toLocaleString()}</Price>
-                  <ShopBtn to={`/shop/item/${product.id}`}>Shop Now →</ShopBtn>
+                  <ShopBtn to={`/shop/item/${product.id}`}>Shop Now</ShopBtn>
                 </CardFooter>
               </CardBody>
             </Card>
@@ -960,11 +1033,16 @@ function Shop() {
           <NewsletterText>
             <NewsletterTitle>New drops & exclusive deals</NewsletterTitle>
             <NewsletterSub>
-              Join 2,000+ Afarmer fans. Get notified when new merch lands
-              and unlock member-only discounts.
+              Join 2,000+ Afarmer™ fans. Get notified when new merch lands and
+              unlock member-only discounts.
             </NewsletterSub>
           </NewsletterText>
-          <NewsletterForm onSubmit={(e) => { e.preventDefault(); setEmail(""); }}>
+          <NewsletterForm
+            onSubmit={(e) => {
+              e.preventDefault();
+              setEmail("");
+            }}
+          >
             <NewsletterInput
               type="email"
               value={email}
@@ -981,9 +1059,7 @@ function Shop() {
       <FooterContainer />
 
       {/* Admin modal — only mounts when admin clicks "Add Item" */}
-      {showAddModal && (
-        <AddShopItem onClose={() => setShowAddModal(false)} />
-      )}
+      {showAddModal && <AddShopItem onClose={() => setShowAddModal(false)} />}
     </Page>
   );
 }
