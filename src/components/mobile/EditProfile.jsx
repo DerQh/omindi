@@ -201,7 +201,7 @@ const inputStyles = `
   border: 1.5px solid #dbe5d8;
   border-radius: 12px;
   padding: 12px 14px;
-  font-size: 0.95rem;
+  font-size: 16px;
   color: #1a3318;
   background: #f8faf6;
   outline: none;

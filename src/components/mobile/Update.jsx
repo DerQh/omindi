@@ -189,7 +189,7 @@ const Input = styled.input`
   padding: 14px 16px;
   border: 1.5px solid #e2ece2;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 16px;
   font-family: inherit;
   color: #1a3318;
   background: #fafcfa;
@@ -215,7 +215,7 @@ const Textarea = styled.textarea`
   padding: 14px 16px;
   border: 1.5px solid #e2ece2;
   border-radius: 12px;
-  font-size: 0.95rem;
+  font-size: 16px;
   font-family: inherit;
   color: #1a3318;
   background: #fafcfa;

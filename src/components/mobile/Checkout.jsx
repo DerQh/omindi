@@ -580,7 +580,7 @@ const inputBase = `
   padding: 12px 14px;
   border-radius: 12px;
   border: 1.5px solid;
-  font-size: 0.95rem;
+  font-size: 16px;
   color: #1a3318;
   background: #fafcfa;
   outline: none;

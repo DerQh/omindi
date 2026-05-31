@@ -512,7 +512,7 @@ const QuickBtn = styled.button`
 
 // ─── STATUS SELECT ────────────────────────────────────────────────────────────
 const StatusSelect = styled.select`
-  font-size: 0.72rem;
+  font-size: 16px;
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 8px;

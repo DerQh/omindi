@@ -745,7 +745,7 @@ const FieldLabel = styled.label`
 
 const fieldBase = `
   width: 100%; padding: 11px 14px; border-radius: 10px;
-  border: 1.5px solid #e5e7eb; font-size: 0.9rem;
+  border: 1.5px solid #e5e7eb; font-size: 16px;
   color: #111827; background: #fafcfa; outline: none;
   box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; font-family: inherit;
   &:focus { border-color: #2f5a2a; background: white; box-shadow: 0 0 0 3px rgba(47,90,42,0.08); }

@@ -1443,7 +1443,7 @@ const PageHeading = styled.h1`
 
 const SectionHeading = styled.h2`
   margin: 28px 0 12px;
-  font-size: 0.78rem;
+  font-size: 16px;
   font-weight: 700;
   color: #9ca3af;
   text-transform: uppercase;
@@ -1549,7 +1549,7 @@ const PeriodGroup = styled.div`
 const PeriodBtn = styled.button`
   padding: 5px 12px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 16px;
   font-weight: 600;
   border: 1.5px solid ${({ $active }) => ($active ? "#2f5a2a" : "#e5e7eb")};
   background: ${({ $active }) => ($active ? "#2f5a2a" : "white")};
@@ -1636,7 +1636,7 @@ const CatFill = styled.div`
   transition: width 0.3s ease;
 `;
 const CatCount = styled.span`
-  font-size: 0.78rem;
+  font-size: 16px;
   color: #9ca3af;
   font-weight: 600;
   width: 28px;
@@ -1700,7 +1700,7 @@ const ClearBtn = styled.button`
 const CountPill = styled.span`
   background: #f0fdf4;
   color: #166534;
-  font-size: 0.78rem;
+  font-size: 16px;
   font-weight: 700;
   padding: 6px 12px;
   border-radius: 999px;
@@ -1722,7 +1722,7 @@ const StatusSummaryChip = styled.button`
   gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 16px;
   font-weight: 600;
   border: 1.5px solid ${({ $active }) => ($active ? "#2f5a2a" : "#e5e7eb")};
   background: ${({ $active }) => ($active ? "#f0fdf4" : "white")};
@@ -1801,7 +1801,7 @@ const TD = styled.td`
 `;
 const TableFooter = styled.div`
   padding: 10px 16px;
-  font-size: 0.78rem;
+  font-size: 16px;
   color: #9ca3af;
   background: #f9fafb;
   border-top: 1px solid #f3f4f6;
@@ -1810,7 +1810,7 @@ const TableFooter = styled.div`
 
 const Mono = styled.span`
   font-family: monospace;
-  font-size: 0.78rem;
+  font-size: 16px;
   color: #9ca3af;
 `;
 const Muted = styled.span`
@@ -1930,7 +1930,7 @@ const HeadingRow = styled.div`
 const AdminCapBadge = styled.span`
   padding: 5px 14px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 16px;
   font-weight: 700;
   background: ${({ $atCap }) => ($atCap ? "#fff7ed" : "#f0fdf4")};
   color: ${({ $atCap }) => ($atCap ? "#b45309" : "#166534")};
@@ -2010,7 +2010,7 @@ const StatusPill = styled.span`
 const StatusSelect = styled.select`
   padding: 5px 10px;
   border-radius: 8px;
-  font-size: 0.78rem;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   outline: none;
@@ -2073,7 +2073,7 @@ const DisputeBanner = styled.div`
 const ResolveSelect = styled.select`
   padding: 5px 10px;
   border-radius: 8px;
-  font-size: 0.78rem;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   outline: none;

@@ -69,7 +69,7 @@ const Input = styled.input`
   padding: 12px 14px;
   border: 1.5px solid ${({ $error }) => ($error ? "#f5c2c2" : "#e8f2e8")};
   border-radius: 12px;
-  font-size: 0.95rem;
+  font-size: 16px;
   font-family: inherit;
   color: #1a3318;
   background: #fafcfa;

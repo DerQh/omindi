@@ -356,7 +356,7 @@ const CategorySelect = styled.select`
   border: 1.5px solid #cde5cf;
   background: white;
   color: #44554c;
-  font-size: 0.82rem;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   outline: none;
@@ -373,7 +373,7 @@ const CategorySelect = styled.select`
 const Chip = styled.button`
   padding: 6px 14px;
   border-radius: 999px;
-  font-size: 0.82rem;
+  font-size: 16px;
   font-weight: 600;
   border: 1.5px solid ${({ $active }) => ($active ? "#2f5a2a" : "#cde5cf")};
   background: ${({ $active }) => ($active ? "#2f5a2a" : "white")};
@@ -394,7 +394,7 @@ const SortSelect = styled.select`
   border: 1.5px solid #cde5cf;
   background: white;
   color: #44554c;
-  font-size: 0.82rem;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   outline: none;
@@ -429,7 +429,7 @@ const AddListingBtn = styled.button`
   border: none;
   background: #2f5a2a;
   color: white;
-  font-size: 0.82rem;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;

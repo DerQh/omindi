@@ -114,7 +114,7 @@ const QuantityInput = styled.input`
   padding: 14px 16px;
   border: 2px solid #d7e9ff;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 16px;
   color: #2f5a2a;
   background: #f7fbff;
   outline: none;

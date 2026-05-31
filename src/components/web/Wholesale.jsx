@@ -724,7 +724,7 @@ const FieldInput = styled.input`
   padding: 10px 14px;
   border-radius: 10px;
   border: 1.5px solid #e5e7eb;
-  font-size: 0.9rem;
+  font-size: 16px;
   color: #111827;
   background: #fafcfa;
   outline: none;
@@ -743,7 +743,7 @@ const FieldTextarea = styled.textarea`
   padding: 10px 14px;
   border-radius: 10px;
   border: 1.5px solid #e5e7eb;
-  font-size: 0.9rem;
+  font-size: 16px;
   color: #111827;
   background: #fafcfa;
   outline: none;

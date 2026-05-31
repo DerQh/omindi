@@ -430,7 +430,7 @@ const SearchInput = styled.input`
   border: 1.5px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  font-size: 0.95rem;
+  font-size: 16px;
   outline: none;
   box-sizing: border-box;
   backdrop-filter: blur(8px);

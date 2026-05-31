@@ -123,7 +123,7 @@ const inputBase = `
   padding: 10px 14px;
   border: 1.5px solid #d7edd9;
   border-radius: 10px;
-  font-size: 0.9rem;
+  font-size: 16px;
   color: #1a2e1a;
   background: white;
   outline: none;

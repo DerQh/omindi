@@ -11,7 +11,7 @@ const CommentInput = styled.textarea`
   border-radius: 12px;
   resize: none;
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 16px;
 
   &:focus {
     outline: none;

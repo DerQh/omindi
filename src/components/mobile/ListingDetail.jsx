@@ -490,7 +490,7 @@ const ReviewInput = styled.textarea`
   padding: 10px 12px;
   border: 1.5px solid #cde5cf;
   border-radius: 10px;
-  font-size: 0.88rem;
+  font-size: 16px;
   font-family: inherit;
   color: #1a3318;
   background: white;

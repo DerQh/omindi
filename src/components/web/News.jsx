@@ -425,7 +425,7 @@ const SearchInput = styled.input`
   border: 1.5px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  font-size: 0.95rem;
+  font-size: 16px;
   outline: none;
   box-sizing: border-box;
   backdrop-filter: blur(8px);
@@ -808,7 +808,7 @@ const NewsletterInput = styled.input`
   padding: 14px 20px;
   border-radius: 12px;
   border: 1.5px solid rgba(255, 255, 255, 0.15);
-  font-size: 0.92rem;
+  font-size: 16px;
   background: rgba(255, 255, 255, 0.08);
   color: white;
   outline: none;

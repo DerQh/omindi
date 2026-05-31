@@ -95,7 +95,7 @@ const EmailInput = styled.input`
   border: 1px solid rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.08);
   color: white;
-  font-size: 14px;
+  font-size: 16px;
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s, background 0.15s;

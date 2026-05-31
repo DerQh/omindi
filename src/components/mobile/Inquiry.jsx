@@ -84,7 +84,7 @@ const Input = styled.input`
   border-radius: 14px;
   background: #f7fbff;
   color: #2f5a2a;
-  font-size: 1rem;
+  font-size: 16px;
   margin-bottom: 20px;
   outline: none;
 
@@ -101,7 +101,7 @@ const TextArea = styled.textarea`
   border-radius: 14px;
   background: #f7fbff;
   color: #2f5a2a;
-  font-size: 1rem;
+  font-size: 16px;
   resize: vertical;
   margin-bottom: 20px;
   outline: none;
