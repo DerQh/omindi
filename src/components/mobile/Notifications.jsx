@@ -3,7 +3,11 @@ import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
-import { useMarkAllRead, useMarkRead, useNotifications } from "../../hooks/useNotification";
+import {
+  useMarkAllRead,
+  useMarkRead,
+  useNotifications,
+} from "../../hooks/useNotification";
 import { formatSmartDate } from "../../hooks/dateFormat";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
@@ -27,17 +31,20 @@ const shimmer = keyframes`
 
 const Container = styled.div`
   min-height: 100vh;
-  background: #f5f8f5;
+  background: white;
   padding-bottom: 48px;
 `;
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
 const Hero = styled.div`
-  background: linear-gradient(135deg, #2f5a2a 0%, #3d7a35 60%, #4e9643 100%);
+  /* background: linear-gradient(135deg, #2f5a2a 0%, #3d7a35 60%, #4e9643 100%); */
   padding: 32px 24px 72px;
   position: relative;
   overflow: hidden;
+  max-width: 960px;
+  margin: 0 auto;
+  border-radius: 0 0 24px 24px;
 
   &::before {
     content: "";
@@ -80,9 +87,9 @@ const BackBtn = styled.button`
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(19, 18, 18, 0.3);
+  color: black;
   font-size: 1.1rem;
   display: flex;
   align-items: center;
@@ -98,15 +105,15 @@ const BackBtn = styled.button`
 
 const HeroTitle = styled.h1`
   margin: 0;
-  color: white;
+  color: black;
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 600;
 `;
 
 const MarkAllBtn = styled.button`
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
+  color: black;
   font-size: 0.8rem;
   font-weight: 700;
   padding: 7px 14px;
@@ -129,10 +136,10 @@ const HeroStats = styled.div`
 
 const StatChip = styled.div`
   background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(2, 2, 2, 0.25);
   border-radius: 999px;
   padding: 7px 14px;
-  color: white;
+  color: black;
   font-size: 0.88rem;
   font-weight: 600;
   display: flex;
@@ -145,10 +152,10 @@ const StatChip = styled.div`
 // Floats over the hero bottom edge — same pattern as Following.jsx tab bar
 const FilterBarWrap = styled.div`
   position: relative;
-  margin-top: -40px;
+  max-width: 960px;
+  margin: -40px auto 20px;
   padding: 0 20px;
   z-index: 10;
-  margin-bottom: 20px;
 `;
 
 const FilterBar = styled.div`
@@ -160,7 +167,9 @@ const FilterBar = styled.div`
   box-shadow: 0 8px 28px rgba(20, 57, 32, 0.11);
   overflow-x: auto;
   scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const FilterBtn = styled.button`
@@ -186,7 +195,8 @@ const FilterBtn = styled.button`
 `;
 
 const FilterCount = styled.span`
-  background: ${({ $active }) => ($active ? "rgba(255,255,255,0.25)" : "#eef7ee")};
+  background: ${({ $active }) =>
+    $active ? "rgba(255,255,255,0.25)" : "#eef7ee"};
   color: ${({ $active }) => ($active ? "white" : "#2f5a2a")};
   border-radius: 999px;
   padding: 1px 6px;
@@ -391,7 +401,9 @@ const SkeletonRow = styled.div`
   gap: 13px;
   padding: 16px 18px;
   border-bottom: 1px solid #f0f7ee;
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 const SkeletonCircle = styled(SkeletonBase)`
@@ -459,38 +471,65 @@ const EmptyDesc = styled.p`
 
 // Maps notification type to icon + background colour
 const NOTIF_META = {
-  order:    { icon: "🛒", iconBg: "#eef9f0" },
-  inquiry:  { icon: "💬", iconBg: "#e5f4ff" },
+  order: { icon: "🛒", iconBg: "#eef9f0" },
+  inquiry: { icon: "💬", iconBg: "#e5f4ff" },
   favorite: { icon: "❤️", iconBg: "#fdf0f0" },
-  price:    { icon: "📉", iconBg: "#f0f7ee" },
-  system:   { icon: "🌿", iconBg: "#eef9f0" },
+  price: { icon: "📉", iconBg: "#f0f7ee" },
+  system: { icon: "🌿", iconBg: "#eef9f0" },
+  follow: { icon: "👤", iconBg: "#f0f4ff" },
 };
 
 const FILTERS = [
-  { label: "All",       type: null },
-  { label: "Orders",    type: "order" },
+  { label: "All", type: null },
+  { label: "Orders", type: "order" },
   { label: "Inquiries", type: "inquiry" },
-  { label: "Saved",     type: "favorite" },
-  { label: "System",    type: ["price", "system"] },
+  { label: "Saved", type: "favorite" },
+  { label: "Follows", type: "follow" },
+  { label: "System", type: ["price", "system"] },
 ];
 
 // Per-filter empty state messages
 const EMPTY_MSG = {
-  All:       { icon: "🔔", title: "No notifications yet",     desc: "You're all caught up!" },
-  Orders:    { icon: "🛒", title: "No order notifications",   desc: "Order updates will appear here." },
-  Inquiries: { icon: "💬", title: "No inquiries yet",         desc: "Buyer messages about your listings will show here." },
-  Saved:     { icon: "❤️", title: "No saves yet",             desc: "When buyers save your listings you'll see it here." },
-  System:    { icon: "🌿", title: "No system notifications",  desc: "Platform updates and alerts will appear here." },
+  All: {
+    icon: "🔔",
+    title: "No notifications yet",
+    desc: "You're all caught up!",
+  },
+  Orders: {
+    icon: "🛒",
+    title: "No order notifications",
+    desc: "Order updates will appear here.",
+  },
+  Inquiries: {
+    icon: "💬",
+    title: "No inquiries yet",
+    desc: "Buyer messages about your listings will show here.",
+  },
+  Saved: {
+    icon: "❤️",
+    title: "No saves yet",
+    desc: "When buyers save your listings you'll see it here.",
+  },
+  System: {
+    icon: "🌿",
+    title: "No system notifications",
+    desc: "Platform updates and alerts will appear here.",
+  },
+  Follows: {
+    icon: "👤",
+    title: "No follow notifications",
+    desc: "When someone follows you, it will appear here.",
+  },
 };
 
 const paymentLabels = {
-  cash:   "Cash on Delivery",
+  cash: "Cash on Delivery",
   mobile: "Mobile Money",
-  bank:   "Bank Transfer",
+  bank: "Bank Transfer",
 };
 
-// Groups a flat array of notifications into Today / Yesterday / Earlier
-// based on the Supabase created_at timestamp
+// Groups notifications into Today / Yesterday / Earlier using updated_at (falls back to created_at).
+// Order notifications re-surface under Today whenever their status changes.
 const groupByDate = (items) => {
   const todayStr = new Date().toDateString();
   const yday = new Date();
@@ -499,7 +538,7 @@ const groupByDate = (items) => {
 
   const groups = { Today: [], Yesterday: [], Earlier: [] };
   items.forEach((n) => {
-    const d = new Date(n.created_at).toDateString();
+    const d = new Date(n.updated_at || n.created_at).toDateString();
     if (d === todayStr) groups.Today.push(n);
     else if (d === ydayStr) groups.Yesterday.push(n);
     else groups.Earlier.push(n);
@@ -521,24 +560,27 @@ const Notifications = () => {
   const [expandedId, setExpandedId] = useState(null);
 
   const unreadCount = notifications?.filter((n) => !n.read).length ?? 0;
-  const totalCount  = notifications?.length ?? 0;
+  const totalCount = notifications?.length ?? 0;
 
   // Filter list based on active tab
-  const filtered = notifications?.filter((n) => {
-    const f = FILTERS.find((x) => x.label === activeFilter)?.type;
-    if (!f) return true;
-    if (Array.isArray(f)) return f.includes(n.type);
-    return n.type === f;
-  }) ?? [];
+  const filtered =
+    notifications?.filter((n) => {
+      const f = FILTERS.find((x) => x.label === activeFilter)?.type;
+      if (!f) return true;
+      if (Array.isArray(f)) return f.includes(n.type);
+      return n.type === f;
+    }) ?? [];
 
   // Count per tab for badge numbers
   const countFor = (label) => {
     const f = FILTERS.find((x) => x.label === label)?.type;
     if (!f) return totalCount;
-    return notifications?.filter((n) => {
-      if (Array.isArray(f)) return f.includes(n.type);
-      return n.type === f;
-    }).length ?? 0;
+    return (
+      notifications?.filter((n) => {
+        if (Array.isArray(f)) return f.includes(n.type);
+        return n.type === f;
+      }).length ?? 0
+    );
   };
 
   const handleClick = (n) => {
@@ -554,7 +596,9 @@ const Notifications = () => {
           <DetailCard>
             <DetailRow>
               <DetailLabel>Order ID</DetailLabel>
-              <DetailValue>{n.detail?.orderId?.slice(0, 8).toUpperCase()}</DetailValue>
+              <DetailValue>
+                {n.detail?.orderId?.slice(0, 8).toUpperCase()}
+              </DetailValue>
             </DetailRow>
             <DetailDivider />
             <DetailRow>
@@ -567,18 +611,25 @@ const Notifications = () => {
             </DetailRow>
             <DetailRow>
               <DetailLabel>Payment</DetailLabel>
-              <DetailValue>{paymentLabels[n.detail?.payment] ?? n.detail?.payment}</DetailValue>
+              <DetailValue>
+                {paymentLabels[n.detail?.payment] ?? n.detail?.payment}
+              </DetailValue>
             </DetailRow>
             <DetailRow>
               <DetailLabel>Date</DetailLabel>
               <DetailValue>
                 {new Date(n.created_at).toLocaleDateString("en-US", {
-                  month: "short", day: "numeric", year: "numeric",
-                  hour: "2-digit", minute: "2-digit",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </DetailValue>
             </DetailRow>
-            <DetailActionBtn onClick={() => navigate(`/order/${n.detail?.orderId}`)}>
+            <DetailActionBtn
+              onClick={() => navigate(`/order/${n.detail?.orderId}`)}
+            >
               View Order →
             </DetailActionBtn>
           </DetailCard>
@@ -603,7 +654,7 @@ const Notifications = () => {
               </DetailValue>
             </DetailRow>
             <DetailActionBtn onClick={() => navigate("/messages")}>
-              Reply →
+              Reply
             </DetailActionBtn>
           </DetailCard>
         );
@@ -619,7 +670,9 @@ const Notifications = () => {
               <DetailLabel>Total saves</DetailLabel>
               <DetailValue>{n.detail?.totalSaves}</DetailValue>
             </DetailRow>
-            <DetailActionBtn>View Listing →</DetailActionBtn>
+            <DetailActionBtn onClick={() => navigate(`/listing/${n.detail?.listing_id}`)}>
+              View Listing →
+            </DetailActionBtn>
           </DetailCard>
         );
 
@@ -632,7 +685,9 @@ const Notifications = () => {
             </DetailRow>
             <DetailRow>
               <DetailLabel>Was</DetailLabel>
-              <DetailValue style={{ textDecoration: "line-through", color: "#aaa" }}>
+              <DetailValue
+                style={{ textDecoration: "line-through", color: "#aaa" }}
+              >
                 Kes {n.detail?.oldPrice}
               </DetailValue>
             </DetailRow>
@@ -640,7 +695,9 @@ const Notifications = () => {
               <DetailLabel>Now</DetailLabel>
               <DetailValue>Kes {n.detail?.newPrice}</DetailValue>
             </DetailRow>
-            <DetailActionBtn>View Listing →</DetailActionBtn>
+            <DetailActionBtn onClick={() => navigate(`/listing/${n.detail?.listing_id}`)}>
+              View Listing →
+            </DetailActionBtn>
           </DetailCard>
         );
 
@@ -648,14 +705,31 @@ const Notifications = () => {
         return (
           <DetailCard>
             <DetailRow>
-              <DetailLabel>Message</DetailLabel>
+              <DetailLabel>Message </DetailLabel>
               <DetailValue style={{ maxWidth: "68%", lineHeight: 1.55 }}>
                 {n.detail?.message}
               </DetailValue>
             </DetailRow>
             {n.detail?.action && (
-              <DetailActionBtn>{n.detail.action} →</DetailActionBtn>
+              <DetailActionBtn onClick={() => navigate("/list")}>
+                {n.detail.action} →
+              </DetailActionBtn>
             )}
+          </DetailCard>
+        );
+
+      case "follow":
+        return (
+          <DetailCard>
+            <DetailRow>
+              <DetailLabel>From</DetailLabel>
+              <DetailValue>{n.detail?.follower_name}</DetailValue>
+            </DetailRow>
+            <DetailActionBtn
+              onClick={() => navigate(`/follower/${n.detail?.follower_id}`)}
+            >
+              View Profile
+            </DetailActionBtn>
           </DetailCard>
         );
 
@@ -664,30 +738,23 @@ const Notifications = () => {
     }
   };
 
-  const groups  = groupByDate(filtered);
-  const hasAny  = filtered.length > 0;
+  const groups = groupByDate(filtered);
+  const hasAny = filtered.length > 0;
   const emptyMsg = EMPTY_MSG[activeFilter] ?? EMPTY_MSG.All;
 
   return (
     <>
       <AppNavbar />
       <Container>
-
         {/* ── Hero ── */}
         <Hero>
-          <HeroTop>
-            <HeroLeft>
-              <BackBtn onClick={() => navigate(-1)}>←</BackBtn>
-              <HeroTitle>Notifications</HeroTitle>
-            </HeroLeft>
-            {unreadCount > 0 && (
-              <MarkAllBtn onClick={markAllRead}>✓ Mark all read</MarkAllBtn>
-            )}
-          </HeroTop>
           <HeroStats>
-            <StatChip>🔔 {totalCount} total</StatChip>
+            <StatChip>{totalCount} Notifications </StatChip>
+            {unreadCount > 0 && <StatChip> {unreadCount} unread</StatChip>}
             {unreadCount > 0 && (
-              <StatChip>🟢 {unreadCount} unread</StatChip>
+              <StatChip onClick={() => markAllRead(user?.id)}>
+                Mark all read
+              </StatChip>
             )}
           </HeroStats>
         </Hero>
@@ -705,7 +772,9 @@ const Notifications = () => {
                 >
                   {label}
                   {count > 0 && (
-                    <FilterCount $active={activeFilter === label}>{count}</FilterCount>
+                    <FilterCount $active={activeFilter === label}>
+                      {count}
+                    </FilterCount>
                   )}
                 </FilterBtn>
               );
@@ -715,7 +784,6 @@ const Notifications = () => {
 
         {/* ── Content ── */}
         <ContentArea>
-
           {isLoading && <LoadingSkeleton />}
 
           {!isLoading && !hasAny && (
@@ -727,7 +795,8 @@ const Notifications = () => {
           )}
 
           {/* Notifications grouped by Today / Yesterday / Earlier */}
-          {!isLoading && hasAny &&
+          {!isLoading &&
+            hasAny &&
             Object.entries(groups).map(([label, items]) => {
               if (!items.length) return null;
               return (
@@ -735,7 +804,10 @@ const Notifications = () => {
                   <DateLabel>{label}</DateLabel>
                   <NotifCard>
                     {items.map((n) => {
-                      const meta  = NOTIF_META[n.type] ?? { icon: "🔔", iconBg: "#f0f7ee" };
+                      const meta = NOTIF_META[n.type] ?? {
+                        icon: "🔔",
+                        iconBg: "#f0f7ee",
+                      };
                       const isOpen = expandedId === n.id;
 
                       return (
@@ -743,9 +815,13 @@ const Notifications = () => {
                           <NotifRow onClick={() => handleClick(n)}>
                             <IconWrap $bg={meta.iconBg}>{meta.icon}</IconWrap>
                             <NotifContent>
-                              <NotifTitle $unread={!n.read}>{n.title}</NotifTitle>
+                              <NotifTitle $unread={!n.read}>
+                                {n.title}
+                              </NotifTitle>
                               <NotifBody>{n.body}</NotifBody>
-                              <NotifTime>{formatSmartDate(n.created_at)}</NotifTime>
+                              <NotifTime>
+                                {formatSmartDate(n.updated_at || n.created_at)}
+                              </NotifTime>
                             </NotifContent>
                             <NotifRight>
                               {!n.read && <UnreadDot />}
@@ -762,9 +838,7 @@ const Notifications = () => {
                   </NotifCard>
                 </DateGroup>
               );
-            })
-          }
-
+            })}
         </ContentArea>
       </Container>
     </>

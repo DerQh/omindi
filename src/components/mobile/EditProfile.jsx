@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useEditProfile } from "../../hooks/useEditProfile";
+import { useProfile } from "../../hooks/useProfile";
+import { useAuth } from "../../context/AuthContext";
+import LoadingComponent from "./Loading";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -303,31 +306,55 @@ const DESCRIPTION_MAX = 300;
 const EditProfile = () => {
   const { mutate, isPending } = useEditProfile();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [farm_name, setFarmName] = useState("");
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
+  const { data: profile, isLoading } = useProfile(user?.id);
+
+  const [farm_name, setFarmName]         = useState("");
+  const [description, setDescription]   = useState("");
+  const [location, setLocation]         = useState("");
   const [location_link, setLocationLink] = useState("");
-  const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [image, setImage]               = useState(null);
+  const [preview, setPreview]           = useState(null);
 
+  // Pre-fill all fields with existing profile data once it loads.
+  // Any field not yet set in the DB stays as an empty string (blank input).
+  useEffect(() => {
+    if (!profile) return;
+    setFarmName(profile.farm_name || "");
+    setDescription(profile.description || "");
+    setLocation(profile.location || "");
+    setLocationLink(profile.location_link || "");
+    setPreview(profile.avatar_url || null);
+  }, [profile]);
+
+  // Stores the selected file and creates a local blob URL for the preview.
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setImage(file);
-    // Create a local object URL to preview the selected image immediately
     setPreview(URL.createObjectURL(file));
   };
 
+  // Saves all field values to Supabase and navigates back to the profile page on success.
   const handleSubmit = (e) => {
     e.preventDefault();
     mutate(
-      { farm_name, description, location, location_link, image },
+      {
+        farm_name,
+        description,
+        location,
+        location_link,
+        image,
+        existingAvatarUrl: profile?.avatar_url,
+      },
       { onSuccess: () => navigate("/profile") },
     );
   };
 
   const descOver = description.length > DESCRIPTION_MAX;
+
+  if (isLoading) return <LoadingComponent />;
 
   return (
     <>
@@ -342,7 +369,7 @@ const EditProfile = () => {
 
         <FormCard onSubmit={handleSubmit}>
 
-          {/* ── Avatar upload — click the circle to pick a file ── */}
+          {/* ── Avatar upload — shows existing photo or placeholder, click to replace ── */}
           <AvatarSection>
             <AvatarWrap htmlFor="avatarInput">
               {preview ? (
@@ -352,7 +379,9 @@ const EditProfile = () => {
               )}
               <CameraOverlay>📷</CameraOverlay>
             </AvatarWrap>
-            <AvatarHint>Tap to change profile photo</AvatarHint>
+            <AvatarHint>
+              {preview ? "Tap to change photo" : "Tap to add a profile photo"}
+            </AvatarHint>
             <HiddenInput
               id="avatarInput"
               type="file"
@@ -373,7 +402,6 @@ const EditProfile = () => {
                 onChange={(e) => setFarmName(e.target.value)}
                 placeholder="e.g. Amina's Organic Farm"
                 maxLength={60}
-                required
               />
             </Field>
 
@@ -390,7 +418,6 @@ const EditProfile = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Tell buyers what you grow, your farming practices, and what makes your produce special…"
                 maxLength={DESCRIPTION_MAX}
-                required
               />
             </Field>
           </SectionBlock>
@@ -406,7 +433,6 @@ const EditProfile = () => {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="e.g. Nyamware, Kisumu, Kenya"
-                required
               />
               <HelperText>Shown on your public profile to nearby buyers.</HelperText>
             </Field>

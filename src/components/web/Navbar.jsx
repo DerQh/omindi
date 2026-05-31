@@ -477,7 +477,7 @@ export default function Navbar() {
       <Inner>
         {/* ── Logo ── */}
         <LogoWrap onClick={() => go("/")}>
-          <LogoImg loading="lazy" src="/logo1.jpg" alt="Afarmer logo" />
+          <LogoImg src="/afarmer.jpg" alt="Afarmer logo" />
           <LogoText>AFARMER</LogoText>
         </LogoWrap>
 

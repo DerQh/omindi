@@ -47,6 +47,23 @@ export function useIsAdmin(userId) {
   });
 }
 
+// Fetches a single shop product by ID — used as fallback when navigating directly to a product URL.
+export function useShopItem(id) {
+  return useQuery({
+    queryKey: ["shop_product", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("shop_products")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data ? { ...data, image: data.image_url, alt: data.name } : null;
+    },
+  });
+}
+
 // Fetch all shop products stored in Supabase (admin-added items)
 export function useShopItems() {
   return useQuery({

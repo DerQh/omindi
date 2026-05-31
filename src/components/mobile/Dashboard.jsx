@@ -9,6 +9,7 @@ import {
   useUpdateOrderStatus,
   useDeleteListing,
   useDashboardStats,
+  useToggleAvailability,
 } from "../../hooks/useDashboard";
 import { formatSmartDate } from "../../hooks/dateFormat";
 
@@ -130,6 +131,63 @@ const AddBtn = styled.button`
   }
 `;
 
+// ─── REVENUE HERO CARD ───────────────────────────────────────────────────────
+const RevenueCard = styled.div`
+  ${animated}
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, ${C.forest} 0%, ${C.greenMid} 100%);
+  border-radius: 16px;
+  padding: 24px 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(47, 90, 42, 0.35);
+  transition: box-shadow 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  &:hover {
+    box-shadow: 0 8px 32px rgba(47, 90, 42, 0.45);
+    transform: translateY(-2px);
+  }
+`;
+
+const RevenueLabel = styled.p`
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+`;
+
+const RevenueValue = styled.p`
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 800;
+  color: white;
+  letter-spacing: -1.5px;
+  line-height: 1;
+`;
+
+const RevenueLink = styled.span`
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
+
+  ${RevenueCard}:hover & {
+    background: rgba(255, 255, 255, 0.25);
+  }
+`;
+
 // ─── STAT CARDS ──────────────────────────────────────────────────────────────
 const StatsGrid = styled.div`
   display: grid;
@@ -140,9 +198,6 @@ const StatsGrid = styled.div`
   @media (max-width: 800px) {
     grid-template-columns: repeat(2, 1fr);
   }
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
 `;
 
 const StatCard = styled.div`
@@ -150,6 +205,11 @@ const StatCard = styled.div`
   background: ${C.white};
   border-radius: 16px;
   padding: 20px 22px 18px;
+
+  @media (max-width: 480px) {
+    padding: 13px 12px 12px;
+    border-radius: 12px;
+  }
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.04),
     0 4px 16px rgba(0, 0, 0, 0.06);
@@ -191,6 +251,10 @@ const StatIcon = styled.div`
   justify-content: center;
   font-size: 1.1rem;
   margin-bottom: 14px;
+  @media (max-width: 480px) {
+    width: 28px; height: 28px; font-size: 0.85rem;
+    border-radius: 7px; margin-bottom: 8px;
+  }
 `;
 
 const StatLabel = styled.p`
@@ -200,6 +264,7 @@ const StatLabel = styled.p`
   text-transform: uppercase;
   letter-spacing: 0.09em;
   color: ${C.textMuted};
+  @media (max-width: 480px) { font-size: 0.62rem; }
 `;
 
 const StatValue = styled.p`
@@ -209,6 +274,7 @@ const StatValue = styled.p`
   color: ${C.text};
   letter-spacing: -1px;
   line-height: 1;
+  @media (max-width: 480px) { font-size: 1.25rem; letter-spacing: -0.5px; }
 `;
 
 const StatTag = styled.span`
@@ -304,6 +370,9 @@ const Card = styled.div`
 // ─── ORDER CARD ──────────────────────────────────────────────────────────────
 const OrderCard = styled.div`
   border-bottom: 1px solid ${C.border};
+  background: ${({ $expanded }) => ($expanded ? "#e8f5e8" : C.white)};
+  transition: background 0.2s, border-color 0.2s;
+
   &:last-child {
     border-bottom: none;
   }
@@ -319,7 +388,7 @@ const OrderHeader = styled.div`
   align-items: center;
 
   &:hover {
-    background: #f7fbf7;
+    background: ${({ $expanded }) => ($expanded ? "#edf7ed" : "#f7fbf7")};
   }
 
   @media (max-width: 540px) {
@@ -387,12 +456,14 @@ const ExpandToggle = styled.span`
 `;
 
 const statusMap = {
-  pending: { bg: C.goldLight, color: C.gold, label: "Pending" },
-  confirmed: { bg: C.mint, color: C.green, label: "Confirmed" },
-  delivering: { bg: C.blueLight, color: C.blue, label: "Shipping" },
-  delivered: { bg: C.mint, color: C.green, label: "Delivered" },
-  cancelled: { bg: C.redLight, color: C.red, label: "Cancelled" },
-  refunded: { bg: C.purpleLight, color: C.purple, label: "Refunded" },
+  pending:    { bg: C.goldLight,   color: C.gold,   label: "Pending"    },
+  confirmed:  { bg: C.mint,        color: C.green,  label: "Confirmed"  },
+  processing: { bg: C.purpleLight, color: C.purple, label: "Processing" },
+  shipped:    { bg: C.blueLight,   color: C.blue,   label: "Shipped"    },
+  delivering: { bg: C.blueLight,   color: C.blue,   label: "Shipping"   },
+  delivered:  { bg: C.mint,        color: C.green,  label: "Delivered"  },
+  cancelled:  { bg: C.redLight,    color: C.red,    label: "Cancelled"  },
+  refunded:   { bg: C.purpleLight, color: C.purple, label: "Refunded"   },
 };
 
 const StatusBadge = styled.span`
@@ -407,9 +478,13 @@ const StatusBadge = styled.span`
 
 // ─── EXPANDED ORDER ──────────────────────────────────────────────────────────
 const OrderExpanded = styled.div`
-  padding: 0 20px 20px;
+  margin: 0 16px 16px;
+  padding: 18px 20px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid ${C.border};
   animation: ${fadeUp} 0.25s ease;
 `;
 
@@ -494,7 +569,7 @@ const InfoValue = styled.p`
 `;
 
 // ─── STATUS STEPPER ──────────────────────────────────────────────────────────
-const stepOrder = ["pending", "confirmed", "delivering", "delivered"];
+const stepOrder = ["pending", "confirmed", "processing", "shipped", "delivered"];
 
 const Stepper = styled.div`
   display: flex;
@@ -667,6 +742,17 @@ const SmallBtn = styled.button`
   }
 `;
 
+const AvailPill = styled.span`
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: ${({ $available }) => ($available ? "#eef7ee" : "#fdf0f0")};
+  color: ${({ $available }) => ($available ? "#2f5a2a" : "#a32d2d")};
+  border: 1px solid ${({ $available }) => ($available ? "#cde5cf" : "#f5c2c2")};
+`;
+
 // ─── MISC ────────────────────────────────────────────────────────────────────
 const EmptyState = styled.div`
   text-align: center;
@@ -704,6 +790,8 @@ const ALL_STATUSES = [
   "all",
   "pending",
   "confirmed",
+  "processing",
+  "shipped",
   "delivering",
   "delivered",
   "cancelled",
@@ -727,6 +815,7 @@ const Dashboard = () => {
   const { mutate: updateStatus, isPending: updatingStatus } =
     useUpdateOrderStatus();
   const { mutate: deleteListing } = useDeleteListing();
+  const { mutate: toggleAvailability } = useToggleAvailability();
 
   // group items → orders
   const orders = Object.values(
@@ -749,32 +838,30 @@ const Dashboard = () => {
   const handleStatusUpdate = (order_id, status) =>
     updateStatus({ order_id, status });
 
+  // Returns the available action buttons for a given order status.
   const nextActions = (status) => {
     switch (status) {
       case "pending":
         return [
-          {
-            label: "✅ Confirm Order",
-            status: "confirmed",
-            variant: "primary",
-          },
-          { label: "✗ Cancel", status: "cancelled", variant: "danger" },
+          { label: "✅ Confirm Order",    status: "confirmed",  variant: "primary" },
+          { label: "✗ Cancel",           status: "cancelled",  variant: "danger"  },
         ];
       case "confirmed":
         return [
-          {
-            label: "🚚 Mark as Shipped",
-            status: "delivering",
-            variant: "primary",
-          },
+          { label: "⚙️ Mark as Processing", status: "processing", variant: "primary" },
+          { label: "✗ Cancel",              status: "cancelled",  variant: "danger"  },
+        ];
+      case "processing":
+        return [
+          { label: "🚚 Mark as Shipped", status: "shipped",   variant: "primary" },
+        ];
+      case "shipped":
+        return [
+          { label: "📦 Mark as Delivered", status: "delivered", variant: "primary" },
         ];
       case "delivering":
         return [
-          {
-            label: "📦 Mark as Delivered",
-            status: "delivered",
-            variant: "primary",
-          },
+          { label: "📦 Mark as Delivered", status: "delivered", variant: "primary" },
         ];
       case "delivered":
         return [
@@ -802,21 +889,15 @@ const Dashboard = () => {
 
         {/* STATS */}
         <StatsGrid>
-          <StatCard
-            $color={C.green}
-            $delay="0s"
-            $clickable
-            onClick={() => navigate("/sales")}
-          >
-            <StatIcon $bg={C.mint} $color={C.green}>
-              💰
-            </StatIcon>
-            <StatLabel>Total Revenue</StatLabel>
-            <StatValue>
-              Kes {(stats?.totalRevenue ?? 0).toLocaleString()}
-            </StatValue>
-            <StatTag $up>↑ View details</StatTag>
-          </StatCard>
+          <RevenueCard $delay="0s" onClick={() => navigate("/sales")}>
+            <div>
+              <RevenueLabel>Total Revenue</RevenueLabel>
+              <RevenueValue>
+                Kes {(stats?.totalRevenue ?? 0).toLocaleString()}
+              </RevenueValue>
+            </div>
+            <RevenueLink>View full report</RevenueLink>
+          </RevenueCard>
 
           <StatCard $color={C.blue} $delay="0.07s">
             <StatIcon $bg={C.blueLight} $color={C.blue}>
@@ -836,14 +917,6 @@ const Dashboard = () => {
             <StatTag>Needs action</StatTag>
           </StatCard>
 
-          <StatCard $color={C.purple} $delay="0.21s">
-            <StatIcon $bg={C.purpleLight} $color={C.purple}>
-              🌿
-            </StatIcon>
-            <StatLabel>Active Listings</StatLabel>
-            <StatValue>{stats?.totalListings ?? 0}</StatValue>
-            <StatTag $up>Live</StatTag>
-          </StatCard>
         </StatsGrid>
 
         {/* TABS */}
@@ -919,8 +992,9 @@ const Dashboard = () => {
                 </EmptyState>
               ) : (
                 filteredOrders.map((order) => (
-                  <OrderCard key={order.id}>
+                  <OrderCard key={order.id} $expanded={expandedOrder === order.id}>
                     <OrderHeader
+                      $expanded={expandedOrder === order.id}
                       onClick={() =>
                         setExpandedOrder(
                           expandedOrder === order.id ? null : order.id,
@@ -1092,7 +1166,11 @@ const Dashboard = () => {
             ) : (
               <ListingGrid>
                 {listings.map((listing) => (
-                  <ListingRow key={listing.id}>
+                  <ListingRow
+                    key={listing.id}
+                    onClick={() => navigate(`/listing/${listing.id}`, { state: { listing } })}
+                    style={{ cursor: "pointer" }}
+                  >
                     <ListingThumb src={listing.image_url} alt={listing.title} />
                     <ListingInfo>
                       <ListingTitle>{listing.title}</ListingTitle>
@@ -1101,16 +1179,29 @@ const Dashboard = () => {
                         &nbsp;·&nbsp;{listing.category}
                         &nbsp;·&nbsp;{listing.location}
                       </ListingMeta>
-                      <ListingMeta
-                        style={{ color: C.textMuted, fontSize: "0.73rem" }}
-                      >
-                        Added {formatSmartDate(listing.created_at)}
-                      </ListingMeta>
+                      {listing.available === false && (
+                        <ListingMeta style={{ marginTop: 4 }}>
+                          <AvailPill $available={false}>Out of Stock</AvailPill>
+                        </ListingMeta>
+                      )}
                     </ListingInfo>
-                    <ListingActions>
+                    <ListingActions onClick={(e) => e.stopPropagation()}>
                       <SmallBtn
                         onClick={() =>
-                          navigate("/edit-listing", { state: { listing } })
+                          toggleAvailability({
+                            listing_id: listing.id,
+                            available: listing.available === false,
+                          })
+                        }
+                        style={listing.available !== false
+                          ? {}
+                          : { background: "#fdf0f0", color: "#a32d2d" }}
+                      >
+                        {listing.available !== false ? "Mark Out of Stock" : "Mark Available"}
+                      </SmallBtn>
+                      <SmallBtn
+                        onClick={() =>
+                          navigate(`/edit-listing/${listing.id}`, { state: { listing } })
                         }
                       >
                         Edit

@@ -1,7 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes, css } from "styled-components";
+import { useProfile } from "../../hooks/useProfile";
+import { useUserListings } from "../../hooks/useListings";
+import { useIsFollowing, useFollowToggle } from "../../hooks/useFollows";
+import { useStartConversation } from "../../hooks/useMessages";
+import { useAuth } from "../../context/AuthContext";
+import LoadingComponent from "./Loading";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -32,7 +37,6 @@ const Cover = styled.div`
   background: linear-gradient(135deg, #2f5a2a 0%, #3d7a35 60%, #4e9643 100%);
   overflow: hidden;
 
-  /* Decorative circles on the cover */
   &::before {
     content: "";
     position: absolute;
@@ -55,7 +59,6 @@ const Cover = styled.div`
   }
 `;
 
-// Back button floats over the cover image
 const BackBtn = styled.button`
   position: absolute;
   top: 16px;
@@ -82,7 +85,6 @@ const BackBtn = styled.button`
 
 // ─── Profile Identity ─────────────────────────────────────────────────────────
 
-// Wraps avatar + name + follow — floats below the cover
 const ProfileSection = styled.div`
   max-width: 960px;
   margin: 0 auto;
@@ -90,7 +92,6 @@ const ProfileSection = styled.div`
   position: relative;
 `;
 
-// Avatar sits on the boundary between cover and white area
 const Avatar = styled.img`
   width: 110px;
   height: 110px;
@@ -100,6 +101,24 @@ const Avatar = styled.img`
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   margin-top: -55px;
   display: block;
+  animation: ${popIn} 0.5s ease forwards;
+`;
+
+const AvatarFallback = styled.div`
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: #2f5a2a;
+  color: white;
+  font-size: 2.2rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid white;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  margin-top: -55px;
+  text-transform: uppercase;
   animation: ${popIn} 0.5s ease forwards;
 `;
 
@@ -118,58 +137,16 @@ const SellerName = styled.h1`
   color: #1a3318;
 `;
 
-// Verified badge shown when rating >= 4.7
-const VerifiedBadge = styled.span`
-  background: #eef7ee;
-  color: #2f5a2a;
-  border: 1px solid #cde5cf;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-`;
-
-const CategoryRow = styled.p`
+const LocationRow = styled.p`
   margin: 0 0 10px;
   color: #7b8f7f;
   font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 `;
 
-const RatingRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 18px;
-`;
-
-const Stars = styled.span`
-  color: #f0b33d;
-  font-size: 1rem;
-  letter-spacing: 1px;
-`;
-
-const RatingVal = styled.span`
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #1a3318;
-`;
-
-const ReviewCount = styled.span`
-  font-size: 0.88rem;
-  color: #7b8f7f;
-`;
-
-// Follow + Message buttons side by side
 const ActionRow = styled.div`
   display: flex;
   gap: 12px;
-  margin-bottom: 28px;
+  margin: 16px 0 28px;
 `;
 
 const FollowBtn = styled.button`
@@ -214,10 +191,6 @@ const MessageBtn = styled.button`
   color: #2f5a2a;
   border: 2px solid #cde5cf;
   transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
 
   &:hover {
     background: #eef7ee;
@@ -238,21 +211,15 @@ const StatsCard = styled.div`
   border-radius: 18px;
   padding: 20px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
   animation: ${slideUp} 0.35s ease;
-
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px 0;
-  }
 `;
 
 const StatItem = styled.div`
   text-align: center;
   padding: 4px 0;
 
-  /* Vertical divider between stats (except last) */
   &:not(:last-child) {
     border-right: 1px solid #eef7ee;
   }
@@ -295,9 +262,6 @@ const SectionTitle = styled.h3`
   font-size: 1rem;
   font-weight: 700;
   color: #1a3318;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 `;
 
 const AboutText = styled.p`
@@ -311,7 +275,7 @@ const AboutText = styled.p`
 
 const ProductsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
 `;
 
@@ -342,7 +306,6 @@ const ProductImageWrap = styled.div`
   }
 `;
 
-// Price badge overlaid on bottom-left of product image
 const PriceBadge = styled.div`
   position: absolute;
   bottom: 10px;
@@ -364,9 +327,11 @@ const ProductName = styled.h4`
   font-size: 0.98rem;
   color: #1a3318;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
-// "View Listing" CTA on each product card
 const ViewBtn = styled.button`
   width: 100%;
   padding: 9px;
@@ -391,11 +356,6 @@ const ViewBtn = styled.button`
 const NotFound = styled.div`
   text-align: center;
   padding: 80px 24px;
-`;
-
-const NotFoundIcon = styled.div`
-  font-size: 3rem;
-  margin-bottom: 12px;
 `;
 
 const NotFoundTitle = styled.p`
@@ -423,85 +383,21 @@ const GoBackBtn = styled.button`
   &:hover { background: #245026; }
 `;
 
-// ─── Sellers data ─────────────────────────────────────────────────────────────
-// Replace with a real Supabase fetch keyed by seller ID when the API is ready
-
-const sellers = [
-  {
-    id: 1,
-    name: "Amina's Farm",
-    category: "Vegetables",
-    location: "Nairobi",
-    rating: 4.8,
-    reviews: 42,
-    image: "/amina.jpg",
-    description: "Specializing in organic vegetables grown with sustainable practices. We focus on quality and freshness — every harvest is hand-picked and delivered same day.",
-    followers: 156,
-    listings: 24,
-    joined: "Jan 2024",
-    products: [
-      { id: 1, name: "Organic Tomatoes", price: "Kes 12 / kg", image: "/tomatoes.jpg" },
-      { id: 2, name: "Fresh Lettuce", price: "Kes 8 / bunch", image: "/kales.jpg" },
-      { id: 3, name: "Bell Peppers", price: "Kes 15 / kg", image: "/pepper.png" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Maziwa Organics",
-    category: "Dairy",
-    location: "Kiambu",
-    rating: 4.6,
-    reviews: 30,
-    image: "/maziwa.png",
-    description: "Providing fresh, organic dairy products from grass-fed cows. Committed to animal welfare and quality — no hormones, no shortcuts.",
-    followers: 89,
-    listings: 12,
-    joined: "Mar 2024",
-    products: [
-      { id: 4, name: "Organic Milk", price: "Kes 6 / liter", image: "https://picsum.photos/200" },
-      { id: 5, name: "Free-Range Eggs", price: "Kes 5 / dozen", image: "/eggs.jpg" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Honey Harvest",
-    category: "Honey",
-    location: "Nanyuki",
-    rating: 4.9,
-    reviews: 55,
-    image: "/honeyfarm.jpg",
-    description: "Producing pure, raw honey from local beehives. Sustainable beekeeping practices for the very best flavour and nutritional value.",
-    followers: 203,
-    listings: 8,
-    joined: "Dec 2023",
-    products: [
-      { id: 6, name: "Wildflower Honey", price: "Kes 18 / jar", image: "/honey.jpg" },
-    ],
-  },
-];
-
-const renderStars = (rating) =>
-  Array.from({ length: 5 }, (_, i) => (i < Math.round(rating) ? "★" : "☆")).join("");
-
 // ─── Component ────────────────────────────────────────────────────────────────
-// Reached via /follower/:id — id matches seller.id in the sellers array above.
 
 const Follower = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const seller = sellers.find((s) => s.id === parseInt(id));
+  const { user } = useAuth();
 
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followersCount, setFollowersCount] = useState(seller?.followers ?? 0);
+  const { data: seller, isLoading: isLoadingProfile } = useProfile(id);
+  const { data: allListings, isLoading: isLoadingListings } = useUserListings(id);
+  const { data: isFollowing, isLoading: isLoadingFollow } = useIsFollowing(user?.id, id);
+  const { mutate: toggleFollow, isPending: isToggling } = useFollowToggle(user?.id, id);
+  const { mutate: startConversation, isPending: isStarting } = useStartConversation();
 
-  const handleFollowToggle = () => {
-    setFollowersCount((prev) => (isFollowing ? prev - 1 : prev + 1));
-    setIsFollowing((prev) => !prev);
-  };
-
-  // Seller qualifies as verified if rating is 4.7+
-  const isVerified = seller && seller.rating >= 4.7;
+  if (isLoadingProfile || isLoadingListings || isLoadingFollow) return <LoadingComponent />;
 
   if (!seller) {
     return (
@@ -509,7 +405,6 @@ const Follower = () => {
         <AppNavbar />
         <Container>
           <NotFound>
-            <NotFoundIcon>🌿</NotFoundIcon>
             <NotFoundTitle>Seller not found</NotFoundTitle>
             <NotFoundDesc>This seller profile doesn't exist or may have been removed.</NotFoundDesc>
             <GoBackBtn onClick={() => navigate(-1)}>Go Back</GoBackBtn>
@@ -519,104 +414,114 @@ const Follower = () => {
     );
   }
 
+  // Creates or retrieves a direct conversation with this seller, then opens it in Messages.
+  const handleMessage = () => {
+    startConversation(
+      { buyer_id: user?.id, seller_id: id },
+      { onSuccess: (conv) => navigate("/messages", { state: { conversationId: conv.id } }) },
+    );
+  };
+
+  const farmName = seller.farm_name || "Unknown Farm";
+  const location = seller.location;
+  const description = seller.description;
+  const avatarUrl = seller.avatar_url;
+  const listings = (allListings || []).slice(0, 3);
+  const listingsCount = allListings?.length ?? 0;
+
   return (
     <>
       <AppNavbar />
       <Container>
 
-        {/* ── Cover banner with back button overlaid ── */}
         <Cover>
           <BackBtn onClick={() => navigate(-1)}>←</BackBtn>
         </Cover>
 
-        {/* ── Profile identity ── */}
         <ProfileSection>
-          <Avatar src={seller.image} alt={seller.name} />
+          {avatarUrl ? (
+            <Avatar src={avatarUrl} alt={farmName} />
+          ) : (
+            <AvatarFallback>{farmName[0]}</AvatarFallback>
+          )}
 
           <NameRow>
-            <SellerName>{seller.name}</SellerName>
-            {isVerified && <VerifiedBadge>✓ Verified</VerifiedBadge>}
+            <SellerName>{farmName}</SellerName>
           </NameRow>
 
-          <CategoryRow>
-            🌿 {seller.category} &nbsp;·&nbsp; 📍 {seller.location}
-          </CategoryRow>
+          {location && <LocationRow>{location}</LocationRow>}
 
-          <RatingRow>
-            <Stars>{renderStars(seller.rating)}</Stars>
-            <RatingVal>{seller.rating.toFixed(1)}</RatingVal>
-            <ReviewCount>({seller.reviews} reviews)</ReviewCount>
-          </RatingRow>
-
-          {/* Follow and message CTAs side by side */}
           <ActionRow>
-            <FollowBtn $following={isFollowing} onClick={handleFollowToggle}>
-              {isFollowing ? "✓ Following" : "+ Follow"}
+            <FollowBtn
+              $following={isFollowing}
+              disabled={isToggling || !user}
+              onClick={() => toggleFollow(isFollowing)}
+            >
+              {isToggling ? "..." : isFollowing ? "Following" : "+ Follow"}
             </FollowBtn>
-            <MessageBtn onClick={() => navigate("/messages")}>
-              💬 Message
+            <MessageBtn disabled={isStarting || !user} onClick={handleMessage}>
+              {isStarting ? "Opening…" : "Message"}
             </MessageBtn>
           </ActionRow>
         </ProfileSection>
 
-        {/* ── Stats bar: followers, listings, rating, since ── */}
         <StatsBar>
           <StatsCard>
             <StatItem>
-              <StatNumber>{followersCount}</StatNumber>
-              <StatLabel>Followers</StatLabel>
-            </StatItem>
-            <StatItem>
-              <StatNumber>{seller.listings}</StatNumber>
+              <StatNumber>{listingsCount}</StatNumber>
               <StatLabel>Listings</StatLabel>
             </StatItem>
             <StatItem>
-              <StatNumber>{seller.rating.toFixed(1)}</StatNumber>
-              <StatLabel>Rating</StatLabel>
+              <StatNumber style={{ fontSize: "0.88rem" }}>
+                {location ? location.split(",")[0] : "–"}
+              </StatNumber>
+              <StatLabel>Location</StatLabel>
             </StatItem>
             <StatItem>
-              <StatNumber style={{ fontSize: "0.9rem" }}>{seller.joined}</StatNumber>
-              <StatLabel>Since</StatLabel>
+              <StatNumber style={{ fontSize: "0.88rem" }}>None</StatNumber>
+              <StatLabel>Rating</StatLabel>
             </StatItem>
           </StatsCard>
         </StatsBar>
 
-        {/* ── About section ── */}
-        <Section>
-          <SectionCard>
-            <SectionTitle>📋 About</SectionTitle>
-            <AboutText>{seller.description}</AboutText>
-          </SectionCard>
-        </Section>
+        {description && (
+          <Section>
+            <SectionCard>
+              <SectionTitle>About</SectionTitle>
+              <AboutText>{description}</AboutText>
+            </SectionCard>
+          </Section>
+        )}
 
-        {/* ── Products ── */}
-        <Section>
-          <SectionTitle style={{ paddingLeft: 0 }}>
-            🛒 Products
-            <span style={{ color: "#7b8f7f", fontWeight: 400, fontSize: "0.88rem" }}>
-              &nbsp;· {seller.products.length} listing{seller.products.length !== 1 ? "s" : ""}
-            </span>
-          </SectionTitle>
-          <ProductsGrid>
-            {seller.products.map((product) => (
-              <ProductCard
-                key={product.id}
-                onClick={() => navigate(`/listing/${product.id}`)}
-              >
-                <ProductImageWrap>
-                  <img src={product.image} alt={product.name} />
-                  <PriceBadge>{product.price}</PriceBadge>
-                </ProductImageWrap>
-                <ProductBody>
-                  <ProductName>{product.name}</ProductName>
-                  <ViewBtn onClick={(e) => { e.stopPropagation(); navigate(`/listing/${product.id}`); }}>
-                    View Listing →
-                  </ViewBtn>
-                </ProductBody>
-              </ProductCard>
-            ))}
-          </ProductsGrid>
-        </Section>
+        {listings.length > 0 && (
+          <Section>
+            <SectionTitle>
+              Products
+              <span style={{ color: "#7b8f7f", fontWeight: 400, fontSize: "0.88rem", marginLeft: 6 }}>
+                · {listingsCount} listing{listingsCount !== 1 ? "s" : ""}
+              </span>
+            </SectionTitle>
+            <ProductsGrid>
+              {listings.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  onClick={() => navigate(`/listing/${item.id}`, { state: { listing: item } })}
+                >
+                  <ProductImageWrap>
+                    {item.image_url && <img src={item.image_url} alt={item.title} />}
+                    <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
+                  </ProductImageWrap>
+                  <ProductBody>
+                    <ProductName>{item.title}</ProductName>
+                    <ViewBtn onClick={(e) => { e.stopPropagation(); navigate(`/listing/${item.id}`, { state: { listing: item } }); }}>
+                      View Listing
+                    </ViewBtn>
+                  </ProductBody>
+                </ProductCard>
+              ))}
+            </ProductsGrid>
+          </Section>
+        )}
 
       </Container>
     </>

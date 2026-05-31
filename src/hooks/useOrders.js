@@ -52,30 +52,69 @@ export function useOrderCheck({ user_id }) {
   });
 }
 
-// ORDER APPROVAL BY SELLER
+// Updates an order's status and upserts the buyer's notification so they see the latest state as unread.
 export function useApproveOrder() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ user_id, seller_id }) => {
-      //   seller id should be the same as user_id
+    mutationFn: async ({ order_id, user_id, status, total, payment }) => {
       const { data, error } = await supabase
         .from("orders")
-        .update({
-          status: "shipped",
-        })
-        .select();
+        .update({ status })
+        .eq("id", order_id)
+        .select()
+        .single();
 
-      if (error) {
-        console.log("Insert Order Error:", error);
-        throw error;
+      if (error) throw error;
+
+      // Upsert the buyer's notification — updates existing row or inserts if first time.
+      const { data: existing } = await supabase
+        .from("notifications")
+        .select("id")
+        .eq("user_id", user_id)
+        .eq("type", "order")
+        .contains("detail", { orderId: order_id })
+        .maybeSingle();
+
+      const ORDER_TITLES = {
+        pending:    "Order Placed",
+        confirmed:  "Order Confirmed",
+        delivering: "Order Out for Delivery",
+        delivered:  "Order Delivered",
+        cancelled:  "Order Cancelled",
+        shipped:    "Order Shipped",
+      };
+      const ORDER_BODIES = {
+        pending:    "Your order has been placed successfully.",
+        confirmed:  "Your order has been confirmed by the seller.",
+        delivering: "Your order is on its way. Expected delivery today.",
+        delivered:  "Your order has been delivered. Enjoy your purchase!",
+        cancelled:  "Your order has been cancelled.",
+        shipped:    "Your order has been shipped and is on its way.",
+      };
+
+      // Build the notification payload with the correct title and body for this status.
+      const notifPayload = {
+        title:  ORDER_TITLES[status]  ?? "Order Update",
+        body:   ORDER_BODIES[status]  ?? "Your order status has been updated.",
+        detail: { orderId: order_id, status, total, payment },
+        read:   false, // always reset to unread so the buyer sees the update
+      };
+
+      // Update the existing notification row if one exists, otherwise insert a fresh one.
+      if (existing) {
+        await supabase.from("notifications").update(notifPayload).eq("id", existing.id);
+      } else {
+        await supabase.from("notifications").insert({ user_id, type: "order", ...notifPayload });
       }
+
       return data;
     },
 
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["orders", variables.user_id, variables.total_cost],
-      });
+    // Invalidate orders and notifications so both lists reflect the latest state.
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["orders", variables.order_id] });
+      queryClient.invalidateQueries({ queryKey: ["orders", variables.user_id] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", variables.user_id] });
     },
   });
 }

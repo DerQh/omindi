@@ -2,6 +2,8 @@ import { useState } from "react";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes, css } from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { useFollowedSellers, useUnfollow } from "../../hooks/useFollows";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -19,54 +21,55 @@ const fadeIn = keyframes`
 
 const Container = styled.div`
   min-height: 100vh;
-  background: #f5f8f5;
+  background: white;
   padding-bottom: 48px;
 `;
 
 // ─── Hero Header ──────────────────────────────────────────────────────────────
 
 const Hero = styled.div`
-  background: linear-gradient(135deg, #2f5a2a 0%, #3d7a35 60%, #4e9643 100%);
-  padding: 36px 24px 80px;
+  padding: 32px 24px 72px;
   position: relative;
   overflow: hidden;
+  max-width: 960px;
+  margin: 0 auto;
+  border-radius: 0 0 24px 24px;
 
-  /* Decorative background circle */
   &::before {
     content: "";
     position: absolute;
-    width: 300px;
-    height: 300px;
+    width: 260px;
+    height: 260px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    top: -80px;
-    right: -60px;
+    background: rgba(255, 255, 255, 0.06);
+    top: -70px;
+    right: -50px;
     pointer-events: none;
   }
   &::after {
     content: "";
     position: absolute;
-    width: 180px;
-    height: 180px;
+    width: 140px;
+    height: 140px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.04);
-    bottom: 20px;
-    left: -40px;
+    bottom: 10px;
+    left: -30px;
     pointer-events: none;
   }
 `;
 
 const HeroTitle = styled.h1`
   margin: 0 0 4px;
-  color: white;
+  color: black;
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.02em;
 `;
 
 const HeroSub = styled.p`
   margin: 0 0 28px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(4, 4, 4, 0.8);
   font-size: 0.95rem;
 `;
 
@@ -100,7 +103,8 @@ const StatIcon = styled.span`
 // Floats over the hero bottom edge, visually connecting hero to content
 const TabBarWrapper = styled.div`
   position: relative;
-  margin-top: -44px;
+  max-width: 960px;
+  margin: -44px auto 0;
   padding: 0 20px;
   z-index: 10;
 `;
@@ -148,6 +152,8 @@ const TabCount = styled.span`
 // ─── Tab Content Area ─────────────────────────────────────────────────────────
 
 const ContentArea = styled.div`
+  max-width: 960px;
+  margin: 0 auto;
   padding: 28px 20px 0;
   animation: ${slideUp} 0.3s ease;
 `;
@@ -268,7 +274,6 @@ const ReviewText = styled.span`
   color: #7b8f7f;
 `;
 
-// Unfollow button — turns red on hover to signal destructive action
 const UnfollowBtn = styled.button`
   width: 100%;
   padding: 10px;
@@ -277,25 +282,15 @@ const UnfollowBtn = styled.button`
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  background: #eef7ee;
+  color: #2f5a2a;
+  border: 2px solid #cde5cf;
 
-  ${({ $unfollowed }) =>
-    $unfollowed
-      ? css`
-          background: #f0f7ee;
-          color: #2f5a2a;
-          border: 2px solid #2f5a2a;
-        `
-      : css`
-          background: #eef7ee;
-          color: #2f5a2a;
-          border: 2px solid #cde5cf;
-
-          &:hover {
-            background: #fff0f0;
-            color: #c0392b;
-            border-color: #f5c6c2;
-          }
-        `}
+  &:hover {
+    background: #fff0f0;
+    color: #c0392b;
+    border-color: #f5c6c2;
+  }
 `;
 
 // ─── Event Cards ──────────────────────────────────────────────────────────────
@@ -564,6 +559,7 @@ const followData = {
   events: [
     {
       id: 1,
+      image: "https://picsum.photos",
       title: "Local Farmers Market",
       date: "May 12, 2026",
       day: "12",
@@ -574,6 +570,7 @@ const followData = {
     },
     {
       id: 2,
+      image: "https://picsum.photos",
       title: "Organic Crop Workshop",
       date: "May 20, 2026",
       day: "20",
@@ -616,12 +613,14 @@ const renderStars = (rating) => {
 
 const Following = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Active tab: 'sellers' | 'events' | 'favorites'
   const [activeTab, setActiveTab] = useState("sellers");
 
-  // Track which sellers the user has unfollowed locally
-  const [unfollowed, setUnfollowed] = useState(new Set());
+  // Real follow data
+  const { data: followedSellers = [], isLoading: isLoadingSellers } = useFollowedSellers(user?.id);
+  const { mutate: unfollow } = useUnfollow(user?.id);
 
   // Track event interest toggles locally
   const [interested, setInterested] = useState(new Set());
@@ -629,15 +628,13 @@ const Following = () => {
   // Track removed favorites locally
   const [removed, setRemovedFavs] = useState(new Set());
 
-  const toggleUnfollow = (e, id) => {
-    e.stopPropagation(); // prevent card click navigating when pressing button
-    setUnfollowed((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+  // Stops card navigation from firing and unfollows the given seller.
+  const handleUnfollow = (e, sellerId) => {
+    e.stopPropagation();
+    unfollow(sellerId);
   };
 
+  // Toggles the user's interest in an event on or off.
   const toggleInterested = (id) => {
     setInterested((prev) => {
       const next = new Set(prev);
@@ -646,6 +643,7 @@ const Following = () => {
     });
   };
 
+  // Removes a listing from the saved/favorites list without navigating to the card.
   const toggleFav = (e, id) => {
     e.stopPropagation();
     setRemovedFavs((prev) => {
@@ -674,8 +672,8 @@ const Following = () => {
               {
                 key: "sellers",
                 label: "Sellers",
-                icon: "🌿",
-                count: followData.sellers.length,
+                icon: "",
+                count: followedSellers.length,
               },
               {
                 key: "events",
@@ -686,7 +684,7 @@ const Following = () => {
               {
                 key: "favorites",
                 label: "Saved",
-                icon: "❤️",
+                icon: "",
                 count: visibleFavs.length,
               },
             ].map(({ key, label, icon, count }) => (
@@ -706,36 +704,41 @@ const Following = () => {
         {activeTab === "sellers" && (
           <ContentArea key="sellers">
             <SectionLabel>
-              {followData.sellers.length} trusted sellers you follow
+              {followedSellers.length} seller{followedSellers.length !== 1 ? "s" : ""} you follow
             </SectionLabel>
-            <Grid>
-              {followData.sellers.map((seller) => (
-                <SellerCard
-                  key={seller.id}
-                  onClick={() => navigate(`/follower/${seller.id}`)}
-                >
-                  <SellerCover>
-                    <img src={seller.image} alt={seller.name} />
-                    <CategoryChip>{seller.category}</CategoryChip>
-                  </SellerCover>
-                  <SellerBody>
-                    <SellerName>{seller.name}</SellerName>
-                    <SellerMeta>📍 {seller.location}</SellerMeta>
-                    <RatingRow>
-                      <Stars>{renderStars(seller.rating)}</Stars>
-                      <RatingText>{seller.rating.toFixed(1)}</RatingText>
-                      <ReviewText>({seller.reviews} reviews)</ReviewText>
-                    </RatingRow>
-                    <UnfollowBtn
-                      $unfollowed={unfollowed.has(seller.id)}
-                      onClick={(e) => toggleUnfollow(e, seller.id)}
-                    >
-                      {unfollowed.has(seller.id) ? "✓ Following" : "Unfollow"}
-                    </UnfollowBtn>
-                  </SellerBody>
-                </SellerCard>
-              ))}
-            </Grid>
+            {isLoadingSellers ? null : followedSellers.length === 0 ? (
+              <EmptyState>
+                <EmptyIcon>🌱</EmptyIcon>
+                <EmptyTitle>Not following anyone yet</EmptyTitle>
+                <EmptyDesc>Visit a seller's profile and tap Follow to see them here.</EmptyDesc>
+              </EmptyState>
+            ) : (
+              <Grid>
+                {followedSellers.map((seller) => (
+                  <SellerCard
+                    key={seller.id}
+                    onClick={() => navigate(`/follower/${seller.id}`)}
+                  >
+                    <SellerCover>
+                      {seller.avatar_url ? (
+                        <img src={seller.avatar_url} alt={seller.farm_name} />
+                      ) : null}
+                    </SellerCover>
+                    <SellerBody>
+                      <SellerName>{seller.farm_name || "Unknown Farm"}</SellerName>
+                      {seller.location && (
+                        <SellerMeta>{seller.location}</SellerMeta>
+                      )}
+                      <UnfollowBtn
+                        onClick={(e) => handleUnfollow(e, seller.id)}
+                      >
+                        Unfollow
+                      </UnfollowBtn>
+                    </SellerBody>
+                  </SellerCard>
+                ))}
+              </Grid>
+            )}
           </ContentArea>
         )}
 

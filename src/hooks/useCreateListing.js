@@ -14,7 +14,8 @@ export function useCreateListing() {
       category,
       minimumOrder,
       unit,
-      seller_name,
+      phone,
+      available = true,
     }) => {
       const {
         data: { user },
@@ -62,12 +63,14 @@ export function useCreateListing() {
           seller_id: user.id,
           title,
           description,
-          price: Number(price), // 🔥 force number
+          price: Number(price),
           location,
           image_url: imageUrl,
           category,
           minimumOrder,
           unit,
+          phone: phone || null,
+          available,
           seller_image_url,
           seller_name:
             user?.user_metadata?.full_name || user?.user_metadata?.username,

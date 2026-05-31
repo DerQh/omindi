@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
@@ -580,6 +580,49 @@ const SuccessMsg = styled.div`
 
 // ─── Testimonial ──────────────────────────────────────────────────────────────
 
+const TESTIMONIALS = [
+  {
+    quote:
+      "Afarmer has resulted in both professional and personal relationships with incredible customers in my community. I joined when I was the only producer within 50km — now there are over 30 in my village alone.",
+    name: "Jeff Ondoro",
+    role: "Local Farmer, Kisumu",
+    initial: "J",
+  },
+  {
+    quote:
+      "Before Afarmer I used to drive 40km to sell at the market and come back with half my produce unsold. Now buyers come to me. My income has tripled in eight months.",
+    name: "Benard Onyango",
+    role: "Vegetable Farmer, Migingo",
+    initial: "A",
+  },
+  {
+    quote:
+      "We source fresh dairy for our school feeding programme every week through Afarmer. The quality is consistent and the farmers are just a message away. It's transformed how we operate.",
+    name: "Wilberforce Mulamba",
+    role: "Procurement Officer, Kakamega",
+    initial: "D",
+  },
+  {
+    quote:
+      "I was sceptical at first but within two weeks of listing my honey I had five regular buyers. The platform is simple, the support is real, and I finally feel like a proper business owner.",
+    name: "Grace Atieno",
+    role: "Beekeeper, Ahero",
+    initial: "G",
+  },
+  {
+    quote:
+      "As a restaurant owner I need reliable supply. Afarmer gave me direct access to farmers I can trust. No middlemen, fresher produce, better prices — it's a win on every level.",
+    name: "Samuel Kariuki",
+    role: "Restaurant Owner, Nairobi",
+    initial: "S",
+  },
+];
+
+const fadeSwitch = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
 const TestimonialWrap = styled.section`
   background: white;
   padding: 72px 32px;
@@ -602,9 +645,14 @@ const QuoteIcon = styled.div`
   margin-bottom: 20px;
 `;
 
+// Re-triggers animation each time the key changes (one per testimonial index)
+const QuoteBody = styled.div`
+  animation: ${fadeSwitch} 0.5s ease both;
+`;
+
 const QuoteText = styled.blockquote`
   margin: 0 0 28px;
-  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-size: clamp(1rem, 2vw, 1.18rem);
   font-style: italic;
   color: #2f3d2a;
   line-height: 1.8;
@@ -647,6 +695,27 @@ const AuthorRole = styled.p`
   margin: 0;
   color: #7b8f7f;
   font-size: 0.82rem;
+`;
+
+// Row of clickable dots for manual navigation
+const DotRow = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 28px;
+`;
+
+const Dot = styled.button`
+  width: ${({ $active }) => ($active ? "22px" : "8px")};
+  height: 8px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: ${({ $active }) => ($active ? "#2f5a2a" : "#d7edd9")};
+  transition:
+    width 0.3s ease,
+    background 0.3s ease;
+  padding: 0;
 `;
 
 // ─── Static content data ─────────────────────────────────────────────────────
@@ -713,6 +782,17 @@ const FEATURES = [
 
 function Body() {
   const navigate = useNavigate();
+
+  // Tracks which testimonial is currently visible.
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+
+  // Advances to the next testimonial every 5 seconds; resets on manual selection.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveTestimonial((prev) => (prev + 1) % TESTIMONIALS.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [activeTestimonial]);
 
   // Wholesale inquiry form state — swap handleSubmit for a real API call when ready
   const [form, setForm] = useState({
@@ -885,7 +965,7 @@ function Body() {
                       id="firstName"
                       value={form.firstName}
                       onChange={(e) => set("firstName", e.target.value)}
-                      placeholder="e.g. Amina"
+                      placeholder="e.g. Faith"
                       required
                     />
                   </Field>
@@ -895,7 +975,7 @@ function Body() {
                       id="lastName"
                       value={form.lastName}
                       onChange={(e) => set("lastName", e.target.value)}
-                      placeholder="e.g. Wanjiru"
+                      placeholder="e.g. Otieno"
                       required
                     />
                   </Field>
@@ -948,24 +1028,35 @@ function Body() {
         </Section>
       </div>
 
-      {/* ── Testimonial ── */}
+      {/* ── Testimonials carousel — auto-advances every 5 s, dots for manual nav ── */}
       <TestimonialWrap>
         <TestimonialInner>
           <QuoteIcon>"</QuoteIcon>
-          <QuoteText>
-            Afarmer has resulted in both professional and personal relationships
-            with incredible customers and people in my local community. Not only
-            have I been able to network and make sales — I've never eaten better
-            or cleaner in my life! I joined when I was the only producer within
-            50km and now there are over 30 in my village alone.
-          </QuoteText>
-          <QuoteAuthor>
-            <AuthorAvatar>J</AuthorAvatar>
-            <AuthorInfo>
-              <AuthorName>Jeff Ondoro</AuthorName>
-              <AuthorRole>Local Farmer, Kisumu</AuthorRole>
-            </AuthorInfo>
-          </QuoteAuthor>
+
+          {/* key prop re-mounts the element so the fade animation replays on each change */}
+          <QuoteBody key={activeTestimonial}>
+            <QuoteText>{TESTIMONIALS[activeTestimonial].quote}</QuoteText>
+            <QuoteAuthor>
+              <AuthorAvatar>
+                {TESTIMONIALS[activeTestimonial].initial}
+              </AuthorAvatar>
+              <AuthorInfo>
+                <AuthorName>{TESTIMONIALS[activeTestimonial].name}</AuthorName>
+                <AuthorRole>{TESTIMONIALS[activeTestimonial].role}</AuthorRole>
+              </AuthorInfo>
+            </QuoteAuthor>
+          </QuoteBody>
+
+          <DotRow>
+            {TESTIMONIALS.map((_, i) => (
+              <Dot
+                key={i}
+                $active={i === activeTestimonial}
+                onClick={() => setActiveTestimonial(i)}
+                aria-label={`View testimonial ${i + 1}`}
+              />
+            ))}
+          </DotRow>
         </TestimonialInner>
       </TestimonialWrap>
 

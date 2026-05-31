@@ -11,16 +11,26 @@ export function ListingCardTest({ listingItem, handleCardClick, user_id }) {
   const queryClient = useQueryClient();
   const listing_id = listingItem?.id;
 
-  const { mutate: deleteFavMutate, isPending: isPendinDelete } = useFavoriteDelete();
-  const { mutate: addFavMutate,    isPending: isPendingfav   } = useCreateFavorite();
-  const { data: isFavorited, isLoading } = useFavoriteCheck({ user_id, listing_id });
+  const { mutate: deleteFavMutate, isPending: isPendinDelete } =
+    useFavoriteDelete();
+  const { mutate: addFavMutate, isPending: isPendingfav } = useCreateFavorite();
+  const { data: isFavorited, isLoading } = useFavoriteCheck({
+    user_id,
+    listing_id,
+  });
 
   const handleFavourite = () => {
     const key = { queryKey: ["userFavorites", user_id, listing_id] };
     if (isFavorited) {
-      deleteFavMutate({ user_id, listing_id }, { onSuccess: () => queryClient.invalidateQueries(key) });
+      deleteFavMutate(
+        { user_id, listing_id },
+        { onSuccess: () => queryClient.invalidateQueries(key) },
+      );
     } else {
-      addFavMutate({ user_id, listing_id }, { onSuccess: () => queryClient.invalidateQueries(key) });
+      addFavMutate(
+        { user_id, listing_id },
+        { onSuccess: () => queryClient.invalidateQueries(key) },
+      );
     }
   };
 
@@ -29,16 +39,30 @@ export function ListingCardTest({ listingItem, handleCardClick, user_id }) {
       {/* ── Image ── */}
       <ImageWrap>
         {listingItem.image_url ? (
-          <img src={listingItem.image_url} alt={listingItem.title} loading="lazy" />
+          <img
+            src={listingItem.image_url}
+            alt={listingItem.title}
+            loading="lazy"
+          />
         ) : (
           <NoImage>🌱</NoImage>
+        )}
+
+        {/* Only shown when the listing is out of stock */}
+        {listingItem.available === false && (
+          <AvailBadge>Out of Stock</AvailBadge>
         )}
 
         <FavBtn
           disabled={isLoading || isPendingfav || isPendinDelete}
           $active={isFavorited}
-          onClick={(e) => { e.stopPropagation(); handleFavourite(); }}
-          aria-label={isFavorited ? "Remove from favourites" : "Save to favourites"}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFavourite();
+          }}
+          aria-label={
+            isFavorited ? "Remove from favourites" : "Save to favourites"
+          }
         >
           {isFavorited ? "❤️" : "🤍"}
         </FavBtn>
@@ -80,7 +104,9 @@ export function ListingCardTest({ listingItem, handleCardClick, user_id }) {
         <StatsRow>
           <Stat>{listingItem.inquiries || 0} inquiries</Stat>
           <Stat>{listingItem.favourites || 0} saves</Stat>
-          <Stat style={{ marginLeft: "auto" }}>{formatSmartDate(listingItem.created_at)}</Stat>
+          <Stat style={{ marginLeft: "auto" }}>
+            {formatSmartDate(listingItem.created_at)}
+          </Stat>
         </StatsRow>
       </Body>
     </Card>
@@ -95,7 +121,9 @@ const Card = styled.div`
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   text-align: left;
 
   &:hover {
@@ -140,6 +168,20 @@ const Price = styled.div`
   margin-bottom: 6px;
 `;
 
+const AvailBadge = styled.div`
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #a32d2d;
+  color: white;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+`;
+
 const FavBtn = styled.button`
   position: absolute;
   top: 10px;
@@ -157,9 +199,16 @@ const FavBtn = styled.button`
   justify-content: center;
   transition: transform 0.18s;
 
-  &:hover  { transform: scale(1.15); }
-  &:active { transform: scale(0.9); }
-  &:disabled { opacity: 0.55; cursor: not-allowed; }
+  &:hover {
+    transform: scale(1.15);
+  }
+  &:active {
+    transform: scale(0.9);
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
 `;
 
 const Body = styled.div`

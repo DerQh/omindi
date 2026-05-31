@@ -1,6 +1,6 @@
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useListings } from "../../hooks/useListings";
 import LoadingComponent from "./Loading";
@@ -18,10 +18,13 @@ const SORT_OPTIONS = [
   { value: "price_desc", label: "Price: High → Low" },
 ];
 
+const PAGE_SIZE = 15;
+
 const List = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
+  const [page, setPage] = useState(0);
   const navigate = useNavigate();
   const { data: user } = useUser();
   const user_id = user?.id;
@@ -59,6 +62,25 @@ const List = () => {
     }
     return result;
   }, [dataMain, searchTerm, activeCategory, sortBy]);
+
+  // Reset to page 0 whenever search, category, or sort changes.
+  useEffect(() => {
+    setPage(0);
+  }, [searchTerm, activeCategory, sortBy]);
+
+  const totalPages = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
+
+  // Slice the full filtered list down to the current page's batch.
+  const paginated = filteredAndSorted.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE,
+  );
+
+  // Scrolls back to the top of the listing grid when the user pages forward or back.
+  const goToPage = (next) => {
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleCardClick = (item) =>
     navigate(`/listing/${item.id}`, { state: { listing: item } });
@@ -148,24 +170,55 @@ const List = () => {
           <BodyInner>
             <ResultsMeta>
               <ResultsCount>
-                Total Listings {filteredAndSorted.length} 
+                Total Listings {filteredAndSorted.length}
                 {/* {filteredAndSorted.length !== 1 ? "s" : ""} */}
                 {activeCategory !== "All" ? ` in ${activeCategory}` : ""}
                 {searchTerm ? ` for "${searchTerm}"` : ""}
               </ResultsCount>
+              <AddListingBtn onClick={() => navigate("/newlist")}>
+                Add Listing
+              </AddListingBtn>
             </ResultsMeta>
 
             {filteredAndSorted.length > 0 ? (
-              <Grid>
-                {filteredAndSorted.map((item) => (
-                  <ListingCardTest
-                    key={item.id}
-                    listingItem={item}
-                    handleCardClick={handleCardClick}
-                    user_id={user_id}
-                  />
-                ))}
-              </Grid>
+              <>
+                <Grid>
+                  {paginated.map((item) => (
+                    <ListingCardTest
+                      key={item.id}
+                      listingItem={item}
+                      handleCardClick={handleCardClick}
+                      user_id={user_id}
+                    />
+                  ))}
+                </Grid>
+
+                {/* Only render pagination when there are more items than one page */}
+                {totalPages > 1 && (
+                  <PaginationRow>
+                    <PageBtn
+                      onClick={() => goToPage(page - 1)}
+                      disabled={page === 0}
+                    >
+                      ← Previous
+                    </PageBtn>
+                    <PageInfo>
+                      {page * PAGE_SIZE + 1}–
+                      {Math.min(
+                        (page + 1) * PAGE_SIZE,
+                        filteredAndSorted.length,
+                      )}{" "}
+                      of {filteredAndSorted.length}
+                    </PageInfo>
+                    <PageBtn
+                      onClick={() => goToPage(page + 1)}
+                      disabled={page >= totalPages - 1}
+                    >
+                      Next →
+                    </PageBtn>
+                  </PaginationRow>
+                )}
+              </>
             ) : (
               <EmptyState>
                 <EmptyIcon>🌾</EmptyIcon>
@@ -222,7 +275,7 @@ const SearchWrap = styled.div`
 
 const SearchInput = styled.input`
   width: 100%;
-  padding: 14px 44px;
+  padding: 14px 14px;
   border-radius: 14px;
   border: 1px solid black;
   backdrop-filter: blur(8px);
@@ -364,6 +417,29 @@ const BodyInner = styled.div`
 
 const ResultsMeta = styled.div`
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+`;
+
+const AddListingBtn = styled.button`
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #2f5a2a;
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    transform 0.15s;
+  &:hover {
+    background: #245026;
+    transform: translateY(-1px);
+  }
 `;
 
 const ResultsCount = styled.p`
@@ -415,6 +491,44 @@ const ClearFiltersBtn = styled.button`
   &:hover {
     background: #245026;
   }
+`;
+
+const PaginationRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32px;
+  gap: 12px;
+`;
+
+const PageBtn = styled.button`
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: 1.5px solid #cde5cf;
+  background: white;
+  color: #2f5a2a;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #2f5a2a;
+    color: white;
+    border-color: #2f5a2a;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+`;
+
+const PageInfo = styled.span`
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #7b8f7f;
+  white-space: nowrap;
 `;
 
 const ErrorWrap = styled.div`

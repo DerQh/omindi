@@ -103,6 +103,24 @@ export function useDeleteListing() {
   });
 }
 
+// Toggles a listing's availability between available and out of stock.
+export function useToggleAvailability() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ listing_id, available }) => {
+      const { error } = await supabase
+        .from("listings")
+        .update({ available })
+        .eq("id", listing_id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sellerListings"] });
+      queryClient.invalidateQueries({ queryKey: ["listings"] });
+    },
+  });
+}
+
 // --- dashboard stats
 export function useDashboardStats(seller_id) {
   return useQuery({
@@ -127,7 +145,7 @@ export function useDashboardStats(seller_id) {
 
       const { data: orderItems } = await supabase
         .from("order_items")
-        .select(`quantity, price_at_purchase, orders ( status )`)
+        .select(`quantity, price_at_purchase, listing_id, orders ( id, status, total_cost, created_at )`)
         .in("listing_id", listing_ids);
 
       const totalRevenue =
@@ -136,15 +154,42 @@ export function useDashboardStats(seller_id) {
           0,
         ) ?? 0;
 
-      const totalOrders = new Set(orderItems?.map((i) => i.orders?.id)).size;
+      const uniqueOrderIds = new Set(orderItems?.map((i) => i.orders?.id).filter(Boolean));
+      const totalOrders = uniqueOrderIds.size;
       const pendingOrders =
         orderItems?.filter((i) => i.orders?.status === "pending").length ?? 0;
+
+      // Average value per unique order.
+      const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+
+      // Total units sold across all order items.
+      const totalItemsSold = orderItems?.reduce((sum, i) => sum + (i.quantity || 0), 0) ?? 0;
+
+      // Orders and revenue created today.
+      const todayStr = new Date().toDateString();
+      const todayItems = orderItems?.filter(
+        (i) => i.orders?.created_at && new Date(i.orders.created_at).toDateString() === todayStr
+      ) ?? [];
+      const todayOrders = new Set(todayItems.map((i) => i.orders?.id).filter(Boolean)).size;
+      const todayRevenue = todayItems.reduce((sum, i) => sum + i.price_at_purchase * i.quantity, 0);
+
+      // Orders per listing — used to rank top listings by demand.
+      const ordersPerListing = {};
+      orderItems?.forEach((i) => {
+        if (i.listing_id) ordersPerListing[i.listing_id] = (ordersPerListing[i.listing_id] || 0) + 1;
+      });
 
       return {
         totalListings: listing_ids.length,
         totalOrders,
         totalRevenue,
         pendingOrders,
+        avgOrderValue,
+        totalItemsSold,
+        todayOrders,
+        todayRevenue,
+        ordersPerListing,
+        ordersRaw: orderItems,
       };
     },
   });

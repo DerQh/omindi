@@ -1,550 +1,566 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { usePost, useToggleLike, useLikeStatus } from "../../hooks/usePosts";
 import { formatSmartDate } from "../../hooks/dateFormat";
-import { supabase } from "../../../supabase";
 import LoadingComponent from "./Loading";
-import { TestHooks } from "./TestHooks";
 import { CommentsComponent } from "./Comments";
 import { useFetchPostComments } from "../../hooks/usePostComment";
 
-const PageWrapper = styled.div`
-  min-height: 100vh;
-  background: #eef7ee;
-  padding: 20px 24px 40px;
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+const popIn = keyframes`
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 `;
 
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 24px;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-`;
+const TAG_STYLES = {
+  update: { bg: "#ecfdf5", color: "#065f46" },
+  news: { bg: "#fefce8", color: "#854d0e" },
+  event: { bg: "#eff6ff", color: "#1e40af" },
+  market: { bg: "#fdf4ff", color: "#7e22ce" },
+};
+const TYPE_LABELS = {
+  update: "Update",
+  news: "News",
+  event: "Event",
+  market: "Market",
+};
 
-const BackButton = styled.button`
-  background: #2f5a2a;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16px;
-
-  &:hover {
-    background: #245026;
-  }
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  color: #2f5a2a;
-  flex: 1;
-  text-align: center;
-`;
-
-const PostCard = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 24px;
-  box-shadow: 0 12px 30px rgba(34, 79, 38, 0.08);
-  overflow: hidden;
-  margin-bottom: 32px;
-`;
-
-const PostHeader = styled.div`
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border-bottom: 1px solid #ecf2eb;
-`;
-
-const Avatar = styled.img`
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-`;
-
-const PostInfo = styled.div`
-  flex: 1;
-
-  h3 {
-    margin: 0 0 4px;
-    color: #243a20;
-    font-size: 1.2rem;
-  }
-
-  p {
-    margin: 0;
-    color: #5b6d57;
-    font-size: 0.95rem;
-  }
-`;
-
-const PostType = styled.span`
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  background: ${({ type }) => {
-    switch (type) {
-      case "update":
-        return "#e8f5e8";
-      case "news":
-        return "#fff3cd";
-      case "event":
-        return "#d1ecf1";
-      case "market":
-        return "#f8d7da";
-      default:
-        return "#f4f4f4";
-    }
-  }};
-  color: ${({ type }) => {
-    switch (type) {
-      case "update":
-        return "#2f5a2a";
-      case "news":
-        return "#856404";
-      case "event":
-        return "#0c5460";
-      case "market":
-        return "#721c24";
-      default:
-        return "#6c757d";
-    }
-  }};
-`;
-
-const PostContent = styled.div`
-  padding: 24px;
-
-  h4 {
-    margin: 0 0 16px;
-    color: #243a20;
-    font-size: 1.4rem;
-  }
-
-  p {
-    margin: 0;
-    color: #556652;
-    line-height: 1.7;
-    font-size: 1.1rem;
-  }
-`;
-
-const PostImage = styled.div`
-  width: 100%;
-  height: 400px;
-  background: #dceedf;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-const PostActions = styled.div`
-  padding: 20px 24px;
-  border-top: 1px solid #ecf2eb;
-  display: flex;
-  gap: 24px;
-  align-items: center;
-`;
-
-const ActionButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  background: none;
-  color: ${({ liked }) => (liked ? "#e74c3c" : "#5b6d57")};
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 10px 16px;
-  border-radius: 12px;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-
-  &:hover {
-    background: #f4faf4;
-    color: ${({ liked }) => (liked ? "#c0392b" : "#2f5a2a")};
-  }
-
-  svg {
-    width: 20px;
-    height: 20px;
-  }
-`;
-
-const PostStats = styled.div`
-  display: flex;
-  gap: 20px;
-  color: #7b8f7f;
-  font-size: 0.95rem;
-`;
-
-const CommentsSection = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 24px;
-  box-shadow: 0 12px 30px rgba(34, 79, 38, 0.08);
-  overflow: hidden;
-`;
-
-const CommentsHeader = styled.div`
-  padding: 20px 24px;
-  border-bottom: 1px solid #ecf2eb;
-
-  h3 {
-    margin: 0;
-    color: #2f5a2a;
-    font-size: 1.2rem;
-  }
-`;
-
-const CommentList = styled.div`
-  max-height: 300px; /* Set the height you want */
-  overflow-y: auto;
-  padding: 16px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  /* Optional: nice scrollbar */
-  scrollbar-width: thin;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #cfd8cc;
-    border-radius: 6px;
-  }
-`;
-
-const Comment = styled.div`
-  padding: 16px 0;
-  border-bottom: 1px solid #f4faf4;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  display: flex;
-  gap: 12px;
-`;
-
-const CommentAvatar = styled.img`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-`;
-
-const CommentContent = styled.div`
-  flex: 1;
-
-  .author {
-    font-weight: 600;
-    color: #243a20;
-    margin-bottom: 4px;
-  }
-
-  .text {
-    color: #556652;
-    line-height: 1.5;
-    margin-bottom: 4px;
-  }
-
-  .time {
-    font-size: 0.85rem;
-    color: #7b8f7f;
-  }
-`;
-
-const AddComment = styled.form`
-  padding: 20px 24px;
-  border-top: 1px solid #ecf2eb;
-  display: flex;
-  gap: 12px;
-  align-items: flex-end;
-`;
-
-const CommentInput = styled.textarea`
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  resize: none;
-  font-family: inherit;
-  font-size: 0.95rem;
-
-  &:focus {
-    outline: none;
-    border-color: #2f5a2a;
-  }
-`;
-
-const CommentButton = styled.button`
-  background: #2f5a2a;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 0.95rem;
-
-  &:hover {
-    background: #245026;
-  }
-`;
-
-const ViewMoreButton = styled.button`
-  background: none;
-  border: none;
-  color: #2f5a2a;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 8px;
-  margin-top: 8px;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const communityPosts = [
-  {
-    id: "216e6f8d-1bc4-4822-b743-b7bdab925f45",
-    author: "Amina's Farm",
-    avatar: "/farm logo.png",
-    type: "update",
-    title: "Fresh Harvest This Week!",
-    content:
-      "Just harvested our first batch of organic cherry tomatoes this season. They're sweet, juicy, and ready for pickup! Available at the Saturday market or direct from the farm.",
-    image: "/tomatoes.jpg",
-    likes: 24,
-    comments: 8,
-    shares: 3,
-    liked: false,
-    time: "2 hours ago",
-    commentsList: [
-      {
-        id: 1,
-        author: "John Farmer",
-        avatar: "https://picsum.photos/200",
-        text: "Congratulations on the harvest! Looking forward to trying them.",
-        time: "1 hour ago",
-      },
-      {
-        id: 2,
-        author: "Sarah Buyer",
-        avatar: "https://picsum.photos/300",
-        text: "Will you have them at the market this weekend?",
-        time: "45 minutes ago",
-      },
-    ],
-  },
-  // ... other posts with similar structure
-];
+const COMMENTS_PER_PAGE = 5;
 
 const Post = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+
+  const { data: post, isLoading: postLoading } = usePost(id);
   const { data: liked } = useLikeStatus(id);
-  const { data: post, isLoading } = usePost(id);
   const { data: comments, isLoading: commentsLoading } =
     useFetchPostComments(id);
-
-  const navigate = useNavigate();
-  const [visibleCount, setVisibleCount] = useState(3);
-  const [postSample, setPosts] = useState(communityPosts); // sample posts data
-  const [newComment, setNewComment] = useState("");
-
   const toggleLike = useToggleLike(id);
-  const visibleComments = comments?.slice(0, visibleCount);
 
-  const handleBack = () => {
-    navigate(-1);
-  };
+  const [visibleCount, setVisibleCount] = useState(COMMENTS_PER_PAGE);
 
-  // TODO: Implement like, comment, and share functionality with real data instead of sample data
-  const handleLike = () => {
-    toggleLike.mutate();
-  };
+  const visibleComments = comments?.slice(0, visibleCount) ?? [];
+  const hasMore = comments && visibleCount < comments.length;
 
-  // HANDLE SHARE COMMENT
   const handleShare = async () => {
-    const shareData = {
-      title: post.title || "Check out this post",
-      text: post.description || "Take a look at this post!",
-      url: `${window.location.origin}/post/${post.id}`,
-    };
-
-    try {
-      // ✅ Use Native Share API if supported (mobile-friendly)
-      if (navigator.share) {
-        await navigator.share(shareData);
-        setPosts(
-          postSample?.map((p) =>
-            p.id === post.id ? { ...p, shares: p.shares + 1 } : p,
-          ),
-        );
-      } else {
-        // ✅ Fallback: Copy link to clipboard
-        await navigator.clipboard.writeText(shareData.url);
-        setPosts(
-          postSample?.map((p) =>
-            p.id === post.id ? { ...p, shares: p.shares + 1 } : p,
-          ),
-        );
-        alert("Link copied to clipboard!");
-      }
-    } catch (error) {
-      console.error("Sharing failed:", error);
+    const url = `${window.location.origin}/post/${id}`;
+    if (navigator.share) {
+      await navigator
+        .share({ title: post?.title, text: post?.content, url })
+        .catch(() => {});
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {});
     }
   };
 
-  if (isLoading || commentsLoading) {
+  if (postLoading || commentsLoading) return <LoadingComponent />;
+
+  if (!post) {
     return (
       <>
-        <LoadingComponent />
+        <AppNavbar />
+        <Page>
+          <NotFound>
+            <NotFoundIcon>🔍</NotFoundIcon>
+            <NotFoundTitle>Post not found</NotFoundTitle>
+            <BackBtn onClick={() => navigate(-1)}>Go back</BackBtn>
+          </NotFound>
+        </Page>
       </>
     );
   }
 
-  if (!post) {
-    return (
-      <PageWrapper>
-        <AppNavbar />
-        <Header>
-          <BackButton onClick={handleBack}>←</BackButton>
-          <Title>Post Not Found</Title>
-        </Header>
-      </PageWrapper>
-    );
-  }
+  const tagStyle = TAG_STYLES[post.type] ?? { bg: "#f3f4f6", color: "#6b7280" };
 
   return (
     <>
       <AppNavbar />
-      <PageWrapper>
-        <Header>
-          <BackButton onClick={handleBack}>←</BackButton>
-          <Title>Post Details</Title>
-        </Header>
-
-        <PostCard>
-          <PostHeader>
-            <Avatar src={post.user_image_url} alt={post.author} />
-            <PostInfo>
-              <h3>{post.author}</h3>
-              <p>{formatSmartDate(post.created_at)}</p>
-            </PostInfo>
-            <PostType type={post.type}>{post.type}</PostType>
-          </PostHeader>
-
-          <PostContent>
-            <h4>{post.title}</h4>
-            <p>{post.content}</p>
-          </PostContent>
-
-          {post.image_url && (
-            <PostImage>
-              <img src={post.image_url} alt={post.title} />
-            </PostImage>
-          )}
-
-          <PostActions>
-            <ActionButton
-              liked={liked}
-              onClick={() => toggleLike.mutate()}
-              disabled={toggleLike.isPending}
+      <Page>
+        {/* ── Sticky header ── */}
+        <StickyHeader>
+          <StatChip onClick={() => navigate(-1)} aria-label="Go back">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
-              Like
-            </ActionButton>
-            <ActionButton>
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
-              </svg>
-              Comment
-            </ActionButton>
-            <ActionButton onClick={handleShare}>
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
-              </svg>
-              Share
-            </ActionButton>
-            {/* <PostStats>
-              <span>{post.likes} likes</span>
-              <span>{post.comments} comments</span>
-              <span onClick={handleShare}> {post.shares} shares</span>
-            </PostStats> */}
-          </PostActions>
-        </PostCard>
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </StatChip>
+          <HeaderTitle>Post</HeaderTitle>
+          <HeaderSpacer />
+        </StickyHeader>
 
-        <CommentsSection>
-          <CommentsHeader>
-            {comments ? (
-              <h3>Comments ({comments.length})</h3>
-            ) : (
-              <h3>No Comments </h3>
+        <Body>
+          {/* ── Post card ── */}
+          <PostCard>
+            {/* Author row */}
+            <PostHeader>
+              <Avatar
+                src={post.user_image_url || "/user.jpg"}
+                alt={post.author}
+              />
+              <PostMeta>
+                <AuthorName>{post.author || "Farmer"}</AuthorName>
+                <PostTime>{formatSmartDate(post.created_at)}</PostTime>
+              </PostMeta>
+              {post.type && (
+                <TypeBadge
+                  style={{ background: tagStyle.bg, color: tagStyle.color }}
+                >
+                  {TYPE_LABELS[post.type] ?? post.type}
+                </TypeBadge>
+              )}
+            </PostHeader>
+
+            {/* Content */}
+            <PostBody>
+              {post.title && <PostTitle>{post.title}</PostTitle>}
+              {post.content && <PostText>{post.content}</PostText>}
+            </PostBody>
+
+            {/* Image */}
+            {post.image_url && (
+              <PostImage>
+                <img src={post.image_url} alt={post.title} />
+              </PostImage>
             )}
-          </CommentsHeader>
-          <CommentList>
-            {visibleComments?.map((comment) => (
-              <Comment key={comment.id}>
-                <CommentAvatar
-                  onClick={() => navigate(`/follower/${comment.id}`)}
-                  src={comment.image_url || "/user.jpg"}
-                  alt={comment.author}
-                />
-                <CommentContent>
-                  <div className="author">{comment.author}</div>
-                  <div className="text">{comment.content}</div>
-                  <div className="time">
-                    {formatSmartDate(comment.created_at)}
-                  </div>
-                </CommentContent>
-              </Comment>
-            ))}
 
-            {/* if comments are more than 5 , show this view more option */}
-            {visibleCount < comments?.length && (
-              <ViewMoreButton
-                onClick={() => setVisibleCount((prev) => prev + 5)}
+            {/* Actions */}
+            <PostActions>
+              <ActionBtn
+                $liked={liked}
+                onClick={() => toggleLike.mutate()}
+                disabled={toggleLike.isPending}
               >
-                View More
-              </ViewMoreButton>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill={liked ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                {liked ? "Liked" : "Like"}
+                {post.likes > 0 && <StatPill>{post.likes}</StatPill>}
+              </ActionBtn>
+
+              <ActionBtn
+                onClick={() =>
+                  document.getElementById("comment-input")?.focus()
+                }
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Comment
+                {comments?.length > 0 && <StatPill>{comments.length}</StatPill>}
+              </ActionBtn>
+
+              <ActionBtn onClick={handleShare}>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
+                Share
+                {post.shares > 0 && <StatPill>{post.shares}</StatPill>}
+              </ActionBtn>
+            </PostActions>
+          </PostCard>
+
+          {/* ── Comments ── */}
+          <CommentsCard>
+            <CommentsHeader>
+              <CommentHeaderTitle>
+                {comments?.length
+                  ? `${comments.length} Comment${comments.length !== 1 ? "s" : ""}`
+                  : "Comments"}
+              </CommentHeaderTitle>
+            </CommentsHeader>
+
+            {visibleComments.length === 0 ? (
+              <EmptyComments>
+                <span>💬</span>
+                <p>No comments yet. Be the first!</p>
+              </EmptyComments>
+            ) : (
+              <CommentList>
+                {visibleComments.map((c) => (
+                  <CommentItem key={c.id}>
+                    <CommentAvatar
+                      src={c.image_url || "/user.jpg"}
+                      alt={c.author}
+                      onClick={() => navigate(`/follower/${c.user_id}`)}
+                    />
+                    <CommentBubble>
+                      <CommentAuthor>{c.author || "Farmer"}</CommentAuthor>
+                      <CommentText>{c.content}</CommentText>
+                      <CommentTime>{formatSmartDate(c.created_at)}</CommentTime>
+                    </CommentBubble>
+                  </CommentItem>
+                ))}
+
+                {hasMore && (
+                  <ViewMoreBtn
+                    onClick={() =>
+                      setVisibleCount((n) => n + COMMENTS_PER_PAGE)
+                    }
+                  >
+                    View{" "}
+                    {Math.min(
+                      COMMENTS_PER_PAGE,
+                      comments.length - visibleCount,
+                    )}{" "}
+                    more comments
+                  </ViewMoreBtn>
+                )}
+              </CommentList>
             )}
-          </CommentList>
-          {/*  -------- COMMENTS COMPONENT ---------- */}
-          <CommentsComponent post_id={id} />
-        </CommentsSection>
-      </PageWrapper>
+
+            {/* Add comment */}
+            <CommentsComponent post_id={id} inputId="comment-input" />
+          </CommentsCard>
+        </Body>
+      </Page>
     </>
   );
 };
 
 export default Post;
+
+// ─── Styled components ────────────────────────────────────────────────────────
+
+const Page = styled.div`
+  min-height: 100vh;
+  background: #f5f8f5;
+`;
+
+const StickyHeader = styled.div`
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  background: white;
+  border-bottom: 1px solid #e8f5e9;
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 8px rgba(20, 57, 32, 0.06);
+  max-width: 960px;
+  margin: 0 auto;
+`;
+const HeaderBack = styled.button`
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1a3318;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  &:hover {
+    background: #f0fdf4;
+  }
+`;
+const StatChip = styled.div`
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(2, 2, 2, 0.25);
+  border-radius: 50%;
+  padding: 10px 10px;
+  color: black;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+const HeaderTitle = styled.h1`
+  flex: 1;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0;
+  letter-spacing: -0.2px;
+`;
+const HeaderSpacer = styled.div`
+  width: 36px;
+  flex-shrink: 0;
+`;
+
+const Body = styled.div`
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px 60px;
+  animation: ${fadeUp} 0.35s ease;
+`;
+
+// Post card
+const PostCard = styled.div`
+  background: white;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid #e8f5e9;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
+`;
+const PostHeader = styled.div`
+  padding: 18px 20px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #f3f4f6;
+`;
+const Avatar = styled.img`
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e8f5e9;
+  flex-shrink: 0;
+  cursor: pointer;
+`;
+const PostMeta = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+const AuthorName = styled.p`
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 2px;
+`;
+const PostTime = styled.p`
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0;
+`;
+const TypeBadge = styled.span`
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+  text-transform: capitalize;
+  flex-shrink: 0;
+`;
+
+const PostBody = styled.div`
+  padding: 20px 20px 16px;
+`;
+const PostTitle = styled.h2`
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #1a3318;
+  margin: 0 0 12px;
+  letter-spacing: -0.3px;
+  line-height: 1.35;
+`;
+const PostText = styled.p`
+  font-size: 0.95rem;
+  color: #4b5563;
+  line-height: 1.75;
+  margin: 0;
+`;
+
+const PostImage = styled.div`
+  width: 100%;
+  max-height: 420px;
+  overflow: hidden;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+`;
+
+const PostActions = styled.div`
+  padding: 12px 16px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  gap: 4px;
+`;
+const ActionBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  color: ${({ $liked }) => ($liked ? "#ef4444" : "#6b7280")};
+  &:hover {
+    background: #f0fdf4;
+    color: ${({ $liked }) => ($liked ? "#dc2626" : "#2f5a2a")};
+  }
+  &:disabled {
+    opacity: 0.6;
+  }
+`;
+const StatPill = styled.span`
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+`;
+
+// Comments card
+const CommentsCard = styled.div`
+  background: white;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid #e8f5e9;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
+`;
+const CommentsHeader = styled.div`
+  padding: 18px 20px;
+  border-bottom: 1px solid #f3f4f6;
+`;
+const CommentHeaderTitle = styled.h3`
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0;
+`;
+
+const CommentList = styled.div`
+  padding: 8px 20px 0;
+`;
+const CommentItem = styled.div`
+  display: flex;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f9fafb;
+  &:last-of-type {
+    border-bottom: none;
+  }
+  animation: ${popIn} 0.2s ease;
+`;
+const CommentAvatar = styled.img`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 1.5px solid #e8f5e9;
+`;
+const CommentBubble = styled.div`
+  flex: 1;
+  background: #f8faf6;
+  border-radius: 0 14px 14px 14px;
+  padding: 10px 14px;
+`;
+const CommentAuthor = styled.p`
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 4px;
+`;
+const CommentText = styled.p`
+  font-size: 0.88rem;
+  color: #4b5563;
+  line-height: 1.55;
+  margin: 0 0 6px;
+`;
+const CommentTime = styled.p`
+  font-size: 0.72rem;
+  color: #9ca3af;
+  margin: 0;
+`;
+
+const ViewMoreBtn = styled.button`
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #2f5a2a;
+  font-weight: 700;
+  font-size: 0.84rem;
+  cursor: pointer;
+  padding: 12px;
+  text-align: center;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const EmptyComments = styled.div`
+  text-align: center;
+  padding: 32px 20px;
+  span {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 8px;
+  }
+  p {
+    font-size: 0.88rem;
+    color: #9ca3af;
+    margin: 0;
+  }
+`;
+
+// Not found
+const NotFound = styled.div`
+  text-align: center;
+  padding: 100px 24px;
+`;
+const NotFoundIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 16px;
+`;
+const NotFoundTitle = styled.h2`
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 20px;
+`;
+const BackBtn = styled.button`
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  padding: 11px 24px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+`;

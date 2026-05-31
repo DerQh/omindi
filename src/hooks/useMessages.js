@@ -2,6 +2,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
+// Returns the number of conversations that have at least one unread message for the given user.
+export function useUnreadConversationsCount(user_id) {
+  return useQuery({
+    queryKey: ["unreadConversations", user_id],
+    enabled: !!user_id,
+    refetchInterval: 30000,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("conversations")
+        .select("*", { count: "exact", head: true })
+        .or(`buyer_id.eq.${user_id},seller_id.eq.${user_id}`)
+        .gt("unread_count", 0);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
 // get all conversations for current user
 export function useConversations(user_id) {
   return useQuery({
@@ -71,23 +89,27 @@ export function useSendMessage() {
   });
 }
 
-// create or get existing conversation
+// Creates a conversation between buyer and seller, or returns the existing one.
+// listing_id is optional — when null it finds/creates a direct conversation without a listing context.
 export function useStartConversation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ buyer_id, seller_id, listing_id }) => {
-      // check if conversation already exists
-      const { data: existing } = await supabase
+    mutationFn: async ({ buyer_id, seller_id, listing_id = null }) => {
+      // Build the lookup query — use .is() for null listing_id, .eq() otherwise.
+      const lookup = supabase
         .from("conversations")
         .select("id")
         .eq("buyer_id", buyer_id)
-        .eq("seller_id", seller_id)
-        .eq("listing_id", listing_id)
-        .maybeSingle();
+        .eq("seller_id", seller_id);
+
+      const { data: existing } = await (listing_id
+        ? lookup.eq("listing_id", listing_id)
+        : lookup.is("listing_id", null)
+      ).maybeSingle();
 
       if (existing) return existing;
 
-      // create new
+      // No existing conversation — create a fresh one.
       const { data, error } = await supabase
         .from("conversations")
         .insert({ buyer_id, seller_id, listing_id })

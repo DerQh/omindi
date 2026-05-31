@@ -70,7 +70,7 @@ function Wholesale() {
     captchaAnswer: "",
   });
   const [submitted, setSubmitted] = useState(false);
-  const [openFaq, setOpenFaq]   = useState(null);
+  const [openFaq, setOpenFaq] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -99,7 +99,11 @@ function Wholesale() {
       <Hero>
         <HeroInner>
           <Eyebrow>Wholesale & Local Supply</Eyebrow>
-          <HeroTitle>Become a Local<br />Food Supplier</HeroTitle>
+          <HeroTitle>
+            Become a Local
+            <br />
+            Food Supplier
+          </HeroTitle>
           <HeroSub>
             Create, manage, and grow direct wholesale relationships with local
             food buyers — restaurants, retailers, and food brands — all from one
@@ -139,8 +143,14 @@ function Wholesale() {
       <ProfileStrip>
         <ProfileInner>
           <ProfileText>
-            <SectionLabel style={{ textAlign: "left" }}>Get Started Today</SectionLabel>
-            <ProfileTitle>One Profile.<br />Two Ways to Grow.</ProfileTitle>
+            <SectionLabel style={{ textAlign: "left" }}>
+              Get Started Today
+            </SectionLabel>
+            <ProfileTitle>
+              One Profile.
+              <br />
+              Two Ways to Grow.
+            </ProfileTitle>
             <ProfileSub>
               Grow your farm business on AFARMER. Download the free app and
               start connecting with both retail customers and wholesale buyers
@@ -198,12 +208,14 @@ function Wholesale() {
       <FormSection id="waitlist">
         <FormInner>
           <FormLeft>
-            <SectionLabel style={{ textAlign: "left" }}>Limited Early Access</SectionLabel>
+            <SectionLabel style={{ textAlign: "left" }}>
+              Limited Early Access
+            </SectionLabel>
             <FormHeading>Join the Waitlist</FormHeading>
             <FormIntro>
-              Over the next few months, we'll be rolling out webinars, resources,
-              and new wholesale profiles. Join the waitlist to be among the first
-              to connect with local farms near you.
+              Over the next few months, we'll be rolling out webinars,
+              resources, and new wholesale profiles. Join the waitlist to be
+              among the first to connect with local farms near you.
             </FormIntro>
             <WaitlistBullets>
               <li>Early access to wholesale buyer profiles</li>
@@ -296,7 +308,9 @@ function Wholesale() {
                   </Field>
 
                   <Field>
-                    <FieldLabel>What items are you interested in buying from local farms?</FieldLabel>
+                    <FieldLabel>
+                      What items are you interested in buying from local farms?
+                    </FieldLabel>
                     <FieldTextarea
                       name="interestedItems"
                       rows="3"
@@ -333,9 +347,9 @@ function Wholesale() {
           <QuoteMark>"</QuoteMark>
           <TestimonialText>
             AFARMER has resulted in both professional and personal relationships
-            with incredible customers in my local community. Not only have I been
-            able to network and make sales, but I have never eaten better or
-            cleaner in my life. I downloaded it when I was the only producer
+            with incredible customers in my local community. Not only have I
+            been able to network and make sales, but I have never eaten better
+            or cleaner in my life. I downloaded it when I was the only producer
             within 50 miles — now there are over 40 in my town alone!
           </TestimonialText>
           <TestimonialAuthor>— Lazy C Cattle Co.</TestimonialAuthor>
@@ -353,74 +367,135 @@ export default Wholesale;
 
 const Hero = styled.section`
   background: linear-gradient(140deg, #1a3318 0%, #2f5a2a 55%, #4e9643 100%);
-  padding: 96px 24px 112px; text-align: center;
-  position: relative; overflow: hidden;
+  padding: 96px 24px 112px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
   &::before {
-    content: ""; position: absolute;
-    width: 440px; height: 440px; border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    top: -140px; right: -80px;
+    content: "";
+    position: absolute;
+    width: 440px;
+    height: 440px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    top: -140px;
+    right: -80px;
   }
 `;
 const HeroInner = styled.div`
-  max-width: 680px; margin: 0 auto;
-  position: relative; z-index: 1;
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
   animation: ${fadeUp} 0.6s ease;
 `;
 const Eyebrow = styled.span`
   display: inline-block;
-  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
-  color: rgba(255,255,255,0.9); font-size: 0.75rem; font-weight: 700;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  padding: 6px 16px; border-radius: 999px; margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  border-radius: 999px;
+  margin-bottom: 20px;
 `;
 const HeroTitle = styled.h1`
-  font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; color: white;
-  letter-spacing: -0.5px; margin: 0 0 18px; line-height: 1.15;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.5px;
+  margin: 0 0 18px;
+  line-height: 1.15;
 `;
 const HeroSub = styled.p`
-  font-size: 1.05rem; color: rgba(255,255,255,0.8); line-height: 1.7; margin: 0 0 32px;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.7;
+  margin: 0 0 32px;
 `;
 const HeroActions = styled.div`
-  display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
 `;
 const AnchorPrimary = styled.a`
-  background: white; color: #2f5a2a; text-decoration: none;
-  padding: 14px 30px; border-radius: 999px;
-  font-size: 0.95rem; font-weight: 800;
-  transition: all 0.2s; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  background: white;
+  color: #2f5a2a;
+  text-decoration: none;
+  padding: 14px 30px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
 `;
 const AnchorOutline = styled.a`
-  background: transparent; color: white; text-decoration: none;
-  border: 2px solid rgba(255,255,255,0.45);
-  padding: 14px 30px; border-radius: 999px;
-  font-size: 0.95rem; font-weight: 700; transition: all 0.2s;
-  &:hover { border-color: white; background: rgba(255,255,255,0.08); }
+  background: transparent;
+  color: white;
+  text-decoration: none;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  padding: 14px 30px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: all 0.2s;
+  &:hover {
+    border-color: white;
+    background: rgba(255, 255, 255, 0.08);
+  }
 `;
 
 const FullImg = styled.div`
-  width: 100%; background: #f5f8f5;
-  img { width: 100%; height: auto; display: block; max-height: 500px; object-fit: cover; }
+  width: 100%;
+  background: #f5f8f5;
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-height: 500px;
+    object-fit: cover;
+  }
 `;
 
 const Section = styled.section`
   padding: 80px 24px;
   background: ${({ $alt }) => ($alt ? "#f5f8f5" : "white")};
 `;
-const Inner = styled.div`max-width: 1060px; margin: 0 auto;`;
+const Inner = styled.div`
+  max-width: 1060px;
+  margin: 0 auto;
+`;
 const SectionLabel = styled.p`
-  text-align: center; font-size: 0.75rem; font-weight: 700;
-  letter-spacing: 0.12em; text-transform: uppercase; color: #4e9643; margin: 0 0 10px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #4e9643;
+  margin: 0 0 10px;
 `;
 const SectionTitle = styled.h2`
-  text-align: center; font-size: clamp(1.4rem, 2.5vw, 2rem);
-  font-weight: 800; color: #1a3318; margin: 0 0 14px; letter-spacing: -0.3px;
+  text-align: center;
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 14px;
+  letter-spacing: -0.3px;
 `;
 const SectionDivider = styled.div`
-  width: 44px; height: 4px;
+  width: 44px;
+  height: 4px;
   background: linear-gradient(90deg, #2f5a2a, #4e9643);
-  border-radius: 999px; margin: 0 auto 52px;
+  border-radius: 999px;
+  margin: 0 auto 52px;
 `;
 
 const FeaturesGrid = styled.div`
@@ -429,73 +504,150 @@ const FeaturesGrid = styled.div`
   gap: 20px;
 `;
 const FeatureCard = styled.div`
-  background: white; border-radius: 18px; padding: 28px 24px;
+  background: white;
+  border-radius: 18px;
+  padding: 28px 24px;
   border: 1px solid #e8f5e9;
-  box-shadow: 0 3px 16px rgba(20,57,32,0.06);
-  transition: transform 0.2s, box-shadow 0.2s;
-  &:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(20,57,32,0.1); }
+  box-shadow: 0 3px 16px rgba(20, 57, 32, 0.06);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(20, 57, 32, 0.1);
+  }
 `;
-const FeatureIcon  = styled.div`font-size: 1.8rem; margin-bottom: 14px;`;
-const FeatureTitle = styled.h3`font-size: 0.97rem; font-weight: 800; color: #1a3318; margin: 0 0 8px;`;
-const FeatureText  = styled.p`font-size: 0.87rem; color: #6b7280; line-height: 1.7; margin: 0;`;
+const FeatureIcon = styled.div`
+  font-size: 1.8rem;
+  margin-bottom: 14px;
+`;
+const FeatureTitle = styled.h3`
+  font-size: 0.97rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 8px;
+`;
+const FeatureText = styled.p`
+  font-size: 0.87rem;
+  color: #6b7280;
+  line-height: 1.7;
+  margin: 0;
+`;
 
 const ProfileStrip = styled.section`
   background: linear-gradient(135deg, #f0fdf4 0%, #e8f5e9 100%);
-  border-top: 1px solid #d1fae5; border-bottom: 1px solid #d1fae5;
+  border-top: 1px solid #d1fae5;
+  border-bottom: 1px solid #d1fae5;
   padding: 72px 24px;
 `;
 const ProfileInner = styled.div`
-  max-width: 1000px; margin: 0 auto;
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 60px; align-items: center;
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 const ProfileText = styled.div``;
 const ProfileTitle = styled.h2`
-  font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 800;
-  color: #1a3318; margin: 0 0 14px; letter-spacing: -0.3px; line-height: 1.2;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 14px;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
 `;
 const ProfileSub = styled.p`
-  font-size: 0.95rem; color: #4b5563; line-height: 1.8; margin: 0 0 24px;
+  font-size: 0.95rem;
+  color: #4b5563;
+  line-height: 1.8;
+  margin: 0 0 24px;
 `;
-const AppLinks = styled.div`display: flex; gap: 10px; flex-wrap: wrap;`;
-const AppLink  = styled.a`
-  img { max-width: 120px; height: auto; display: block; border-radius: 8px; }
+const AppLinks = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+`;
+const AppLink = styled.a`
+  img {
+    max-width: 120px;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+  }
 `;
 const ProfileImgWrap = styled.div`
-  display: flex; justify-content: center;
-  img { max-width: 280px; width: 100%; height: auto; }
+  display: flex;
+  justify-content: center;
+  img {
+    max-width: 280px;
+    width: 100%;
+    height: auto;
+  }
 `;
 
 const HowImgStack = styled.div`
-  display: flex; flex-direction: column; gap: 24px;
-  img { width: 100%; height: auto; display: block; border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(20,57,32,0.07); }
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(20, 57, 32, 0.07);
+  }
 `;
 const HowImg = styled.img``;
 
 const FaqList = styled.div`
-  max-width: 720px; margin: 0 auto;
-  border-radius: 16px; overflow: hidden;
-  box-shadow: 0 4px 24px rgba(20,57,32,0.07);
+  max-width: 720px;
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(20, 57, 32, 0.07);
 `;
 const FaqItem = styled.div`
-  background: white; border-bottom: 1px solid #f3f4f6;
-  &:last-child { border-bottom: none; }
+  background: white;
+  border-bottom: 1px solid #f3f4f6;
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 const FaqQ = styled.button`
-  width: 100%; display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; padding: 18px 24px; background: none; border: none;
-  text-align: left; font-size: 0.93rem; font-weight: 700; color: #1a3318;
-  cursor: pointer; transition: background 0.15s;
-  &:hover { background: #fafcfa; }
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: #1a3318;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover {
+    background: #fafcfa;
+  }
 `;
 const Chevron = styled.span`
-  font-size: 1.4rem; color: #2f5a2a; flex-shrink: 0; transition: transform 0.2s;
+  font-size: 1.4rem;
+  color: #2f5a2a;
+  flex-shrink: 0;
+  transition: transform 0.2s;
   transform: ${({ $open }) => ($open ? "rotate(90deg)" : "rotate(0deg)")};
 `;
 const FaqA = styled.div`
-  padding: 0 24px 18px; font-size: 0.9rem; color: #4b5563; line-height: 1.75;
+  padding: 0 24px 18px;
+  font-size: 0.9rem;
+  color: #4b5563;
+  line-height: 1.75;
 `;
 
 const FormSection = styled.section`
@@ -503,82 +655,174 @@ const FormSection = styled.section`
   padding: 80px 24px;
 `;
 const FormInner = styled.div`
-  max-width: 1000px; margin: 0 auto;
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 56px; align-items: start;
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: start;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 const FormLeft = styled.div``;
 const FormHeading = styled.h2`
-  font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 800;
-  color: #1a3318; margin: 0 0 14px; letter-spacing: -0.3px;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 14px;
+  letter-spacing: -0.3px;
 `;
 const FormIntro = styled.p`
-  font-size: 0.93rem; color: #4b5563; line-height: 1.8; margin: 0 0 20px;
+  font-size: 0.93rem;
+  color: #4b5563;
+  line-height: 1.8;
+  margin: 0 0 20px;
 `;
 const WaitlistBullets = styled.ul`
-  padding-left: 18px; margin: 0;
-  li { font-size: 0.9rem; color: #374151; line-height: 1.8; margin-bottom: 6px;
-       font-weight: 600; }
-  li::marker { color: #4e9643; }
+  padding-left: 18px;
+  margin: 0;
+  li {
+    font-size: 0.9rem;
+    color: #374151;
+    line-height: 1.8;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  li::marker {
+    color: #4e9643;
+  }
 `;
 const FormRight = styled.div``;
 const FormCard = styled.div`
-  background: white; border-radius: 20px; padding: 32px;
-  box-shadow: 0 4px 24px rgba(20,57,32,0.08);
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 24px rgba(20, 57, 32, 0.08);
   border: 1px solid #e8f5e9;
 `;
 const TwoCol = styled.div`
-  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
-  @media (max-width: 480px) { grid-template-columns: 1fr; }
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
-const Field = styled.div`margin-bottom: 16px;`;
+const Field = styled.div`
+  margin-bottom: 16px;
+`;
 const FieldLabel = styled.label`
-  display: block; font-size: 0.82rem; font-weight: 700;
-  color: #1a3318; margin-bottom: 6px;
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1a3318;
+  margin-bottom: 6px;
 `;
 const FieldInput = styled.input`
-  width: 100%; padding: 10px 14px; border-radius: 10px;
-  border: 1.5px solid #e5e7eb; font-size: 0.9rem;
-  color: #111827; background: #fafcfa; outline: none;
-  box-sizing: border-box; transition: border-color 0.15s; font-family: inherit;
-  &:focus { border-color: #2f5a2a; }
-  &::placeholder { color: #d1d5db; }
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #fafcfa;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+  font-family: inherit;
+  &:focus {
+    border-color: #2f5a2a;
+  }
+  &::placeholder {
+    color: #d1d5db;
+  }
 `;
 const FieldTextarea = styled.textarea`
-  width: 100%; padding: 10px 14px; border-radius: 10px;
-  border: 1.5px solid #e5e7eb; font-size: 0.9rem;
-  color: #111827; background: #fafcfa; outline: none;
-  box-sizing: border-box; resize: vertical; font-family: inherit;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #fafcfa;
+  outline: none;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: inherit;
   transition: border-color 0.15s;
-  &:focus { border-color: #2f5a2a; }
-  &::placeholder { color: #d1d5db; }
+  &:focus {
+    border-color: #2f5a2a;
+  }
+  &::placeholder {
+    color: #d1d5db;
+  }
 `;
 const SubmitBtn = styled.button`
-  width: 100%; padding: 13px; border-radius: 12px;
-  background: #2f5a2a; color: white; border: none;
-  font-size: 0.95rem; font-weight: 800; cursor: pointer;
-  margin-top: 4px; transition: background 0.2s;
-  &:hover { background: #245026; }
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.2s;
+  &:hover {
+    background: #245026;
+  }
 `;
 const SuccessCard = styled.div`
-  background: white; border-radius: 20px; padding: 48px 32px;
-  text-align: center; border: 1px solid #d1fae5;
-  box-shadow: 0 4px 24px rgba(20,57,32,0.08);
+  background: white;
+  border-radius: 20px;
+  padding: 48px 32px;
+  text-align: center;
+  border: 1px solid #d1fae5;
+  box-shadow: 0 4px 24px rgba(20, 57, 32, 0.08);
 `;
-const SuccessIcon  = styled.div`font-size: 2.5rem; margin-bottom: 14px;`;
-const SuccessTitle = styled.h3`font-size: 1.2rem; font-weight: 800; color: #1a3318; margin: 0 0 8px;`;
-const SuccessSub   = styled.p`font-size: 0.92rem; color: #6b7280; margin: 0;`;
+const SuccessIcon = styled.div`
+  font-size: 2.5rem;
+  margin-bottom: 14px;
+`;
+const SuccessTitle = styled.h3`
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 8px;
+`;
+const SuccessSub = styled.p`
+  font-size: 0.92rem;
+  color: #6b7280;
+  margin: 0;
+`;
 
 const TestimonialSection = styled.section`
-  background: #1a3318; padding: 72px 24px; text-align: center;
+  background: #1a3318;
+  padding: 72px 24px;
+  text-align: center;
 `;
-const TestimonialInner = styled.div`max-width: 680px; margin: 0 auto;`;
-const QuoteMark = styled.div`font-size: 4rem; color: #4e9643; line-height: 1; margin-bottom: 8px;`;
+const TestimonialInner = styled.div`
+  max-width: 680px;
+  margin: 0 auto;
+`;
+const QuoteMark = styled.div`
+  font-size: 4rem;
+  color: #4e9643;
+  line-height: 1;
+  margin-bottom: 8px;
+`;
 const TestimonialText = styled.p`
-  font-size: 1.05rem; color: rgba(255,255,255,0.85);
-  line-height: 1.8; font-style: italic; margin: 0 0 20px;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.8;
+  font-style: italic;
+  margin: 0 0 20px;
 `;
 const TestimonialAuthor = styled.p`
-  font-size: 0.85rem; font-weight: 700; color: #4e9643; margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4e9643;
+  margin: 0;
 `;

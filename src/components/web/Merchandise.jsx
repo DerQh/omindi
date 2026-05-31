@@ -1,9 +1,10 @@
 import { useState } from "react";
 import styled, { keyframes, css } from "styled-components";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 import { shopProducts } from "../../data/shopProducts";
+import { useShopItem } from "../../hooks/useShopAdmin";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -61,7 +62,9 @@ const Container = styled.div`
   margin: 0 auto;
   padding: 32px 32px 80px;
 
-  @media (max-width: 600px) { padding: 20px 16px 60px; }
+  @media (max-width: 600px) {
+    padding: 20px 16px 60px;
+  }
 `;
 
 // ─── Breadcrumb ───────────────────────────────────────────────────────────────
@@ -78,11 +81,15 @@ const Breadcrumb = styled.nav`
     color: #2f5a2a;
     text-decoration: none;
     font-weight: 600;
-    &:hover { text-decoration: underline; }
+    &:hover {
+      text-decoration: underline;
+    }
   }
 `;
 
-const BreadSep = styled.span`color: #cde5cf;`;
+const BreadSep = styled.span`
+  color: #cde5cf;
+`;
 
 // ─── Product Layout ───────────────────────────────────────────────────────────
 
@@ -105,7 +112,9 @@ const ImageSection = styled.div`
   position: sticky;
   top: 100px;
 
-  @media (max-width: 900px) { position: static; }
+  @media (max-width: 900px) {
+    position: static;
+  }
 `;
 
 const MainImage = styled.div`
@@ -121,7 +130,9 @@ const MainImage = styled.div`
     display: block;
     transition: transform 0.4s ease;
 
-    &:hover { transform: scale(1.03); }
+    &:hover {
+      transform: scale(1.03);
+    }
   }
 `;
 
@@ -143,11 +154,14 @@ const Thumb = styled.div`
   transition: border-color 0.15s;
 
   img {
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
   }
 
-  &:hover { border-color: #2f5a2a; }
+  &:hover {
+    border-color: #2f5a2a;
+  }
 `;
 
 // ─── Product Summary ──────────────────────────────────────────────────────────
@@ -271,10 +285,15 @@ const Swatch = styled.button`
   border: 3px solid ${({ $active }) => ($active ? "#2f5a2a" : "transparent")};
   outline: 2px solid ${({ $active }) => ($active ? "#2f5a2a" : "#e0ece0")};
   cursor: pointer;
-  transition: outline-color 0.15s, border-color 0.15s, transform 0.15s;
+  transition:
+    outline-color 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
   position: relative;
 
-  &:hover { transform: scale(1.12); }
+  &:hover {
+    transform: scale(1.12);
+  }
   &::after {
     content: "${({ $label }) => $label}";
     position: absolute;
@@ -334,8 +353,13 @@ const QtyBtn = styled.button`
   cursor: pointer;
   transition: background 0.15s;
 
-  &:hover { background: #eef7ee; }
-  &:disabled { color: #cde5cf; cursor: not-allowed; }
+  &:hover {
+    background: #eef7ee;
+  }
+  &:disabled {
+    color: #cde5cf;
+    cursor: not-allowed;
+  }
 `;
 
 const QtyVal = styled.span`
@@ -359,7 +383,9 @@ const CtaRow = styled.div`
   gap: 12px;
   margin: 24px 0 16px;
 
-  @media (max-width: 480px) { flex-direction: column; }
+  @media (max-width: 480px) {
+    flex-direction: column;
+  }
 `;
 
 const AddBtn = styled.button`
@@ -372,11 +398,18 @@ const AddBtn = styled.button`
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
-  transition: background 0.18s, transform 0.12s;
+  transition:
+    background 0.18s,
+    transform 0.12s;
   letter-spacing: 0.01em;
 
-  &:hover { background: #1e3d1a; transform: translateY(-2px); }
-  &:active { transform: translateY(0); }
+  &:hover {
+    background: #1e3d1a;
+    transform: translateY(-2px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
 const WishBtn = styled.button`
@@ -395,7 +428,10 @@ const WishBtn = styled.button`
   justify-content: center;
   gap: 6px;
 
-  &:hover { background: #eef7ee; border-color: #2f5a2a; }
+  &:hover {
+    background: #eef7ee;
+    border-color: #2f5a2a;
+  }
 `;
 
 // ─── Cart Toast ───────────────────────────────────────────────────────────────
@@ -438,7 +474,9 @@ const TrustBadge = styled.div`
   padding: 10px 12px;
 `;
 
-const TrustIcon = styled.span`font-size: 1.1rem;`;
+const TrustIcon = styled.span`
+  font-size: 1.1rem;
+`;
 
 const TrustText = styled.p`
   margin: 0;
@@ -479,11 +517,16 @@ const TabBtn = styled.button`
   font-weight: 700;
   cursor: pointer;
   color: ${({ $active }) => ($active ? "#2f5a2a" : "#7b8f7f")};
-  border-bottom: 3px solid ${({ $active }) => ($active ? "#2f5a2a" : "transparent")};
+  border-bottom: 3px solid
+    ${({ $active }) => ($active ? "#2f5a2a" : "transparent")};
   margin-bottom: -2px;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 
-  &:hover { color: #2f5a2a; }
+  &:hover {
+    color: #2f5a2a;
+  }
 `;
 
 const TabContent = styled.div`
@@ -494,7 +537,7 @@ const TabCard = styled.div`
   background: white;
   border-radius: 18px;
   padding: 32px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 `;
 
 const InfoTable = styled.table`
@@ -503,7 +546,9 @@ const InfoTable = styled.table`
 
   tr {
     border-bottom: 1px solid #f0f7ee;
-    &:last-child { border-bottom: none; }
+    &:last-child {
+      border-bottom: none;
+    }
   }
 
   td {
@@ -537,7 +582,9 @@ const FormGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 
-  @media (max-width: 600px) { grid-template-columns: 1fr; }
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const FieldWrap = styled.div`
@@ -545,7 +592,9 @@ const FieldWrap = styled.div`
   flex-direction: column;
   gap: 6px;
 
-  &.full { grid-column: 1 / -1; }
+  &.full {
+    grid-column: 1 / -1;
+  }
 `;
 
 const FieldLabel = styled.label`
@@ -569,11 +618,18 @@ const inputStyles = css`
   box-sizing: border-box;
   transition: border-color 0.15s;
 
-  &::placeholder { color: #aac4aa; }
-  &:focus { border-color: #2f5a2a; background: white; }
+  &::placeholder {
+    color: #aac4aa;
+  }
+  &:focus {
+    border-color: #2f5a2a;
+    background: white;
+  }
 `;
 
-const Input = styled.input`${inputStyles}`;
+const Input = styled.input`
+  ${inputStyles}
+`;
 const Textarea = styled.textarea`
   ${inputStyles}
   resize: vertical;
@@ -609,7 +665,9 @@ const SubmitBtn = styled.button`
   width: fit-content;
   transition: background 0.18s;
 
-  &:hover { background: #1e3d1a; }
+  &:hover {
+    background: #1e3d1a;
+  }
 `;
 
 const StatusMsg = styled.div`
@@ -636,13 +694,15 @@ const RelatedCard = styled(Link)`
   border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   display: block;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
   }
 
   img {
@@ -701,9 +761,20 @@ const NotFoundWrap = styled.div`
 function Merchandise() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Look up the product by URL param — falls back to undefined if not found
-  const product = shopProducts.find((p) => p.id === parseInt(id));
+  // Use product from navigation state when available — avoids ID collision between
+  // static products (IDs 1–6) and DB products (BIGSERIAL also starting from 1).
+  const stateProduct = location.state?.product;
+
+  // Only fetch from DB when no state was passed (e.g. direct URL access).
+  const { data: dbProduct, isLoading: isLoadingDb } = useShopItem(
+    stateProduct ? null : id
+  );
+
+  const product = stateProduct
+    ?? dbProduct
+    ?? shopProducts.find((p) => p.id === parseInt(id));
 
   // Related products: up to 3 others in the same category, excluding the current one
   const related = shopProducts
@@ -713,20 +784,36 @@ function Merchandise() {
     .concat(
       shopProducts
         .filter((p) => p.id !== product?.id && p.category !== product?.category)
-        .slice(0, Math.max(0, 3 - shopProducts.filter((p) => p.id !== product?.id && p.category === product?.category).length))
+        .slice(
+          0,
+          Math.max(
+            0,
+            3 -
+              shopProducts.filter(
+                (p) => p.id !== product?.id && p.category === product?.category,
+              ).length,
+          ),
+        ),
     );
 
   const [selectedColor, setSelectedColor] = useState("");
-  const [selectedSize,  setSelectedSize]  = useState("");
-  const [quantity,      setQuantity]      = useState(1);
-  const [wishlist,      setWishlist]      = useState(false);
-  const [cartMsg,       setCartMsg]       = useState({ text: "", error: false });
-  const [activeTab,     setActiveTab]     = useState("description");
+  const [selectedSize, setSelectedSize] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [wishlist, setWishlist] = useState(false);
+  const [cartMsg, setCartMsg] = useState({ text: "", error: false });
+  const [activeTab, setActiveTab] = useState("description");
 
   // Interactive star rating for the review form
   const [hoverStar, setHoverStar] = useState(0);
-  const [review, setReview] = useState({ name: "", email: "", rating: 0, comment: "" });
+  const [review, setReview] = useState({
+    name: "",
+    email: "",
+    rating: 0,
+    comment: "",
+  });
   const [reviewMsg, setReviewMsg] = useState({ text: "", error: false });
+
+  if (isLoadingDb) return null;
 
   // Show a clean not-found page if the ID doesn't match any product
   if (!product) {
@@ -736,11 +823,23 @@ function Merchandise() {
         <Page>
           <NotFoundWrap>
             <div style={{ fontSize: "3rem", marginBottom: 16 }}>🌿</div>
-            <h2 style={{ color: "#1a2e1a", marginBottom: 8 }}>Product not found</h2>
-            <p style={{ color: "#7b8f7f", marginBottom: 24 }}>This item doesn't exist or may have been removed.</p>
+            <h2 style={{ color: "#1a2e1a", marginBottom: 8 }}>
+              Product not found
+            </h2>
+            <p style={{ color: "#7b8f7f", marginBottom: 24 }}>
+              This item doesn't exist or may have been removed.
+            </p>
             <button
               onClick={() => navigate("/shop")}
-              style={{ background: "#2f5a2a", color: "white", border: "none", padding: "12px 28px", borderRadius: 12, fontWeight: 700, cursor: "pointer" }}
+              style={{
+                background: "#2f5a2a",
+                color: "white",
+                border: "none",
+                padding: "12px 28px",
+                borderRadius: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
             >
               Back to Shop
             </button>
@@ -753,12 +852,15 @@ function Merchandise() {
 
   const handleStarInteraction = (type, val) => {
     if (type === "hover") setHoverStar(val);
-    if (type === "set")   setReview((p) => ({ ...p, rating: val }));
+    if (type === "set") setReview((p) => ({ ...p, rating: val }));
   };
 
   const handleAddToCart = () => {
     if (!selectedColor || !selectedSize) {
-      setCartMsg({ text: "Please choose a colour and size before adding to cart.", error: true });
+      setCartMsg({
+        text: "Please choose a colour and size before adding to cart.",
+        error: true,
+      });
       return;
     }
     setCartMsg({
@@ -770,10 +872,16 @@ function Merchandise() {
   const handleReviewSubmit = (e) => {
     e.preventDefault();
     if (!review.rating || !review.comment.trim()) {
-      setReviewMsg({ text: "Please provide a star rating and a written review.", error: true });
+      setReviewMsg({
+        text: "Please provide a star rating and a written review.",
+        error: true,
+      });
       return;
     }
-    setReviewMsg({ text: "Thank you! Your review has been submitted successfully.", error: false });
+    setReviewMsg({
+      text: "Thank you! Your review has been submitted successfully.",
+      error: false,
+    });
     setReview({ name: "", email: "", rating: 0, comment: "" });
     setHoverStar(0);
   };
@@ -783,7 +891,6 @@ function Merchandise() {
       <Navbar />
       <Page>
         <Container>
-
           {/* ── Breadcrumb ── */}
           <Breadcrumb>
             <Link to="/">Home</Link>
@@ -797,7 +904,6 @@ function Merchandise() {
 
           {/* ── Product layout ── */}
           <ProductLayout>
-
             {/* Left: sticky image gallery */}
             <ImageSection>
               <MainImage>
@@ -833,8 +939,15 @@ function Merchandise() {
                 <OptionLabel>
                   Colour
                   {selectedColor && (
-                    <span style={{ color: "#2f5a2a", fontWeight: 600, textTransform: "none", letterSpacing: 0 }}>
-                      — {colors.find(c => c.value === selectedColor)?.label}
+                    <span
+                      style={{
+                        color: "#2f5a2a",
+                        fontWeight: 600,
+                        textTransform: "none",
+                        letterSpacing: 0,
+                      }}
+                    >
+                      — {colors.find((c) => c.value === selectedColor)?.label}
                     </span>
                   )}
                 </OptionLabel>
@@ -895,11 +1008,12 @@ function Merchandise() {
               </CtaRow>
 
               {/* Cart feedback toast */}
-              {cartMsg.text && (
-                cartMsg.error
-                  ? <CartToastError>{cartMsg.text}</CartToastError>
-                  : <CartToast>{cartMsg.text}</CartToast>
-              )}
+              {cartMsg.text &&
+                (cartMsg.error ? (
+                  <CartToastError>{cartMsg.text}</CartToastError>
+                ) : (
+                  <CartToast>{cartMsg.text}</CartToast>
+                ))}
 
               {/* Trust badges */}
               <TrustRow>
@@ -941,9 +1055,15 @@ function Merchandise() {
 
             <TabContent key={activeTab}>
               <TabCard>
-
                 {activeTab === "description" && (
-                  <p style={{ margin: 0, lineHeight: 1.8, color: "#556652", fontSize: "0.95rem" }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      lineHeight: 1.8,
+                      color: "#556652",
+                      fontSize: "0.95rem",
+                    }}
+                  >
                     {product.description}
                   </p>
                 )}
@@ -965,7 +1085,8 @@ function Merchandise() {
                   <>
                     <ReviewIntro>
                       Be the first to leave a review for "{product.name}". Your
-                      email address will not be published. Required fields are marked *.
+                      email address will not be published. Required fields are
+                      marked *.
                     </ReviewIntro>
 
                     <form onSubmit={handleReviewSubmit}>
@@ -974,7 +1095,12 @@ function Merchandise() {
                         <FieldWrap className="full">
                           <FieldLabel>Your rating *</FieldLabel>
                           <StarRatingRow>
-                            {renderStars(review.rating, true, hoverStar, handleStarInteraction)}
+                            {renderStars(
+                              review.rating,
+                              true,
+                              hoverStar,
+                              handleStarInteraction,
+                            )}
                           </StarRatingRow>
                         </FieldWrap>
 
@@ -984,7 +1110,12 @@ function Merchandise() {
                           <Textarea
                             name="comment"
                             value={review.comment}
-                            onChange={(e) => setReview((p) => ({ ...p, comment: e.target.value }))}
+                            onChange={(e) =>
+                              setReview((p) => ({
+                                ...p,
+                                comment: e.target.value,
+                              }))
+                            }
                             placeholder="Share your experience with this product…"
                             required
                           />
@@ -997,7 +1128,9 @@ function Merchandise() {
                             type="text"
                             name="name"
                             value={review.name}
-                            onChange={(e) => setReview((p) => ({ ...p, name: e.target.value }))}
+                            onChange={(e) =>
+                              setReview((p) => ({ ...p, name: e.target.value }))
+                            }
                             placeholder="Your name"
                             required
                           />
@@ -1008,7 +1141,12 @@ function Merchandise() {
                             type="email"
                             name="email"
                             value={review.email}
-                            onChange={(e) => setReview((p) => ({ ...p, email: e.target.value }))}
+                            onChange={(e) =>
+                              setReview((p) => ({
+                                ...p,
+                                email: e.target.value,
+                              }))
+                            }
                             placeholder="your@email.com"
                             required
                           />
@@ -1016,13 +1154,18 @@ function Merchandise() {
 
                         <CheckRow>
                           <input type="checkbox" id="save-info" />
-                          <label htmlFor="save-info" style={{ cursor: "pointer" }}>
+                          <label
+                            htmlFor="save-info"
+                            style={{ cursor: "pointer" }}
+                          >
                             Save my name and email for next time.
                           </label>
                         </CheckRow>
 
                         {reviewMsg.text && (
-                          <StatusMsg $error={reviewMsg.error}>{reviewMsg.text}</StatusMsg>
+                          <StatusMsg $error={reviewMsg.error}>
+                            {reviewMsg.text}
+                          </StatusMsg>
                         )}
 
                         <SubmitBtn type="submit">Submit Review</SubmitBtn>
@@ -1030,7 +1173,6 @@ function Merchandise() {
                     </form>
                   </>
                 )}
-
               </TabCard>
             </TabContent>
           </TabsWrap>
@@ -1045,13 +1187,14 @@ function Merchandise() {
                   <img loading="lazy" src={item.image} alt={item.name} />
                   <RelatedBody>
                     <RelatedName>{item.name}</RelatedName>
-                    <RelatedPrice>Kes {item.price.toLocaleString()}</RelatedPrice>
+                    <RelatedPrice>
+                      Kes {item.price.toLocaleString()}
+                    </RelatedPrice>
                   </RelatedBody>
                 </RelatedCard>
               ))}
             </RelatedGrid>
           </div>
-
         </Container>
       </Page>
       <FooterContainer />

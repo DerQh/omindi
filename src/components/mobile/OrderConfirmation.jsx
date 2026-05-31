@@ -24,16 +24,16 @@ const fadeIn = keyframes`
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const PAYMENT_LABELS = {
-  cash:   "Cash on Delivery",
+  cash: "Cash on Delivery",
   mobile: "Mobile Money",
-  bank:   "Bank Transfer",
+  bank: "Bank Transfer",
 };
 
 const STEPS = [
-  { icon: "✓", label: "Order Placed"      },
-  { icon: "📞", label: "Seller Confirms"  },
+  { icon: "✓", label: "Order Placed" },
+  { icon: "📞", label: "Seller Confirms" },
   { icon: "🚚", label: "Out for Delivery" },
-  { icon: "🏠", label: "Delivered"        },
+  { icon: "🏠", label: "Delivered" },
 ];
 
 // ─── Print styles ─────────────────────────────────────────────────────────────
@@ -55,8 +55,8 @@ const PrintStyles = createGlobalStyle`
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const OrderConfirmation = () => {
-  const navigate       = useNavigate();
-  const { state }      = useLocation();
+  const navigate = useNavigate();
+  const { state } = useLocation();
   const [showReceipt, setShowReceipt] = useState(false);
 
   const {
@@ -67,7 +67,10 @@ const OrderConfirmation = () => {
     orderId,
   } = state || {};
 
-  const totalCount    = groups?.reduce((s, g) => s + g.items.reduce((ss, i) => ss + i.quantity, 0), 0);
+  const totalCount = groups?.reduce(
+    (s, g) => s + g.items.reduce((ss, i) => ss + i.quantity, 0),
+    0,
+  );
   const totalProducts = groups?.reduce((s, g) => s + g.items.length, 0);
   const estimatedDays = paymentMethod === "cash" ? "2–4" : "1–3";
 
@@ -77,7 +80,6 @@ const OrderConfirmation = () => {
     <>
       <AppNavbar />
       <Page>
-
         {/* ── Hero ── */}
         <Hero>
           <CheckCircle>✓</CheckCircle>
@@ -89,7 +91,6 @@ const OrderConfirmation = () => {
         {/* ── Content sheet ── */}
         <Sheet>
           <Inner>
-
             {/* ── What's next timeline ── */}
             <SectionLabel>What Happens Next</SectionLabel>
             <Timeline>
@@ -132,20 +133,31 @@ const OrderConfirmation = () => {
                   <GroupSellerName>
                     {group.items[0]?.listings?.seller_name || "Farmer"}
                   </GroupSellerName>
-                  <GroupSubtotal>Kes {group.totalCost.toLocaleString()}</GroupSubtotal>
+                  <GroupSubtotal>
+                    Kes {group.totalCost.toLocaleString()}
+                  </GroupSubtotal>
                 </GroupHeader>
                 {group.items.map((item, idx) => (
                   <ItemRow key={item.id} $last={idx === group.items.length - 1}>
-                    <ItemImg src={item.listings?.image_url} alt={item.listings?.title} />
+                    <ItemImg
+                      src={item.listings?.image_url}
+                      alt={item.listings?.title}
+                    />
                     <ItemMeta>
                       <ItemName>{item.listings?.title}</ItemName>
                       <ItemSub>
                         Kes {item.listings?.price}
-                        {item.listings?.unit ? ` / ${item.listings.unit}` : ""} × {item.quantity}
+                        {item.listings?.unit
+                          ? ` / ${item.listings.unit}`
+                          : ""}{" "}
+                        × {item.quantity}
                       </ItemSub>
                     </ItemMeta>
                     <ItemTotal>
-                      Kes {((item.listings?.price ?? 0) * item.quantity).toLocaleString()}
+                      Kes{" "}
+                      {(
+                        (item.listings?.price ?? 0) * item.quantity
+                      ).toLocaleString()}
                     </ItemTotal>
                   </ItemRow>
                 ))}
@@ -159,7 +171,9 @@ const OrderConfirmation = () => {
             <DeliveryCard>
               <DeliveryRow>
                 <DeliveryLabel>Payment</DeliveryLabel>
-                <DeliveryValue>{PAYMENT_LABELS[paymentMethod] ?? paymentMethod}</DeliveryValue>
+                <DeliveryValue>
+                  {PAYMENT_LABELS[paymentMethod] ?? paymentMethod}
+                </DeliveryValue>
               </DeliveryRow>
               <DeliveryRow>
                 <DeliveryLabel>Address</DeliveryLabel>
@@ -189,7 +203,6 @@ const OrderConfirmation = () => {
                 Go Home
               </ActionBtn>
             </Actions>
-
           </Inner>
         </Sheet>
       </Page>
@@ -199,8 +212,10 @@ const OrderConfirmation = () => {
         <>
           <PrintStyles />
           <ModalOverlay onClick={() => setShowReceipt(false)}>
-            <ModalBox onClick={(e) => e.stopPropagation()} id="receipt-printable">
-
+            <ModalBox
+              onClick={(e) => e.stopPropagation()}
+              id="receipt-printable"
+            >
               <ReceiptHeader>
                 <ReceiptLogo>AFARMER</ReceiptLogo>
                 <ReceiptSub>Official Receipt</ReceiptSub>
@@ -215,17 +230,22 @@ const OrderConfirmation = () => {
                       <ReceiptItemName>{item.listings?.title}</ReceiptItemName>
                       <ReceiptItemQty>×{item.quantity}</ReceiptItemQty>
                       <ReceiptItemPrice>
-                        Kes {(item.listings?.price * item.quantity).toLocaleString()}
+                        Kes{" "}
+                        {(
+                          item.listings?.price * item.quantity
+                        ).toLocaleString()}
                       </ReceiptItemPrice>
                     </ReceiptLine>
-                  ))
+                  )),
                 )}
 
                 <ReceiptDivider />
 
                 <ReceiptTotalRow>
                   <span>Total</span>
-                  <ReceiptTotalAmt>Kes {totalCost?.toLocaleString()}</ReceiptTotalAmt>
+                  <ReceiptTotalAmt>
+                    Kes {totalCost?.toLocaleString()}
+                  </ReceiptTotalAmt>
                 </ReceiptTotalRow>
 
                 <ReceiptDivider />
@@ -233,7 +253,9 @@ const OrderConfirmation = () => {
                 <ReceiptSectionLabel>Delivery Info</ReceiptSectionLabel>
                 <ReceiptInfoRow>
                   <ReceiptInfoLabel>Payment</ReceiptInfoLabel>
-                  <ReceiptInfoValue>{PAYMENT_LABELS[paymentMethod] ?? paymentMethod}</ReceiptInfoValue>
+                  <ReceiptInfoValue>
+                    {PAYMENT_LABELS[paymentMethod] ?? paymentMethod}
+                  </ReceiptInfoValue>
                 </ReceiptInfoRow>
                 <ReceiptInfoRow>
                   <ReceiptInfoLabel>Address</ReceiptInfoLabel>
@@ -241,17 +263,24 @@ const OrderConfirmation = () => {
                 </ReceiptInfoRow>
                 <ReceiptInfoRow>
                   <ReceiptInfoLabel>Est. Delivery</ReceiptInfoLabel>
-                  <ReceiptInfoValue>{estimatedDays} business days</ReceiptInfoValue>
+                  <ReceiptInfoValue>
+                    {estimatedDays} business days
+                  </ReceiptInfoValue>
                 </ReceiptInfoRow>
               </ReceiptBody>
 
-              <ReceiptFooter>Thank you for shopping with AFARMER!</ReceiptFooter>
+              <ReceiptFooter>
+                Thank you for shopping with AFARMER!
+              </ReceiptFooter>
 
               <ModalActions id="receipt-actions">
-                <ModalPrintBtn onClick={() => window.print()}>🖨 Print</ModalPrintBtn>
-                <ModalCloseBtn onClick={() => setShowReceipt(false)}>Close</ModalCloseBtn>
+                <ModalPrintBtn onClick={() => window.print()}>
+                  🖨 Print
+                </ModalPrintBtn>
+                <ModalCloseBtn onClick={() => setShowReceipt(false)}>
+                  Close
+                </ModalCloseBtn>
               </ModalActions>
-
             </ModalBox>
           </ModalOverlay>
         </>
@@ -285,8 +314,8 @@ const CheckCircle = styled.div`
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.2);
-  border: 3px solid rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.6);
   color: white;
   font-size: 2rem;
   display: flex;
@@ -307,12 +336,12 @@ const HeroTitle = styled.h1`
 const HeroSub = styled.p`
   margin: 0;
   font-size: 0.95rem;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
 `;
 
 const OrderIdBadge = styled.div`
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   color: white;
   font-size: 0.82rem;
   font-weight: 700;
@@ -485,7 +514,10 @@ const ItemImg = styled.img`
   flex-shrink: 0;
 `;
 
-const ItemMeta = styled.div`flex: 1; min-width: 0;`;
+const ItemMeta = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
 
 const ItemName = styled.p`
   margin: 0 0 2px;
@@ -563,16 +595,22 @@ const ActionBtn = styled.button`
   gap: 8px;
   transition: all 0.18s;
 
-  ${({ $variant }) => $variant === "primary" && `
+  ${({ $variant }) =>
+    $variant === "primary" &&
+    `
     background: #2f5a2a; color: white; border: none;
     &:hover { background: #245026; }
   `}
-  ${({ $variant }) => $variant === "outline" && `
+  ${({ $variant }) =>
+    $variant === "outline" &&
+    `
     background: white; color: #2f5a2a;
     border: 1.5px solid #cde5cf;
     &:hover { background: #eef7ee; border-color: #2f5a2a; }
   `}
-  ${({ $variant }) => $variant === "ghost" && `
+  ${({ $variant }) =>
+    $variant === "ghost" &&
+    `
     background: #eef7ee; color: #2f5a2a;
     border: 1.5px solid #cde5cf;
     &:hover { background: #d7edd7; }
@@ -584,7 +622,7 @@ const ActionBtn = styled.button`
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -600,7 +638,7 @@ const ModalBox = styled.div`
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   animation: ${fadeUp} 0.25s ease;
 `;
 
@@ -632,7 +670,9 @@ const ReceiptRef = styled.p`
   font-weight: 700;
 `;
 
-const ReceiptBody = styled.div`padding: 18px 24px;`;
+const ReceiptBody = styled.div`
+  padding: 18px 24px;
+`;
 
 const ReceiptSectionLabel = styled.p`
   margin: 0 0 8px;
@@ -651,9 +691,21 @@ const ReceiptLine = styled.div`
   border-bottom: 1px solid #f0f0f0;
 `;
 
-const ReceiptItemName = styled.span`color: #1a3318; font-size: 0.88rem; flex: 1;`;
-const ReceiptItemQty  = styled.span`color: #7b8f7f; font-size: 0.8rem; margin: 0 10px;`;
-const ReceiptItemPrice = styled.span`color: #2f5a2a; font-weight: 700; font-size: 0.88rem;`;
+const ReceiptItemName = styled.span`
+  color: #1a3318;
+  font-size: 0.88rem;
+  flex: 1;
+`;
+const ReceiptItemQty = styled.span`
+  color: #7b8f7f;
+  font-size: 0.8rem;
+  margin: 0 10px;
+`;
+const ReceiptItemPrice = styled.span`
+  color: #2f5a2a;
+  font-weight: 700;
+  font-size: 0.88rem;
+`;
 
 const ReceiptDivider = styled.div`
   height: 2px;
@@ -683,10 +735,16 @@ const ReceiptInfoRow = styled.div`
   padding: 5px 0;
 `;
 
-const ReceiptInfoLabel = styled.span`color: #7b8f7f; font-size: 0.85rem;`;
+const ReceiptInfoLabel = styled.span`
+  color: #7b8f7f;
+  font-size: 0.85rem;
+`;
 const ReceiptInfoValue = styled.span`
-  color: #2f5a2a; font-weight: 600; font-size: 0.85rem;
-  text-align: right; max-width: 55%;
+  color: #2f5a2a;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-align: right;
+  max-width: 55%;
 `;
 
 const ReceiptFooter = styled.div`
@@ -713,7 +771,9 @@ const ModalPrintBtn = styled.button`
   font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  &:hover { background: #245026; }
+  &:hover {
+    background: #245026;
+  }
 `;
 
 const ModalCloseBtn = styled.button`
@@ -726,5 +786,7 @@ const ModalCloseBtn = styled.button`
   font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  &:hover { background: #d7edd7; }
+  &:hover {
+    background: #d7edd7;
+  }
 `;

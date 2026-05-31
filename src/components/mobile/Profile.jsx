@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useProfile } from "../../hooks/useProfile";
 import LoadingComponent from "./Loading";
 import { useUserListings, useDeleteListing } from "../../hooks/useListings";
+import { useFavoriteListings, useFavoriteDelete } from "../../hooks/useFavListings";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -447,8 +448,13 @@ const ConfirmYes = styled.button`
   border: none;
   transition: background 0.2s;
 
-  &:hover { background: #8a2020; }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &:hover {
+    background: #8a2020;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 const ConfirmNo = styled.button`
@@ -463,7 +469,9 @@ const ConfirmNo = styled.button`
   border: 1px solid #cde5cf;
   transition: background 0.2s;
 
-  &:hover { background: #d7edd7; }
+  &:hover {
+    background: #d7edd7;
+  }
 `;
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
@@ -525,7 +533,13 @@ const Profile = () => {
     user?.id,
   );
 
-  const { mutate: deleteListing, isPending: isDeleting } = useDeleteListing(user?.id);
+  const { mutate: deleteListing, isPending: isDeleting } = useDeleteListing(
+    user?.id,
+  );
+
+  // Listings the user has saved/hearted across the marketplace.
+  const { data: favoriteListings = [] } = useFavoriteListings(user?.id);
+  const { mutate: removeFavorite } = useFavoriteDelete();
 
   if (isLoading || isLoadingListings) return <LoadingComponent />;
 
@@ -669,6 +683,57 @@ const Profile = () => {
                   + Add First Listing
                 </EmptyBtn>
               </EmptyState>
+            )}
+          </SectionCard>
+        </Section>
+
+        {/* ── Saved listings ── */}
+        <Section>
+          <SectionCard>
+            <SectionHeader>
+              <SectionTitle>
+                Saved Listings
+                <SectionCount>· {favoriteListings.length}</SectionCount>
+              </SectionTitle>
+            </SectionHeader>
+
+            {favoriteListings.length === 0 ? (
+              <EmptyState>
+                <EmptyIcon>🤍</EmptyIcon>
+                <EmptyTitle>No saved listings</EmptyTitle>
+                <EmptyDesc>
+                  Tap the heart on any listing to save it here.
+                </EmptyDesc>
+              </EmptyState>
+            ) : (
+              <ListingGrid>
+                {favoriteListings.map((item) => (
+                  <ListingCard
+                    key={item.id}
+                    onClick={() => navigate(`/listing/${item.id}`)}
+                  >
+                    <ListingImageWrap>
+                      <img src={item.image_url} alt={item.title} />
+                      <PriceBadge>
+                        Kes {item.price}/{item.unit}
+                      </PriceBadge>
+                    </ListingImageWrap>
+                    <ListingBody>
+                      <ListingTitle>{item.title}</ListingTitle>
+                      {/* Unsave button — removes the favorite without navigating away */}
+                      <CardActions onClick={(e) => e.stopPropagation()}>
+                        <DeleteListingBtn
+                          onClick={() =>
+                            removeFavorite({ user_id: user?.id, listing_id: item.id })
+                          }
+                        >
+                          Remove
+                        </DeleteListingBtn>
+                      </CardActions>
+                    </ListingBody>
+                  </ListingCard>
+                ))}
+              </ListingGrid>
             )}
           </SectionCard>
         </Section>

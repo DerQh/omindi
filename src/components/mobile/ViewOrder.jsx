@@ -21,26 +21,34 @@ const shimmer = keyframes`
 const STATUS_STEPS = ["pending", "confirmed", "delivering", "delivered"];
 
 const statusConfig = {
-  pending:    { bg: "#fff8e5", color: "#b07d00", label: "Pending"     },
-  confirmed:  { bg: "#eef9f0", color: "#2f5a2a", label: "Confirmed"   },
+  pending: { bg: "#fff8e5", color: "#b07d00", label: "Pending" },
+  confirmed: { bg: "#eef9f0", color: "#2f5a2a", label: "Confirmed" },
   delivering: { bg: "#e5f4ff", color: "#1a5a8a", label: "Out for Delivery" },
-  delivered:  { bg: "#eef9f0", color: "#2f5a2a", label: "Delivered"   },
-  cancelled:  { bg: "#fdf0f0", color: "#a32d2d", label: "Cancelled"   },
+  delivered: { bg: "#eef9f0", color: "#2f5a2a", label: "Delivered" },
+  cancelled: { bg: "#fdf0f0", color: "#a32d2d", label: "Cancelled" },
 };
 
 // Icon shown in each step dot
-const stepIcons = { pending: "📋", confirmed: "✅", delivering: "🚚", delivered: "📦" };
+const stepIcons = {
+  pending: "📋",
+  confirmed: "✅",
+  delivering: "🚚",
+  delivered: "📦",
+};
 
 const paymentLabels = {
-  cash:   "Cash on Delivery",
+  cash: "Cash on Delivery",
   mobile: "Mobile Money",
-  bank:   "Bank Transfer",
+  bank: "Bank Transfer",
 };
 
 const formatDate = (s) =>
   new Date(s).toLocaleDateString("en-US", {
-    month: "long", day: "numeric", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
 // ─── Page Shell ───────────────────────────────────────────────────────────────
@@ -63,44 +71,53 @@ const Hero = styled.div`
   &::before {
     content: "";
     position: absolute;
-    width: 260px; height: 260px;
+    width: 260px;
+    height: 260px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.06);
-    top: -80px; right: -50px;
+    background: rgba(255, 255, 255, 0.06);
+    top: -80px;
+    right: -50px;
     pointer-events: none;
   }
   &::after {
     content: "";
     position: absolute;
-    width: 140px; height: 140px;
+    width: 140px;
+    height: 140px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    bottom: -20px; left: -30px;
+    background: rgba(255, 255, 255, 0.04);
+    bottom: -20px;
+    left: -30px;
     pointer-events: none;
   }
 `;
 
 const BackBtn = styled.button`
-  width: 38px; height: 38px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
   font-size: 1.1rem;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   backdrop-filter: blur(4px);
   margin-bottom: 20px;
   transition: background 0.2s;
 
-  &:hover { background: rgba(255,255,255,0.28); }
+  &:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
 `;
 
 const HeroMeta = styled.p`
   margin: 0 0 6px;
   font-size: 0.78rem;
   font-weight: 700;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 `;
@@ -116,14 +133,14 @@ const HeroOrderId = styled.h1`
 
 const HeroDate = styled.p`
   margin: 0 0 16px;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.88rem;
 `;
 
 const HeroStatusBadge = styled.span`
   display: inline-block;
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   color: white;
   font-size: 0.82rem;
   font-weight: 700;
@@ -148,7 +165,7 @@ const SectionCard = styled.div`
   background: white;
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(20,57,32,0.07);
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
   margin-bottom: 16px;
   animation: ${slideUp} 0.35s ease;
 `;
@@ -237,15 +254,20 @@ const StepCol = styled.div`
 `;
 
 const StepDot = styled.div`
-  width: 32px; height: 32px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: ${({ $done, $current }) =>
     $current ? "#2f5a2a" : $done ? "#eef9f0" : "#e8f2e8"};
-  border: 2.5px solid ${({ $done, $current }) =>
-    $current || $done ? "#2f5a2a" : "#d7e9d7"};
-  display: flex; align-items: center; justify-content: center;
-  font-size: ${({ $done, $current }) => ($done || $current ? "0.85rem" : "0.75rem")};
-  color: ${({ $done, $current }) => ($current || $done ? "#2f5a2a" : "#aac4aa")};
+  border: 2.5px solid
+    ${({ $done, $current }) => ($current || $done ? "#2f5a2a" : "#d7e9d7")};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: ${({ $done, $current }) =>
+    $done || $current ? "0.85rem" : "0.75rem"};
+  color: ${({ $done, $current }) =>
+    $current || $done ? "#2f5a2a" : "#aac4aa"};
   z-index: 1;
   position: relative;
 `;
@@ -276,7 +298,9 @@ const OrderItem = styled.div`
   padding: 14px 20px;
   border-bottom: 1px solid #f0f7ee;
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 
   @media (max-width: 480px) {
     grid-template-columns: 60px 1fr;
@@ -316,7 +340,9 @@ const ItemSubtotal = styled.p`
   font-size: 0.93rem;
   white-space: nowrap;
 
-  @media (max-width: 480px) { display: none; }
+  @media (max-width: 480px) {
+    display: none;
+  }
 `;
 
 // ─── Delivery & Payment ───────────────────────────────────────────────────────
@@ -327,7 +353,9 @@ const InfoGrid = styled.div`
   gap: 10px;
   padding: 0 20px 20px;
 
-  @media (max-width: 480px) { grid-template-columns: 1fr; }
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const InfoBox = styled.div`
@@ -397,7 +425,9 @@ const PrimaryBtn = styled.button`
   cursor: pointer;
   transition: background 0.2s;
 
-  &:hover { background: #245026; }
+  &:hover {
+    background: #245026;
+  }
 `;
 
 const SecondaryBtn = styled.button`
@@ -412,7 +442,10 @@ const SecondaryBtn = styled.button`
   cursor: pointer;
   transition: all 0.2s;
 
-  &:hover { background: #eef7ee; border-color: #2f5a2a; }
+  &:hover {
+    background: #eef7ee;
+    border-color: #2f5a2a;
+  }
 `;
 
 const ContactBtn = styled.button`
@@ -432,7 +465,9 @@ const ContactBtn = styled.button`
   gap: 8px;
   transition: all 0.2s;
 
-  &:hover { background: #d0eaff; }
+  &:hover {
+    background: #d0eaff;
+  }
 `;
 
 // ─── Loading Skeleton ─────────────────────────────────────────────────────────
@@ -463,7 +498,7 @@ const SkeletonCard = styled.div`
   border-radius: 18px;
   padding: 20px;
   margin: 0 20px 16px;
-  box-shadow: 0 4px 20px rgba(20,57,32,0.07);
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
   display: grid;
   gap: 12px;
 `;
@@ -475,11 +510,14 @@ const ErrorWrap = styled.div`
   padding: 60px 24px;
   background: white;
   border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(20,57,32,0.07);
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
   margin: 20px;
 `;
 
-const ErrorIcon = styled.div`font-size: 2.5rem; margin-bottom: 12px;`;
+const ErrorIcon = styled.div`
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+`;
 
 const ErrorTitle = styled.p`
   margin: 0 0 8px;
@@ -502,7 +540,9 @@ const RetryBtn = styled.button`
   border-radius: 10px;
   font-weight: 700;
   cursor: pointer;
-  &:hover { background: #245026; }
+  &:hover {
+    background: #245026;
+  }
 `;
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -527,7 +567,13 @@ const ViewOrder = () => {
             <SkeletonLine $h="20px" $w="160px" />
             <SkeletonLine $h="12px" $w="200px" />
           </SkeletonHero>
-          <SkeletonCard style={{ margin: "-24px 20px 16px", position: "relative", zIndex: 5 }}>
+          <SkeletonCard
+            style={{
+              margin: "-24px 20px 16px",
+              position: "relative",
+              zIndex: 5,
+            }}
+          >
             <SkeletonLine $h="12px" $w="60%" />
             <SkeletonLine $h="12px" $w="85%" />
             <SkeletonLine $h="12px" $w="40%" />
@@ -553,7 +599,9 @@ const ViewOrder = () => {
           <ErrorWrap>
             <ErrorIcon>⚠️</ErrorIcon>
             <ErrorTitle>Couldn't load order</ErrorTitle>
-            <ErrorDesc>There was a problem fetching this order. Please try again.</ErrorDesc>
+            <ErrorDesc>
+              There was a problem fetching this order. Please try again.
+            </ErrorDesc>
             <RetryBtn onClick={refetch}>Retry</RetryBtn>
           </ErrorWrap>
         </Container>
@@ -565,7 +613,6 @@ const ViewOrder = () => {
     <>
       <AppNavbar />
       <Container>
-
         {/* ── Hero — order ID, date, status badge ── */}
         <Hero>
           <BackBtn onClick={() => navigate(-1)}>←</BackBtn>
@@ -578,7 +625,6 @@ const ViewOrder = () => {
         </Hero>
 
         <ContentArea>
-
           {/* ── Cancelled banner ── */}
           {isCancelled && (
             <CancelledBanner>
@@ -586,7 +632,8 @@ const ViewOrder = () => {
               <CancelledText>
                 <CancelledTitle>Order Cancelled</CancelledTitle>
                 <CancelledDesc>
-                  This order was cancelled. Contact the seller if you have questions.
+                  This order was cancelled. Contact the seller if you have
+                  questions.
                 </CancelledDesc>
               </CancelledText>
             </CancelledBanner>
@@ -596,12 +643,12 @@ const ViewOrder = () => {
           {!isCancelled && (
             <SectionCard>
               <SectionHeader>
-                <SectionTitle>📍 Order Progress</SectionTitle>
+                <SectionTitle>Order Progress</SectionTitle>
               </SectionHeader>
               <StepperWrap>
                 <StepsRow>
                   {STATUS_STEPS.map((step, i) => {
-                    const done    = i < stepIndex;
+                    const done = i < stepIndex;
                     const current = i === stepIndex;
                     return (
                       <StepCol key={step} $done={done || current}>
@@ -622,11 +669,10 @@ const ViewOrder = () => {
           {/* ── Items ordered ── */}
           <SectionCard>
             <SectionHeader>
-              <SectionTitle>
-                Items Ordered
-              </SectionTitle>
+              <SectionTitle>Items Ordered</SectionTitle>
               <span style={{ color: "#7b8f7f", fontSize: "0.82rem" }}>
-                {order.order_items?.length} item{order.order_items?.length !== 1 ? "s" : ""}
+                {order.order_items?.length} item
+                {order.order_items?.length !== 1 ? "s" : ""}
               </span>
             </SectionHeader>
             <ItemList>
@@ -638,11 +684,15 @@ const ViewOrder = () => {
                   />
                   <ItemInfo>
                     <ItemName>{item.listings?.title}</ItemName>
-                    <ItemMeta>Kes {item.price_at_purchase} per {item.listings?.unit || "unit"}</ItemMeta>
+                    <ItemMeta>
+                      Kes {item.price_at_purchase} per{" "}
+                      {item.listings?.unit || "unit"}
+                    </ItemMeta>
                     <ItemMeta>Qty: {item.quantity}</ItemMeta>
                   </ItemInfo>
                   <ItemSubtotal>
-                    Kes {(item.price_at_purchase * item.quantity).toLocaleString()}
+                    Kes{" "}
+                    {(item.price_at_purchase * item.quantity).toLocaleString()}
                   </ItemSubtotal>
                 </OrderItem>
               ))}
@@ -663,7 +713,9 @@ const ViewOrder = () => {
             <InfoGrid>
               <InfoBox>
                 <InfoLabel>Payment Method</InfoLabel>
-                <InfoValue>{paymentLabels[order.payment_method] ?? order.payment_method}</InfoValue>
+                <InfoValue>
+                  {paymentLabels[order.payment_method] ?? order.payment_method}
+                </InfoValue>
               </InfoBox>
               <InfoBox>
                 <InfoLabel>Delivery Address</InfoLabel>
@@ -689,12 +741,10 @@ const ViewOrder = () => {
             <PrimaryBtn onClick={() => navigate("/list")}>
               Continue Shopping
             </PrimaryBtn>
-         
           </ButtonRow>
           <ContactBtn onClick={() => navigate("/messages")}>
-            💬 Contact Seller about this Order
+            Contact Seller about this Order
           </ContactBtn>
-
         </ContentArea>
       </Container>
     </>

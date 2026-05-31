@@ -1,143 +1,46 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { useCreateListing } from "../../hooks/useCreateListing";
 
-const Container = styled.div`
-  padding: 20px 30px;
-  min-height: 100vh;
-  background: #f7fbff;
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
-const BackButton = styled.button`
-  background: #2f5a2a;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  margin-right: 16px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+const CATEGORIES = [
+  "Vegetables",
+  "Fruits",
+  "Dairy",
+  "Poultry",
+  "Honey",
+  "Grains",
+  "Meat",
+  "Fish",
+  "Eggs",
+  "Other",
+];
 
-  &:hover {
-    background: #245026;
-  }
-`;
+const UNITS = [
+  { value: "kg", label: "per kg" },
+  { value: "g", label: "per 100g" },
+  { value: "piece", label: "per piece" },
+  { value: "bunch", label: "per bunch" },
+  { value: "crate", label: "per crate" },
+  { value: "litre", label: "per litre" },
+  { value: "dozen", label: "per dozen" },
+  { value: "bag", label: "per bag" },
+  { value: "custom", label: "custom…" },
+];
 
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 24px;
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
-`;
-
-const FormCard = styled.div`
-  max-width: 700px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(20, 57, 32, 0.08);
-  padding: 32px;
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  color: #2f5a2a;
-  flex: 1;
-  text-align: center;
-`;
-
-const Field = styled.div`
-  margin-bottom: 18px;
-
-  label {
-    display: block;
-    margin-bottom: 8px;
-    color: #44554c;
-    font-weight: 600;
-  }
-
-  input,
-  textarea {
-    width: 90%;
-    border: 1px solid #dbe5d8;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 1rem;
-    color: #273a25;
-    background: #f8fcf8;
-  }
-
-  textarea {
-    min-height: 120px;
-    resize: vertical;
-  }
-`;
-
-const ImageUpload = styled.div`
-  margin-bottom: 20px;
-
-  input {
-    display: none;
-  }
-
-  label {
-    display: inline-block;
-    background: #2f5a2a;
-    color: white;
-    padding: 10px 16px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-`;
-
-const PreviewGrid = styled.div`
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-`;
-
-const PreviewImage = styled.img`
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 2px solid #dbe5d8;
-`;
-
-const SubmitButton = styled.button`
-  width: 100%;
-  margin-top: 12px;
-  border: none;
-  padding: 14px;
-  background: #2f5a2a;
-  color: white;
-  border-radius: 14px;
-  font-size: 1rem;
-  cursor: pointer;
-
-  &:disabled {
-    background: #9db79b;
-    cursor: not-allowed;
-  }
-`;
+const DESC_MAX = 400;
 
 const NewListing = () => {
-  // mutate is the function to call to create a new listing, isPending indicates if the creation is in progress
   const { mutate, isPending } = useCreateListing();
   const navigate = useNavigate();
 
-  const [name, setTitle] = useState("");
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [minimumOrder, setMinimumOrder] = useState("");
@@ -145,22 +48,32 @@ const NewListing = () => {
   const [category, setCategory] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [unit, setUnit] = useState("");
-  const [seller_name, setSellerName] = useState("");
+  const [unit, setUnit] = useState("kg");
+  const [customUnit, setCustomUnit] = useState("");
+  const [phone, setPhone] = useState("");
+  const [available, setAvailable] = useState(true);
+  const [dragOver, setDragOver] = useState(false);
 
   const handleBack = () => navigate(-1);
 
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setImage(file);
-      setPreview(URL.createObjectURL(file));
-    }
+  const applyFile = (file) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleImageChange = (e) => applyFile(e.target.files[0]);
 
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    applyFile(e.dataTransfer.files[0]);
+  };
+
+  const resolvedUnit = unit === "custom" ? customUnit : unit;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
     mutate(
       {
         title: name,
@@ -170,113 +83,570 @@ const NewListing = () => {
         location,
         category,
         image,
-        unit,
-        seller_name,
+        unit: resolvedUnit,
+        phone,
+        available,
       },
-      {
-        // After successfully creating a listing, navigate back to the listing page
-        onSuccess: () => {
-          navigate("/list");
-        },
-      },
+      { onSuccess: () => navigate("/list") },
     );
   };
 
   return (
     <>
       <AppNavbar />
-      <Container>
-        <Header>
-          <BackButton onClick={handleBack}>←</BackButton>
-          <Title>Create a New Listing</Title>
-        </Header>
+      <Page>
+        {/* ── Sticky header ── */}
+        <StickyHeader>
+          <BackBtn onClick={handleBack} aria-label="Go back">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </BackBtn>
+          <HeaderTitle>New Listing</HeaderTitle>
+          <HeaderSpacer />
+        </StickyHeader>
 
-        <FormCard>
+        <Body>
           <form onSubmit={handleSubmit}>
-            <Field>
-              <label>Item Name</label>
-              <input
-                value={name}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </Field>
+            {/* ── Section: What are you selling? ── */}
+            <Section>
+              <SectionLabel>What are you selling?</SectionLabel>
 
-            <Field>
-              <label>Price</label>
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                required
-              />
-            </Field>
-            <Field>
-              <label>/Unit</label>
-              <input
-                placeholder="Price per ?"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                required
-              />
-            </Field>
+              <Field>
+                <FieldLabel htmlFor="name">Item Name *</FieldLabel>
+                <FieldInput
+                  id="name"
+                  placeholder="e.g. Fresh Tomatoes"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </Field>
 
-            <Field>
-              <label>Minimum Order</label>
-              <input
-                value={minimumOrder}
-                onChange={(e) => setMinimumOrder(e.target.value)}
-                placeholder="e.g. 1 kg, 5 pieces"
-              />
-            </Field>
+              <Field>
+                <FieldLabel>Category</FieldLabel>
+                <ChipGrid>
+                  {CATEGORIES.map((c) => (
+                    <Chip
+                      key={c}
+                      type="button"
+                      $active={category === c}
+                      onClick={() => setCategory(category === c ? "" : c)}
+                    >
+                      {c}
+                    </Chip>
+                  ))}
+                </ChipGrid>
+              </Field>
 
-            <Field>
-              <label>Category</label>
-              <input
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
-            </Field>
+              <Field>
+                <FieldLabel htmlFor="description">
+                  Description
+                  <CharCount $warn={description.length > DESC_MAX * 0.9}>
+                    {description.length}/{DESC_MAX}
+                  </CharCount>
+                </FieldLabel>
+                <FieldTextarea
+                  id="description"
+                  placeholder="Describe your product — freshness, quantity available, how it was grown…"
+                  value={description}
+                  rows={4}
+                  maxLength={DESC_MAX}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </Field>
 
-            <Field>
-              <label>Location</label>
-              <input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-              />
-            </Field>
+              {/* Availability toggle — sellers mark stock as available or out of stock */}
+              <Field>
+                <FieldLabel>Availability</FieldLabel>
+                <ChipGrid>
+                  <Chip type="button" $active={available} onClick={() => setAvailable(true)}>
+                    Available
+                  </Chip>
+                  <Chip type="button" $active={!available} onClick={() => setAvailable(false)}
+                    style={!available ? { background: "#a32d2d", borderColor: "#a32d2d" } : {}}>
+                    Out of Stock
+                  </Chip>
+                </ChipGrid>
+              </Field>
+            </Section>
 
-            <Field>
-              <label>Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </Field>
+            {/* ── Section: Pricing ── */}
+            <Section>
+              <SectionLabel>Pricing</SectionLabel>
 
-            <ImageUpload>
-              <label htmlFor="imageUpload">Upload Image</label>
-              <input
+              <PriceRow>
+                <Field style={{ flex: 1 }}>
+                  <FieldLabel htmlFor="price">Price (Kes) *</FieldLabel>
+                  <FieldInput
+                    id="price"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    required
+                  />
+                </Field>
+                <Field style={{ flex: 1 }}>
+                  <FieldLabel htmlFor="unit">Unit</FieldLabel>
+                  <FieldSelect
+                    id="unit"
+                    value={unit}
+                    onChange={(e) => setUnit(e.target.value)}
+                  >
+                    {UNITS.map((u) => (
+                      <option key={u.value} value={u.value}>
+                        {u.label}
+                      </option>
+                    ))}
+                  </FieldSelect>
+                </Field>
+              </PriceRow>
+
+              {unit === "custom" && (
+                <Field>
+                  <FieldLabel htmlFor="customUnit">
+                    Custom unit label
+                  </FieldLabel>
+                  <FieldInput
+                    id="customUnit"
+                    placeholder="e.g. per 5 kg bag"
+                    value={customUnit}
+                    onChange={(e) => setCustomUnit(e.target.value)}
+                  />
+                </Field>
+              )}
+
+              <Field>
+                <FieldLabel htmlFor="minOrder">Minimum Order</FieldLabel>
+                <FieldInput
+                  id="minOrder"
+                  placeholder="e.g. 2 kg, 1 crate"
+                  value={minimumOrder}
+                  onChange={(e) => setMinimumOrder(e.target.value)}
+                />
+              </Field>
+            </Section>
+
+            {/* ── Section: Details ── */}
+            <Section>
+              <SectionLabel>Details</SectionLabel>
+
+              <Field>
+                <FieldLabel htmlFor="location">Location *</FieldLabel>
+                <FieldInput
+                  id="location"
+                  placeholder="e.g. Kisumu, Kondele Market"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  required
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="phone">WhatsApp / Phone</FieldLabel>
+                <PhoneInputWrap>
+                  <PhonePrefix>+254</PhonePrefix>
+                  <FieldInput
+                    id="phone"
+                    type="tel"
+                    placeholder="7XX XXX XXX"
+                    value={phone}
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                      borderLeft: "none",
+                    }}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </PhoneInputWrap>
+                <FieldHint>
+                  Buyers will use this to contact you via WhatsApp or call.
+                </FieldHint>
+              </Field>
+            </Section>
+
+            {/* ── Section: Photo ── */}
+            <Section>
+              <SectionLabel>Photo</SectionLabel>
+
+              {preview ? (
+                <PreviewWrap>
+                  <PreviewImg src={preview} alt="preview" />
+                  <PreviewActions>
+                    <PreviewLabel htmlFor="imageUpload">
+                      Change photo
+                    </PreviewLabel>
+                    <PreviewRemove
+                      type="button"
+                      onClick={() => {
+                        setImage(null);
+                        setPreview(null);
+                      }}
+                    >
+                      Remove
+                    </PreviewRemove>
+                  </PreviewActions>
+                </PreviewWrap>
+              ) : (
+                <DropZone
+                  $dragOver={dragOver}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleDrop}
+                  onClick={() => document.getElementById("imageUpload").click()}
+                >
+                  <DropIcon>📷</DropIcon>
+                  <DropText>Tap to upload a photo</DropText>
+                  <DropHint>or drag and drop · JPG, PNG, WEBP</DropHint>
+                </DropZone>
+              )}
+
+              <HiddenInput
                 id="imageUpload"
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
               />
-              {preview && (
-                <PreviewGrid>
-                  <PreviewImage src={preview} alt="preview" />
-                </PreviewGrid>
-              )}
-            </ImageUpload>
+            </Section>
 
-            <SubmitButton type="submit" disabled={isPending}>
-              {isPending ? "Creating..." : "Create New Listing"}
-            </SubmitButton>
+            {/* ── Submit ── */}
+            <SubmitBtn type="submit" disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Spinner />
+                  Creating listing…
+                </>
+              ) : (
+                "Publish Listing"
+              )}
+            </SubmitBtn>
           </form>
-        </FormCard>
-      </Container>
+        </Body>
+      </Page>
     </>
   );
 };
 
 export default NewListing;
+
+// ─── Styled components ────────────────────────────────────────────────────────
+
+const Page = styled.div`
+  min-height: 100vh;
+  background: #f5f8f5;
+`;
+
+const StickyHeader = styled.div`
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  background: white;
+  border-bottom: 1px solid #e8f5e9;
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 8px rgba(20, 57, 32, 0.06);
+`;
+
+const BackBtn = styled.button`
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1a3318;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  &:hover {
+    background: #f0fdf4;
+  }
+`;
+
+const HeaderTitle = styled.h1`
+  flex: 1;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0;
+  letter-spacing: -0.2px;
+`;
+
+const HeaderSpacer = styled.div`
+  width: 36px;
+  flex-shrink: 0;
+`;
+
+const Body = styled.div`
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  animation: ${fadeUp} 0.35s ease;
+`;
+
+const Section = styled.div`
+  background: white;
+  border-radius: 18px;
+  padding: 22px 20px;
+  margin-bottom: 14px;
+  border: 1px solid #e8f5e9;
+  box-shadow: 0 2px 10px rgba(20, 57, 32, 0.05);
+`;
+
+const SectionLabel = styled.p`
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #4e9643;
+  margin: 0 0 18px;
+`;
+
+const Field = styled.div`
+  margin-bottom: 16px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const FieldLabel = styled.label`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #1a3318;
+  margin-bottom: 7px;
+`;
+
+const CharCount = styled.span`
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: ${({ $warn }) => ($warn ? "#ef4444" : "#9ca3af")};
+`;
+
+const fieldBase = `
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 16px;
+  color: #111827;
+  background: #fafcfa;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  &:focus {
+    border-color: #2f5a2a;
+    box-shadow: 0 0 0 3px rgba(47,90,42,0.08);
+    background: white;
+  }
+  &::placeholder { color: #c4d4c4; }
+`;
+
+const FieldInput = styled.input`
+  ${fieldBase}
+`;
+const FieldTextarea = styled.textarea`
+  ${fieldBase} resize: vertical;
+  min-height: 100px;
+`;
+const FieldSelect = styled.select`
+  ${fieldBase} cursor: pointer;
+`;
+
+const PhoneInputWrap = styled.div`
+  display: flex;
+  align-items: stretch;
+`;
+const PhonePrefix = styled.span`
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: #f3f4f6;
+  border: 1.5px solid #e5e7eb;
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4b5563;
+  white-space: nowrap;
+`;
+const FieldHint = styled.p`
+  font-size: 0.74rem;
+  color: #9ca3af;
+  margin: 5px 0 0;
+`;
+
+// Category chips
+const ChipGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+const Chip = styled.button`
+  padding: 7px 15px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid;
+  transition: all 0.15s;
+  background: ${({ $active }) => ($active ? "#2f5a2a" : "white")};
+  color: ${({ $active }) => ($active ? "white" : "#4b5563")};
+  border-color: ${({ $active }) => ($active ? "#2f5a2a" : "#e5e7eb")};
+  &:hover {
+    background: ${({ $active }) => ($active ? "#245026" : "#f0fdf4")};
+    border-color: ${({ $active }) => ($active ? "#245026" : "#bbf7d0")};
+  }
+`;
+
+// Price row
+const PriceRow = styled.div`
+  display: flex;
+  gap: 12px;
+  @media (max-width: 400px) {
+    flex-direction: column;
+  }
+`;
+
+// Image upload
+const DropZone = styled.div`
+  border: 2px dashed ${({ $dragOver }) => ($dragOver ? "#2f5a2a" : "#cde5cf")};
+  border-radius: 16px;
+  background: ${({ $dragOver }) => ($dragOver ? "#f0fdf4" : "#fafcfa")};
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+  &:hover {
+    border-color: #2f5a2a;
+    background: #f0fdf4;
+  }
+`;
+
+const DropIcon = styled.div`
+  font-size: 2rem;
+  margin-bottom: 10px;
+`;
+const DropText = styled.p`
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1a3318;
+  margin: 0 0 4px;
+`;
+const DropHint = styled.p`
+  font-size: 0.76rem;
+  color: #9ca3af;
+  margin: 0;
+`;
+
+const PreviewWrap = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+const PreviewImg = styled.img`
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1.5px solid #e8f5e9;
+  flex-shrink: 0;
+`;
+const PreviewActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+const PreviewLabel = styled.label`
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #2f5a2a;
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+const PreviewRemove = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.82rem;
+  color: #ef4444;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+const HiddenInput = styled.input`
+  display: none;
+`;
+
+// Submit
+const SubmitBtn = styled.button`
+  width: 100%;
+  padding: 15px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #2f5a2a, #4e9643);
+  color: white;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+`;
+
+const Spinner = styled.div`
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  animation: ${spin} 0.7s linear infinite;
+`;

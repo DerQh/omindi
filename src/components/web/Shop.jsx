@@ -943,7 +943,7 @@ function Shop() {
                   </RatingRow>
                   <CardFooter>
                     <Price>Kes {product.price.toLocaleString()}</Price>
-                    <ShopBtn to={`/shop/item/${product.id}`}>Buy Now</ShopBtn>
+                    <ShopBtn to={`/shop/item/${product.id}`} state={{ product }}>Buy Now</ShopBtn>
                   </CardFooter>
                 </CardBody>
               </Card>
@@ -1019,7 +1019,7 @@ function Shop() {
                 </RatingRow>
                 <CardFooter>
                   <Price>Kes {product.price.toLocaleString()}</Price>
-                  <ShopBtn to={`/shop/item/${product.id}`}>Shop Now</ShopBtn>
+                  <ShopBtn to={`/shop/item/${product.id}`} state={{ product }}>Shop Now</ShopBtn>
                 </CardFooter>
               </CardBody>
             </Card>

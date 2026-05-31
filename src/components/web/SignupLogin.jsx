@@ -6,14 +6,32 @@ import { useAuth } from "../../context/AuthContext";
 // ─── Eye icons for the password toggle ───────────────────────────────────────
 
 const EyeOpen = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
 
 const EyeClosed = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
     <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
     <line x1="1" y1="1" x2="23" y2="23" />
@@ -48,7 +66,13 @@ const Page = styled.div`
 // ─── Left panel — brand + trust signals ──────────────────────────────────────
 
 const LeftPanel = styled.div`
-  background: linear-gradient(145deg, #0f2210 0%, #1e3d1a 40%, #2f5a2a 80%, #3d7a35 100%);
+  background: linear-gradient(
+    145deg,
+    #0f2210 0%,
+    #1e3d1a 40%,
+    #2f5a2a 80%,
+    #3d7a35 100%
+  );
   padding: 48px 52px;
   display: flex;
   flex-direction: column;
@@ -60,23 +84,29 @@ const LeftPanel = styled.div`
   &::before {
     content: "";
     position: absolute;
-    width: 400px; height: 400px;
+    width: 400px;
+    height: 400px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    top: -120px; right: -120px;
+    background: rgba(255, 255, 255, 0.04);
+    top: -120px;
+    right: -120px;
     pointer-events: none;
   }
   &::after {
     content: "";
     position: absolute;
-    width: 240px; height: 240px;
+    width: 240px;
+    height: 240px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    bottom: -60px; left: -60px;
+    background: rgba(255, 255, 255, 0.04);
+    bottom: -60px;
+    left: -60px;
     pointer-events: none;
   }
 
-  @media (max-width: 860px) { display: none; }
+  @media (max-width: 860px) {
+    display: none;
+  }
 `;
 
 const LeftLogo = styled(Link)`
@@ -118,7 +148,7 @@ const LeftHeadline = styled.h2`
 
 const LeftSub = styled.p`
   margin: 0 0 40px;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   font-size: 0.95rem;
   line-height: 1.7;
 `;
@@ -140,7 +170,7 @@ const TrustIcon = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -160,7 +190,7 @@ const TrustTitle = styled.p`
 const TrustDesc = styled.p`
   margin: 0;
   font-size: 0.78rem;
-  color: rgba(255,255,255,0.55);
+  color: rgba(255, 255, 255, 0.55);
   line-height: 1.5;
 `;
 
@@ -174,13 +204,13 @@ const StatRow = styled.div`
 `;
 
 const StatChip = styled.div`
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 999px;
   padding: 7px 16px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
 `;
 
 // ─── Right panel — form ───────────────────────────────────────────────────────
@@ -194,7 +224,9 @@ const RightPanel = styled.div`
   padding: 48px 32px;
   min-height: 100vh;
 
-  @media (max-width: 480px) { padding: 32px 20px; }
+  @media (max-width: 480px) {
+    padding: 32px 20px;
+  }
 `;
 
 // Mobile-only logo — hidden on desktop (left panel has it)
@@ -218,7 +250,9 @@ const MobileLogo = styled(Link)`
     color: #2f5a2a;
   }
 
-  @media (max-width: 860px) { display: flex; }
+  @media (max-width: 860px) {
+    display: flex;
+  }
 `;
 
 const FormCard = styled.div`
@@ -230,7 +264,9 @@ const FormCard = styled.div`
   max-width: 420px;
   animation: ${fadeUp} 0.4s ease;
 
-  @media (max-width: 480px) { padding: 28px 22px; }
+  @media (max-width: 480px) {
+    padding: 28px 22px;
+  }
 `;
 
 const FormHeader = styled.div`
@@ -272,7 +308,8 @@ const ModeTab = styled.button`
   transition: all 0.2s;
   background: ${({ $active }) => ($active ? "white" : "transparent")};
   color: ${({ $active }) => ($active ? "#2f5a2a" : "#7b8f7f")};
-  box-shadow: ${({ $active }) => ($active ? "0 2px 8px rgba(0,0,0,0.08)" : "none")};
+  box-shadow: ${({ $active }) =>
+    $active ? "0 2px 8px rgba(0,0,0,0.08)" : "none"};
 `;
 
 // ─── Input fields ─────────────────────────────────────────────────────────────
@@ -309,15 +346,21 @@ const Input = styled.input`
   background: ${({ $hasError }) => ($hasError ? "#fff5f5" : "#f8faf6")};
   outline: none;
   font-family: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
 
-  &::placeholder { color: #aac4aa; }
+  &::placeholder {
+    color: #aac4aa;
+  }
 
   &:focus {
     border-color: ${({ $hasError }) => ($hasError ? "#dc3545" : "#2f5a2a")};
     background: white;
-    box-shadow: 0 0 0 3px ${({ $hasError }) =>
-      $hasError ? "rgba(220,53,69,0.1)" : "rgba(47,90,42,0.1)"};
+    box-shadow: 0 0 0 3px
+      ${({ $hasError }) =>
+        $hasError ? "rgba(220,53,69,0.1)" : "rgba(47,90,42,0.1)"};
   }
 `;
 
@@ -336,7 +379,9 @@ const ToggleBtn = styled.button`
   line-height: 1;
   transition: color 0.15s;
 
-  &:hover { color: #2f5a2a; }
+  &:hover {
+    color: #2f5a2a;
+  }
 `;
 
 const FieldError = styled.p`
@@ -379,7 +424,9 @@ const ForgotLink = styled.a`
   text-decoration: none;
   cursor: pointer;
 
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 // ─── Submit button ────────────────────────────────────────────────────────────
@@ -398,18 +445,28 @@ const SubmitBtn = styled.button`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: background 0.18s, transform 0.12s;
+  transition:
+    background 0.18s,
+    transform 0.12s;
   margin-top: 4px;
 
-  &:hover:not(:disabled) { background: #1e3d1a; transform: translateY(-1px); }
-  &:active:not(:disabled) { transform: translateY(0); }
-  &:disabled { opacity: 0.65; cursor: not-allowed; }
+  &:hover:not(:disabled) {
+    background: #1e3d1a;
+    transform: translateY(-1px);
+  }
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
 `;
 
 const Spinner = styled.span`
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255,255,255,0.35);
+  border: 2px solid rgba(255, 255, 255, 0.35);
   border-top-color: white;
   border-radius: 50%;
   animation: ${spin} 0.7s linear infinite;
@@ -467,7 +524,9 @@ const SuccessBtn = styled.button`
   cursor: pointer;
   transition: background 0.15s;
 
-  &:hover { background: #1e3d1a; }
+  &:hover {
+    background: #1e3d1a;
+  }
 `;
 
 // ─── Divider + toggle ────────────────────────────────────────────────────────
@@ -480,7 +539,8 @@ const Divider = styled.div`
   color: #aac4aa;
   font-size: 0.78rem;
 
-  &::before, &::after {
+  &::before,
+  &::after {
     content: "";
     flex: 1;
     height: 1px;
@@ -504,7 +564,9 @@ const ToggleText = styled.p`
     padding: 0;
     margin-left: 4px;
 
-    &:hover { text-decoration: underline; }
+    &:hover {
+      text-decoration: underline;
+    }
   }
 `;
 
@@ -516,7 +578,9 @@ const BackToHome = styled(Link)`
   color: #7b8f7f;
   text-decoration: none;
 
-  &:hover { color: #2f5a2a; }
+  &:hover {
+    color: #2f5a2a;
+  }
 `;
 
 // ─── Trust signals data ───────────────────────────────────────────────────────
@@ -551,7 +615,10 @@ function SignupLogin() {
   const [signupSuccess, setSignupSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
-    username: "", email: "", password: "", confirmPassword: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -568,14 +635,18 @@ function SignupLogin() {
 
   const validate = () => {
     const e = {};
-    if (!isLogin && !formData.username.trim()) e.username = "Full name is required";
-    if (!formData.email.trim())                e.email    = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = "Enter a valid email";
-    if (!formData.password)                    e.password = "Password is required";
-    else if (formData.password.length < 6)     e.password = "At least 6 characters";
+    if (!isLogin && !formData.username.trim())
+      e.username = "Full name is required";
+    if (!formData.email.trim()) e.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      e.email = "Enter a valid email";
+    if (!formData.password) e.password = "Password is required";
+    else if (formData.password.length < 6) e.password = "At least 6 characters";
     if (!isLogin) {
-      if (!formData.confirmPassword)           e.confirmPassword = "Please confirm your password";
-      else if (formData.password !== formData.confirmPassword) e.confirmPassword = "Passwords do not match";
+      if (!formData.confirmPassword)
+        e.confirmPassword = "Please confirm your password";
+      else if (formData.password !== formData.confirmPassword)
+        e.confirmPassword = "Passwords do not match";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -595,7 +666,9 @@ function SignupLogin() {
         setSignupSuccess(true);
       }
     } catch (err) {
-      setErrors({ submit: err?.message || "Something went wrong. Please try again." });
+      setErrors({
+        submit: err?.message || "Something went wrong. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -610,7 +683,6 @@ function SignupLogin() {
 
   return (
     <Page>
-
       {/* ── Left panel — brand + trust signals ── */}
       <LeftPanel>
         <LeftLogo to="/">
@@ -620,11 +692,13 @@ function SignupLogin() {
 
         <LeftBody>
           <LeftHeadline>
-            The marketplace for<br />local food & farms
+            The marketplace for
+            <br />
+            local food & farms
           </LeftHeadline>
           <LeftSub>
-            Join thousands of Kenyan farmers and buyers connecting
-            directly — no middlemen, no markup.
+            Join thousands of Kenyan farmers and buyers connecting directly — no
+            middlemen, no markup.
           </LeftSub>
           <TrustList>
             {TRUST.map((t) => (
@@ -661,17 +735,24 @@ function SignupLogin() {
               <SuccessIcon>🎉</SuccessIcon>
               <SuccessTitle>Account created!</SuccessTitle>
               <SuccessDesc>
-                Check your email to confirm your account, then sign in
-                to start connecting with farmers and buyers.
+                Check your email to confirm your account, then sign in to start
+                connecting with farmers and buyers.
               </SuccessDesc>
-              <SuccessBtn onClick={() => { setSignupSuccess(false); setIsLogin(true); }}>
+              <SuccessBtn
+                onClick={() => {
+                  setSignupSuccess(false);
+                  setIsLogin(true);
+                }}
+              >
                 Go to Sign In →
               </SuccessBtn>
             </SuccessCard>
           ) : (
             <>
               <FormHeader>
-                <FormTitle>{isLogin ? "Welcome back" : "Create account"}</FormTitle>
+                <FormTitle>
+                  {isLogin ? "Welcome back" : "Create account"}
+                </FormTitle>
                 <FormSub>
                   {isLogin
                     ? "Sign in to your Afarmer account"
@@ -681,15 +762,28 @@ function SignupLogin() {
 
               {/* Tab switcher: Sign In | Sign Up */}
               <ModeTabs>
-                <ModeTab $active={isLogin}  onClick={() => { if (!isLogin) switchMode(); }}>Sign In</ModeTab>
-                <ModeTab $active={!isLogin} onClick={() => { if (isLogin) switchMode(); }}>Sign Up</ModeTab>
+                <ModeTab
+                  $active={isLogin}
+                  onClick={() => {
+                    if (!isLogin) switchMode();
+                  }}
+                >
+                  Sign In
+                </ModeTab>
+                <ModeTab
+                  $active={!isLogin}
+                  onClick={() => {
+                    if (isLogin) switchMode();
+                  }}
+                >
+                  Sign Up
+                </ModeTab>
               </ModeTabs>
 
               {/* Global error banner */}
               {errors.submit && <ErrorBanner>⚠️ {errors.submit}</ErrorBanner>}
 
               <form onSubmit={handleSubmit}>
-
                 {/* Full name — signup only */}
                 {!isLogin && (
                   <Field>
@@ -704,7 +798,9 @@ function SignupLogin() {
                       $hasError={!!errors.username}
                       required
                     />
-                    {errors.username && <FieldError>⚠ {errors.username}</FieldError>}
+                    {errors.username && (
+                      <FieldError>⚠ {errors.username}</FieldError>
+                    )}
                   </Field>
                 )}
 
@@ -734,7 +830,9 @@ function SignupLogin() {
                       type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder={isLogin ? "Your password" : "Min. 6 characters"}
+                      placeholder={
+                        isLogin ? "Your password" : "Min. 6 characters"
+                      }
                       $hasError={!!errors.password}
                       $hasToggle
                       required
@@ -742,18 +840,24 @@ function SignupLogin() {
                     <ToggleBtn
                       type="button"
                       onClick={() => setShowPassword((p) => !p)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                     >
                       {showPassword ? <EyeClosed /> : <EyeOpen />}
                     </ToggleBtn>
                   </InputWrap>
-                  {errors.password && <FieldError>⚠ {errors.password}</FieldError>}
+                  {errors.password && (
+                    <FieldError>⚠ {errors.password}</FieldError>
+                  )}
                 </Field>
 
                 {/* Confirm password — signup only */}
                 {!isLogin && (
                   <Field>
-                    <FieldLabel htmlFor="confirmPassword">Confirm Password *</FieldLabel>
+                    <FieldLabel htmlFor="confirmPassword">
+                      Confirm Password *
+                    </FieldLabel>
                     <InputWrap>
                       <Input
                         id="confirmPassword"
@@ -769,12 +873,18 @@ function SignupLogin() {
                       <ToggleBtn
                         type="button"
                         onClick={() => setShowConfirmPassword((p) => !p)}
-                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                        aria-label={
+                          showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
                       >
                         {showConfirmPassword ? <EyeClosed /> : <EyeOpen />}
                       </ToggleBtn>
                     </InputWrap>
-                    {errors.confirmPassword && <FieldError>⚠ {errors.confirmPassword}</FieldError>}
+                    {errors.confirmPassword && (
+                      <FieldError>⚠ {errors.confirmPassword}</FieldError>
+                    )}
                   </Field>
                 )}
 
@@ -793,9 +903,14 @@ function SignupLogin() {
 
                 <SubmitBtn type="submit" disabled={isLoading}>
                   {isLoading ? (
-                    <><Spinner /> {isLogin ? "Signing in…" : "Creating account…"}</>
+                    <>
+                      <Spinner />{" "}
+                      {isLogin ? "Signing in…" : "Creating account…"}
+                    </>
+                  ) : isLogin ? (
+                    "Sign In"
                   ) : (
-                    isLogin ? "Sign In" : "Create Account"
+                    "Create Account"
                   )}
                 </SubmitBtn>
               </form>
@@ -803,7 +918,9 @@ function SignupLogin() {
               <Divider>or</Divider>
 
               <ToggleText>
-                {isLogin ? "Don't have an account?" : "Already have an account?"}
+                {isLogin
+                  ? "Don't have an account?"
+                  : "Already have an account?"}
                 <button type="button" onClick={switchMode}>
                   {isLogin ? "Sign up free" : "Sign in"}
                 </button>
@@ -814,7 +931,6 @@ function SignupLogin() {
 
         <BackToHome to="/">Back to home</BackToHome>
       </RightPanel>
-
     </Page>
   );
 }

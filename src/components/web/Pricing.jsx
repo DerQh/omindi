@@ -24,15 +24,15 @@ const PLANS = [
     ctaPath: "/sign-up",
     popular: false,
     features: [
-      { text: "Up to 3 active listings",         included: true  },
-      { text: "Basic farm profile",               included: true  },
-      { text: "Buyer messaging & inquiries",      included: true  },
-      { text: "Community access",                 included: true  },
-      { text: "Listings never expire",            included: true  },
-      { text: "Unlimited listings",               included: false },
-      { text: "Permanent farm landing page",      included: false },
-      { text: "Priority search visibility",       included: false },
-      { text: "Sales analytics dashboard",        included: false },
+      { text: "Up to 50 active listings", included: true },
+      { text: "Basic farm profile", included: true },
+      { text: "Buyer messaging & inquiries", included: true },
+      { text: "Community access", included: true },
+      { text: "Listings never expire", included: true },
+      { text: "Unlimited listings", included: false },
+      { text: "Permanent farm landing page", included: false },
+      { text: "Priority search visibility", included: false },
+      { text: "Sales analytics dashboard", included: false },
     ],
   },
   {
@@ -45,15 +45,15 @@ const PLANS = [
     ctaPath: "/sign-up",
     popular: true,
     features: [
-      { text: "Up to 3 active listings",         included: true  },
-      { text: "Basic farm profile",               included: true  },
-      { text: "Buyer messaging & inquiries",      included: true  },
-      { text: "Community access",                 included: true  },
-      { text: "Listings never expire",            included: true  },
-      { text: "Unlimited listings",               included: true  },
-      { text: "Permanent farm landing page",      included: true  },
-      { text: "Priority search visibility",       included: true  },
-      { text: "Sales analytics dashboard",        included: true  },
+      { text: "Unlimited active listings", included: true },
+      { text: "Basic farm profile", included: true },
+      { text: "Buyer messaging & inquiries", included: true },
+      { text: "Community access", included: true },
+      { text: "Listings never expire", included: true },
+      { text: "Unlimited listings", included: true },
+      { text: "Permanent farm landing page", included: true },
+      { text: "Priority search visibility", included: true },
+      { text: "Sales analytics dashboard", included: true },
     ],
   },
 ];
@@ -61,7 +61,7 @@ const PLANS = [
 const FAQS = [
   {
     q: "Is the free plan really free forever?",
-    a: "Yes. The free plan has no time limit and no credit card required. You can create up to 3 active listings and use all core features indefinitely.",
+    a: "Yes. The free plan has no time limit and no credit card required. You can create up to 50 active listings and use all core features indefinitely.",
   },
   {
     q: "Can I cancel my paid plan at any time?",
@@ -69,7 +69,7 @@ const FAQS = [
   },
   {
     q: "What happens to my extra listings if I downgrade?",
-    a: "Your listings will remain visible until you reach the free plan limit. You'll be prompted to choose which 3 to keep active.",
+    a: "Your listings will remain visible until you reach the free plan limit. You'll be prompted to choose which 50 to keep active.",
   },
   {
     q: "Is there a discount for yearly billing?",
@@ -86,9 +86,9 @@ const FAQS = [
 const Pricing = () => {
   const navigate = useNavigate();
   const [billing, setBilling] = useState("monthly"); // "monthly" | "yearly"
-  const [openFaq, setOpenFaq]  = useState(null);
+  const [openFaq, setOpenFaq] = useState(null);
 
-  const yearlySaving = (PLANS[1].monthlyPrice * 12) - PLANS[1].yearlyPrice;
+  const yearlySaving = PLANS[1].monthlyPrice * 12 - PLANS[1].yearlyPrice;
 
   return (
     <>
@@ -128,7 +128,8 @@ const Pricing = () => {
         <CardsInner>
           <CardsGrid>
             {PLANS.map((plan) => {
-              const price = billing === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
+              const price =
+                billing === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
               const period = billing === "yearly" ? "/ year" : "/ month";
               return (
                 <PlanCard key={plan.id} $popular={plan.popular}>
@@ -152,7 +153,8 @@ const Pricing = () => {
 
                     {billing === "yearly" && plan.monthlyPrice > 0 && (
                       <PriceNote>
-                        Kes {(plan.yearlyPrice / 12).toFixed(2)} / month billed annually
+                        Kes {(plan.yearlyPrice / 12).toFixed(2)} / month billed
+                        annually
                       </PriceNote>
                     )}
                   </PlanTop>
@@ -180,7 +182,8 @@ const Pricing = () => {
           </CardsGrid>
 
           <GuaranteeBanner>
-            🔒 No credit card required for the free plan · Cancel anytime · Trusted by 500+ farmers across Kenya
+            🔒 No credit card required for the free plan · Cancel anytime ·
+            Trusted by 500+ farmers across Kenya
           </GuaranteeBanner>
         </CardsInner>
       </CardsSection>
@@ -202,15 +205,19 @@ const Pricing = () => {
             </thead>
             <tbody>
               {[
-                { label: "Active listings",           free: "3",        pro: "Unlimited" },
-                { label: "Farm profile",              free: "Basic",    pro: "Full landing page" },
-                { label: "Buyer messaging",           free: "✓",        pro: "✓" },
-                { label: "Community access",          free: "✓",        pro: "✓" },
-                { label: "Listing expiry",            free: "None",     pro: "None" },
-                { label: "Priority search ranking",   free: "—",        pro: "✓" },
-                { label: "Sales analytics",           free: "—",        pro: "✓" },
-                { label: "Dedicated farm page URL",   free: "—",        pro: "✓" },
-                { label: "Support",                   free: "Community",pro: "Priority" },
+                { label: "Active listings", free: "50", pro: "Unlimited" },
+                {
+                  label: "Farm profile",
+                  free: "Basic",
+                  pro: "Full landing page",
+                },
+                { label: "Buyer messaging", free: "✓", pro: "✓" },
+                { label: "Community access", free: "✓", pro: "✓" },
+                { label: "Listing expiry", free: "None", pro: "None" },
+                { label: "Priority search ranking", free: "—", pro: "✓" },
+                { label: "Sales analytics", free: "—", pro: "✓" },
+                { label: "Dedicated farm page URL", free: "—", pro: "✓" },
+                { label: "Support", free: "Community", pro: "Priority" },
               ].map((row) => (
                 <CompareTr key={row.label}>
                   <CompareTd $feature>{row.label}</CompareTd>
@@ -233,7 +240,9 @@ const Pricing = () => {
           <FaqList>
             {FAQS.map((faq, i) => (
               <FaqItem key={i}>
-                <FaqQuestion onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                <FaqQuestion
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                >
                   {faq.q}
                   <FaqChevron $open={openFaq === i}>›</FaqChevron>
                 </FaqQuestion>
@@ -247,7 +256,9 @@ const Pricing = () => {
       {/* ── CTA banner ── */}
       <CtaBanner>
         <CtaTitle>Ready to Reach More Buyers?</CtaTitle>
-        <CtaSub>Join thousands of local farmers already growing with AFARMER.</CtaSub>
+        <CtaSub>
+          Join thousands of local farmers already growing with AFARMER.
+        </CtaSub>
         <CtaButtons>
           <CtaPrimary onClick={() => navigate("/sign-up")}>
             Start for Free
@@ -279,10 +290,12 @@ const Hero = styled.section`
   &::before {
     content: "";
     position: absolute;
-    width: 480px; height: 480px;
+    width: 480px;
+    height: 480px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    top: -160px; right: -100px;
+    background: rgba(255, 255, 255, 0.04);
+    top: -160px;
+    right: -100px;
   }
 `;
 
@@ -296,9 +309,9 @@ const HeroInner = styled.div`
 
 const Eyebrow = styled.span`
   display: inline-block;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.25);
-  color: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -319,14 +332,14 @@ const HeroTitle = styled.h1`
 
 const HeroSub = styled.p`
   font-size: 1.05rem;
-  color: rgba(255,255,255,0.78);
+  color: rgba(255, 255, 255, 0.78);
   line-height: 1.7;
   margin: 0 0 36px;
 `;
 
 const BillingToggle = styled.div`
   display: inline-flex;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 999px;
   padding: 4px;
   gap: 4px;
@@ -384,10 +397,12 @@ const PlanCard = styled.div`
   background: white;
   border-radius: 24px;
   padding: 36px 32px;
-  border: ${({ $popular }) => ($popular ? "2px solid #2f5a2a" : "1px solid #e8f5e9")};
-  box-shadow: ${({ $popular }) => $popular
-    ? "0 12px 48px rgba(20,57,32,0.15)"
-    : "0 4px 24px rgba(20,57,32,0.07)"};
+  border: ${({ $popular }) =>
+    $popular ? "2px solid #2f5a2a" : "1px solid #e8f5e9"};
+  box-shadow: ${({ $popular }) =>
+    $popular
+      ? "0 12px 48px rgba(20,57,32,0.15)"
+      : "0 4px 24px rgba(20,57,32,0.07)"};
   position: relative;
   animation: ${fadeUp} 0.5s ease;
 `;
@@ -408,7 +423,9 @@ const PopularBadge = styled.div`
   white-space: nowrap;
 `;
 
-const PlanTop = styled.div`margin-bottom: 28px;`;
+const PlanTop = styled.div`
+  margin-bottom: 28px;
+`;
 
 const PlanName = styled.h2`
   font-size: 1.3rem;
@@ -473,7 +490,7 @@ const PlanCta = styled.button`
   &:hover {
     background: ${({ $popular }) => ($popular ? "#245026" : "#eef7ee")};
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(20,57,32,0.15);
+    box-shadow: 0 4px 16px rgba(20, 57, 32, 0.15);
   }
 `;
 
@@ -552,7 +569,10 @@ const CompareSection = styled.section`
   background: white;
 `;
 
-const CompareInner = styled.div`max-width: 820px; margin: 0 auto;`;
+const CompareInner = styled.div`
+  max-width: 820px;
+  margin: 0 auto;
+`;
 
 const CompareTable = styled.table`
   width: 100%;
@@ -560,7 +580,7 @@ const CompareTable = styled.table`
   font-size: 0.9rem;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 24px rgba(20,57,32,0.07);
+  box-shadow: 0 4px 24px rgba(20, 57, 32, 0.07);
   border: 1px solid #e8f5e9;
 `;
 
@@ -577,8 +597,12 @@ const CompareTh = styled.th`
 `;
 
 const CompareTr = styled.tr`
-  &:nth-child(even) { background: #fafcfa; }
-  &:hover { background: #f0fdf4; }
+  &:nth-child(even) {
+    background: #fafcfa;
+  }
+  &:hover {
+    background: #f0fdf4;
+  }
 `;
 
 const CompareTd = styled.td`
@@ -598,7 +622,10 @@ const FaqSection = styled.section`
   background: #f5f8f5;
 `;
 
-const FaqInner = styled.div`max-width: 680px; margin: 0 auto;`;
+const FaqInner = styled.div`
+  max-width: 680px;
+  margin: 0 auto;
+`;
 
 const FaqList = styled.div`
   display: flex;
@@ -606,14 +633,16 @@ const FaqList = styled.div`
   gap: 0;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 24px rgba(20,57,32,0.07);
+  box-shadow: 0 4px 24px rgba(20, 57, 32, 0.07);
 `;
 
 const FaqItem = styled.div`
   background: white;
   border-bottom: 1px solid #f3f4f6;
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 const FaqQuestion = styled.button`
@@ -632,7 +661,9 @@ const FaqQuestion = styled.button`
   cursor: pointer;
   transition: background 0.15s;
 
-  &:hover { background: #fafcfa; }
+  &:hover {
+    background: #fafcfa;
+  }
 `;
 
 const FaqChevron = styled.span`
@@ -667,7 +698,7 @@ const CtaTitle = styled.h2`
 `;
 
 const CtaSub = styled.p`
-  color: rgba(255,255,255,0.72);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 1rem;
   margin: 0 0 32px;
 `;
@@ -689,15 +720,18 @@ const CtaPrimary = styled.button`
   font-weight: 800;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 
-  &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
 `;
 
 const CtaSecondary = styled.button`
   background: transparent;
   color: white;
-  border: 2px solid rgba(255,255,255,0.5);
+  border: 2px solid rgba(255, 255, 255, 0.5);
   padding: 14px 30px;
   border-radius: 999px;
   font-size: 0.95rem;
@@ -705,5 +739,8 @@ const CtaSecondary = styled.button`
   cursor: pointer;
   transition: all 0.2s;
 
-  &:hover { border-color: white; background: rgba(255,255,255,0.08); }
+  &:hover {
+    border-color: white;
+    background: rgba(255, 255, 255, 0.08);
+  }
 `;

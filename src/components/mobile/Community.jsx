@@ -1,444 +1,535 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import styled from "styled-components";
-import { useLikeStatus, usePosts } from "../../hooks/usePosts";
+import styled, { keyframes } from "styled-components";
+import { usePosts, useToggleLike, useLikeStatus } from "../../hooks/usePosts";
+import { formatSmartDate } from "../../hooks/dateFormat";
+import LoadingComponent from "./Loading";
 
-const PageWrapper = styled.div`
-  min-height: 100vh;
-  background: #eef7ee;
-  padding: 20px 24px 40px;
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
-const PageTitle = styled.h1`
-  margin: 0 0 18px;
-  color: #264a28;
-  font-size: 2.3rem;
-  text-align: center;
-`;
+const TAG_STYLES = {
+  update: { bg: "#ecfdf5", color: "#065f46" },
+  news: { bg: "#fefce8", color: "#854d0e" },
+  event: { bg: "#eff6ff", color: "#1e40af" },
+  market: { bg: "#fdf4ff", color: "#7e22ce" },
+};
 
-const FeedContainer = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-`;
+const ALL_TYPES = ["All", "update", "news", "event", "market"];
+const TYPE_LABELS = {
+  update: "Update",
+  news: "News",
+  event: "Event",
+  market: "Market",
+};
 
-const PostCard = styled.div`
-  background: white;
-  border-radius: 24px;
-  box-shadow: 0 12px 30px rgba(34, 79, 38, 0.08);
-  margin-bottom: 20px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+// ─── Post card (self-contained so each can call hooks) ─────────────────────
 
-  &:hover {
-    transform: translateY(-2px);
-  }
-`;
+function PostCard({ post, onClick }) {
+  const { data: liked } = useLikeStatus(post.id);
+  const toggleLike = useToggleLike(post.id);
 
-const PostHeader = styled.div`
-  padding: 20px 24px 16px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border-bottom: 1px solid #ecf2eb;
-`;
+  const tagStyle = TAG_STYLES[post.type] ?? { bg: "#f3f4f6", color: "#6b7280" };
 
-const Avatar = styled.img`
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-`;
+  return (
+    <Card onClick={() => onClick(post.id)}>
+      <CardHeader>
+        <Avatar src={post.user_image_url || "/user.jpg"} alt={post.author} />
+        <CardMeta>
+          <AuthorName>{post.author || "Farmer"}</AuthorName>
+          <TimeText>{formatSmartDate(post.created_at)}</TimeText>
+        </CardMeta>
+        {post.type && (
+          <TypeBadge style={{ background: tagStyle.bg, color: tagStyle.color }}>
+            {TYPE_LABELS[post.type] ?? post.type}
+          </TypeBadge>
+        )}
+      </CardHeader>
 
-const PostInfo = styled.div`
-  flex: 1;
+      <CardBody>
+        {post.title && <CardTitle>{post.title}</CardTitle>}
+        {post.content && <CardText>{post.content}</CardText>}
+      </CardBody>
 
-  h3 {
-    margin: 0 0 4px;
-    color: #243a20;
-    font-size: 1.1rem;
-  }
+      {post.image_url && (
+        <CardImage>
+          <img src={post.image_url} alt={post.title} loading="lazy" />
+        </CardImage>
+      )}
 
-  p {
-    margin: 0;
-    color: #5b6d57;
-    font-size: 0.9rem;
-  }
-`;
+      <CardFooter>
+        <FooterBtn
+          $liked={liked}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleLike.mutate();
+          }}
+          disabled={toggleLike.isPending}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill={liked ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          <span>{post.likes ?? 0}</span>
+        </FooterBtn>
 
-const PostType = styled.span`
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  background: ${({ type }) => {
-    switch (type) {
-      case "update":
-        return "#e8f5e8";
-      case "news":
-        return "#fff3cd";
-      case "event":
-        return "#d1ecf1";
-      case "market":
-        return "#f8d7da";
-      default:
-        return "#f4f4f4";
-    }
-  }};
-  color: ${({ type }) => {
-    switch (type) {
-      case "update":
-        return "#2f5a2a";
-      case "news":
-        return "#856404";
-      case "event":
-        return "#0c5460";
-      case "market":
-        return "#721c24";
-      default:
-        return "#6c757d";
-    }
-  }};
-`;
+        <FooterBtn
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick(post.id);
+          }}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <span>Comment</span>
+        </FooterBtn>
 
-const PostContent = styled.div`
-  padding: 20px 24px;
+        <FooterBtn
+          onClick={async (e) => {
+            e.stopPropagation();
+            const url = `${window.location.origin}/post/${post.id}`;
+            if (navigator.share) {
+              await navigator
+                .share({ title: post.title, text: post.content, url })
+                .catch(() => {});
+            } else {
+              await navigator.clipboard.writeText(url).catch(() => {});
+            }
+          }}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+          <span>{post.shares ?? 0}</span>
+        </FooterBtn>
+      </CardFooter>
+    </Card>
+  );
+}
 
-  h4 {
-    margin: 0 0 12px;
-    color: #243a20;
-    font-size: 1.2rem;
-  }
-
-  p {
-    margin: 0 0 16px;
-    color: #556652;
-    line-height: 1.6;
-  }
-`;
-
-const PostImage = styled.div`
-  width: 100%;
-  height: 280px;
-  background: #dceedf;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-const PostActions = styled.div`
-  padding: 16px 24px 20px;
-  border-top: 1px solid #ecf2eb;
-  display: flex;
-  gap: 20px;
-  align-items: center;
-`;
-
-const ActionButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  background: none;
-  color: ${({ liked }) => (liked ? "#e74c3c" : "#5b6d57")};
-  cursor: pointer;
-  font-size: 0.95rem;
-  padding: 8px 12px;
-  border-radius: 12px;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-
-  &:hover {
-    background: #f4faf4;
-    color: ${({ liked }) => (liked ? "#c0392b" : "#2f5a2a")};
-  }
-
-  svg {
-    width: 18px;
-    height: 18px;
-  }
-`;
-
-const PostStats = styled.div`
-  display: flex;
-  gap: 16px;
-  color: #7b8f7f;
-  font-size: 0.9rem;
-`;
-
-const NewPostCard = styled(PostCard)`
-  background: linear-gradient(135deg, #f8faf6 0%, #eef7ee 100%);
-  border: 2px dashed #c8e6c9;
-`;
-
-const NewPostContent = styled.div`
-  padding: 32px 24px;
-  text-align: center;
-
-  h3 {
-    margin: 0 0 12px;
-    color: #2f5a2a;
-    font-size: 1.3rem;
-  }
-
-  p {
-    margin: 0 0 20px;
-    color: #5b6d57;
-    line-height: 1.6;
-  }
-`;
-
-const ShareButton = styled.button`
-  background: #2f5a2a;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s ease;
-
-  &:hover {
-    background: #245026;
-  }
-`;
-
-// SAMPLE DATA FOR TESTING PURPOSES, REPLACE WITH SUPABASE DATA IN PRODUCTION
-const communityPosts = [
-  {
-    id: 1,
-    author: "Amina's Farm",
-    avatar: "/farm logo.png",
-    type: "update",
-    title: "Fresh Harvest This Week!",
-    content:
-      "Just harvested our first batch of organic cherry tomatoes this season. They're sweet, juicy, and ready for pickup! Available at the Saturday market or direct from the farm.",
-    image: "/salepic.png",
-    likes: 24,
-    comments: 8,
-    shares: 3,
-    liked: false,
-    time: "2 hours ago",
-  },
-  {
-    id: 2,
-    author: "Farmers Market Association",
-    avatar: "/market.png",
-    type: "news",
-    title: "New Organic Certification Program",
-    content:
-      "Exciting news! We're launching a new organic certification program for small farmers. This will help you reach more customers and get premium pricing for your certified organic produce.",
-    image: "/howtouse1.png",
-    likes: 42,
-    comments: 15,
-    shares: 7,
-    liked: false,
-    time: "5 hours ago",
-  },
-  {
-    id: 3,
-    author: "Honey Harvest Co-op",
-    avatar: "/farming.jpg",
-    type: "event",
-    title: "Beekeeping Workshop - June 15th",
-    content:
-      "Join us for a hands-on beekeeping workshop! Learn about hive management, honey extraction, and sustainable beekeeping practices. Perfect for new and experienced beekeepers.",
-    image: "/howtouse2.png",
-    likes: 31,
-    comments: 12,
-    shares: 5,
-    liked: false,
-    time: "1 day ago",
-  },
-  {
-    id: 4,
-    author: "Local Market Hub",
-    avatar: "/chat.png",
-    type: "market",
-    title: "Weekend Market Specials",
-    content:
-      "This weekend's market features special deals on seasonal produce! Don't miss out on discounted prices for bulk purchases and farmer-direct deals.",
-    image: "/grow.png",
-    likes: 18,
-    comments: 6,
-    shares: 2,
-    liked: false,
-    time: "2 days ago",
-  },
-  {
-    id: 5,
-    author: "Green Valley Organics",
-    avatar: "/salepic.png",
-    type: "update",
-    title: "New Delivery Service Available",
-    content:
-      "We're excited to announce our new home delivery service! Now you can get fresh, locally-grown produce delivered right to your door. Minimum order $25, free delivery over $50.",
-    image: "/farm logo.png",
-    likes: 35,
-    comments: 22,
-    shares: 9,
-    liked: false,
-    time: "3 days ago",
-  },
-];
+// ─── Community page ────────────────────────────────────────────────────────
 
 const Community = () => {
-  let postId;
   const { data: posts, isLoading } = usePosts();
-  const { data: liked } = useLikeStatus(postId);
-
   const navigate = useNavigate();
+  const [activeType, setActiveType] = useState("All");
 
-  // const [posts, setPosts] = useState(communityPosts);
-  // console.log("Fetched posts from Supabase:", posts);
+  const filtered = useMemo(() => {
+    if (!posts) return [];
+    if (activeType === "All") return posts;
+    return posts.filter((p) => p.type === activeType);
+  }, [posts, activeType]);
 
-  const handleLike = (postId) => {
-    console.log(postId);
-  };
-
-  const handleComment = (postId) => {
-    setPosts(
-      posts?.map((post) =>
-        post.id === postId ? { ...post, comments: post.comments + 1 } : post,
-      ),
-    );
-  };
-
-  // SHARE FUNCTION USING NATIVE SHARE API
-  const handleShare = async (post) => {
-    const url = `${window.location.origin}/post/${post.id}`;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: post.title || "Check out this post",
-          text: post.content || "Take a look at this post!",
-          url,
-        });
-      } else if (navigator.clipboard?.writeText) {
-        // ✅ only use clipboard if available
-        await navigator.clipboard.writeText(url);
-        alert("Link copied!");
-      } else {
-        // ✅ fallback for any browser/context
-        const input = document.createElement("input");
-        input.value = url;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand("copy");
-        document.body.removeChild(input);
-        alert("Link copied!");
-      }
-    } catch (error) {
-      console.error("Sharing failed:", error);
-    }
-  };
-
-  const handlePostClick = (postId) => {
-    navigate(`/post/${postId}`);
-  };
-
-  const handleShareUpdate = () => {
-    navigate("/update");
-  };
+  if (isLoading) return <LoadingComponent />;
 
   return (
     <>
       <AppNavbar />
-      <PageWrapper>
-        <PageTitle>Community Feed</PageTitle>
-        <FeedContainer>
-          <NewPostCard>
-            <NewPostContent>
-              <h3>Share What's New</h3>
-              <p>
-                Post updates about your farm, share market tips, or announce
-                upcoming events with the community.
-              </p>
-              <ShareButton onClick={handleShareUpdate}>
-                Share Update
-              </ShareButton>
-            </NewPostContent>
-          </NewPostCard>
 
-          {/* POSTS SUPABASE DATA, TEST  */}
+      {/* ── Hero ── */}
+      <Hero>
+        <HeroBlob />
+        <HeroInner>
+          <HeroEyebrow>AFARMER Community</HeroEyebrow>
+          <HeroTitle>Community Feed</HeroTitle>
+          <HeroSub>Updates, news, and events from farmers near you.</HeroSub>
+          <ShareBtn onClick={() => navigate("/update")}>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Share Update
+          </ShareBtn>
+        </HeroInner>
+      </Hero>
 
-          {posts?.map((post) => (
-            <PostCard key={post.id} onClick={() => handlePostClick(post.id)}>
-              <PostHeader>
-                <Avatar src={post.user_image_url} alt={post.author} />
-                <PostInfo>
-                  <h3>{post.author}</h3>
-                  <p>{post.time}</p>
-                </PostInfo>
-                <PostType type={post.type}>{post.type}</PostType>
-              </PostHeader>
-
-              <PostContent>
-                <h4>{post.title}</h4>
-                <p>{post.content}</p>
-              </PostContent>
-
-              {post.image_url && (
-                <PostImage>
-                  <img src={post?.image_url} alt={post?.author} />
-                </PostImage>
+      {/* ── Filter chips ── */}
+      <FilterBar>
+        <FilterInner>
+          {ALL_TYPES.map((t) => (
+            <FilterChip
+              key={t}
+              $active={activeType === t}
+              onClick={() => setActiveType(t)}
+            >
+              {t === "All" ? "All Posts" : TYPE_LABELS[t]}
+              {t !== "All" && (
+                <ChipCount $active={activeType === t}>
+                  {posts?.filter((p) => p.type === t).length ?? 0}
+                </ChipCount>
               )}
-
-              <PostActions>
-                <ActionButton
-                  liked={post?.liked}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLike(post?.id);
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
-                  Like
-                </ActionButton>
-                <ActionButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleComment(post?.id);
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
-                  </svg>
-                  Comment
-                </ActionButton>
-                <ActionButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleShare(post?.id);
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
-                  </svg>
-                  Share
-                </ActionButton>
-                <PostStats>
-                  <span>{post?.likes} likes</span>
-                  <span>{post?.comments} comments</span>
-                  <span onClick={handleShare}>{post?.shares} shares</span>
-                </PostStats>
-              </PostActions>
-            </PostCard>
+            </FilterChip>
           ))}
-        </FeedContainer>
-      </PageWrapper>
+        </FilterInner>
+      </FilterBar>
+
+      {/* ── Feed ── */}
+      <Feed>
+        <FeedInner>
+          {filtered.length === 0 ? (
+            <EmptyState>
+              <EmptyIcon>🌿</EmptyIcon>
+              <EmptyTitle>No posts yet</EmptyTitle>
+              <EmptyText>
+                {activeType === "All"
+                  ? "Be the first to share something with the community."
+                  : `No ${TYPE_LABELS[activeType]} posts yet.`}
+              </EmptyText>
+              <EmptyBtn onClick={() => navigate("/update")}>
+                Share Update
+              </EmptyBtn>
+            </EmptyState>
+          ) : (
+            filtered.map((post, i) => (
+              <div key={post.id} style={{ animationDelay: `${i * 0.04}s` }}>
+                <PostCard
+                  post={post}
+                  onClick={(id) => navigate(`/post/${id}`)}
+                />
+              </div>
+            ))
+          )}
+        </FeedInner>
+      </Feed>
     </>
   );
 };
 
 export default Community;
+
+// ─── Styled components ────────────────────────────────────────────────────────
+
+const Hero = styled.div`
+  /* background: linear-gradient(
+    135deg,
+    #0d2410 0%,
+    #1a3318 45%,
+    #2f5a2a 80%,
+    #4e9643 100%
+  ); */
+  padding: 44px 24px 50px;
+  position: relative;
+  overflow: hidden;
+  max-width: 960px;
+  margin: 0 auto;
+  border-radius: 0 0 28px 28px;
+`;
+const HeroBlob = styled.div`
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: rgba(78, 150, 67, 0.12);
+  top: -100px;
+  right: -80px;
+  pointer-events: none;
+`;
+const HeroInner = styled.div`
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  animation: ${fadeUp} 0.5s ease;
+`;
+const HeroEyebrow = styled.span`
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(4, 4, 4, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(6, 6, 6, 0.15);
+  padding: 5px 14px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+`;
+const HeroTitle = styled.h1`
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 900;
+  color: black;
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
+`;
+const HeroSub = styled.p`
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.68);
+  margin: 0 0 24px;
+  line-height: 1.6;
+`;
+const ShareBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: #2f5a2a;
+  border: 2px solid black;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+const FilterBar = styled.div`
+  max-width: 960px;
+  margin: 0 auto;
+  background: white;
+  border-bottom: 1px solid #e8f5e9;
+  position: sticky;
+  top: 60px;
+  z-index: 80;
+  box-shadow: 0 2px 8px rgba(20, 57, 32, 0.05);
+`;
+const FilterInner = styled.div`
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 12px 20px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+const FilterChip = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1.5px solid;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.15s;
+  background: ${({ $active }) => ($active ? "#2f5a2a" : "white")};
+  color: ${({ $active }) => ($active ? "white" : "#4b5563")};
+  border-color: ${({ $active }) => ($active ? "#2f5a2a" : "#e5e7eb")};
+  &:hover {
+    background: ${({ $active }) => ($active ? "#245026" : "#f0fdf4")};
+    border-color: ${({ $active }) => ($active ? "#245026" : "#bbf7d0")};
+  }
+`;
+const ChipCount = styled.span`
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: ${({ $active }) =>
+    $active ? "rgba(255,255,255,0.25)" : "#f3f4f6"};
+  color: ${({ $active }) => ($active ? "white" : "#9ca3af")};
+  padding: 1px 7px;
+  border-radius: 999px;
+`;
+
+const Feed = styled.div`
+  background: white;
+  min-height: 60vh;
+`;
+const FeedInner = styled.div`
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+`;
+
+// Post card
+const Card = styled.div`
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #e8f5e9;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(20, 57, 32, 0.06);
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  animation: ${fadeUp} 0.35s ease both;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(20, 57, 32, 0.1);
+  }
+`;
+const CardHeader = styled.div`
+  padding: 16px 18px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #f3f4f6;
+`;
+const Avatar = styled.img`
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid #e8f5e9;
+`;
+const CardMeta = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+const AuthorName = styled.p`
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+const TimeText = styled.p`
+  font-size: 0.74rem;
+  color: #9ca3af;
+  margin: 0;
+`;
+const TypeBadge = styled.span`
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  text-transform: capitalize;
+  flex-shrink: 0;
+`;
+
+const CardBody = styled.div`
+  padding: 16px 18px;
+`;
+const CardTitle = styled.h3`
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 8px;
+  line-height: 1.4;
+`;
+const CardText = styled.p`
+  font-size: 0.88rem;
+  color: #4b5563;
+  line-height: 1.65;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const CardImage = styled.div`
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s;
+  }
+  ${Card}:hover & img {
+    transform: scale(1.03);
+  }
+`;
+
+const CardFooter = styled.div`
+  padding: 12px 18px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+`;
+const FooterBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  color: ${({ $liked }) => ($liked ? "#ef4444" : "#6b7280")};
+  &:hover {
+    background: #f0fdf4;
+    color: ${({ $liked }) => ($liked ? "#dc2626" : "#2f5a2a")};
+  }
+  &:disabled {
+    opacity: 0.6;
+  }
+`;
+
+// Empty state
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 80px 24px;
+`;
+const EmptyIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 16px;
+`;
+const EmptyTitle = styled.h3`
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 8px;
+`;
+const EmptyText = styled.p`
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0 0 20px;
+`;
+const EmptyBtn = styled.button`
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  padding: 11px 24px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover {
+    background: #245026;
+  }
+`;

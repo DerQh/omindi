@@ -58,7 +58,6 @@ const Hero = styled.div`
   }
 `;
 
-
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
 const Layout = styled.div`

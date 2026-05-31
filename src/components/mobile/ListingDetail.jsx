@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useListing } from "../../hooks/useEditListing";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useUser } from "../../hooks/useUser";
 import { useDeleteListing } from "../../hooks/useDeleteListing";
 import LoadingComponent from "./Loading";
 import ConfirmModule from "./ConfirmModule";
-import {
-  useAddItem,
-  useCartItemCheck,
-} from "../../hooks/useCart";
+import { useAddItem, useCartItemCheck } from "../../hooks/useCart";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStartConversation } from "../../hooks/useMessages";
+import { useProfile } from "../../hooks/useProfile";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -23,18 +22,30 @@ const fadeUp = keyframes`
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const ListingDetail = () => {
-  const navigate      = useNavigate();
-  const queryClient   = useQueryClient();
-  const location      = useLocation();
-  const listing       = location.state?.listing;
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const location = useLocation();
+  const { id } = useParams();
+
+  // Use listing from navigation state when available (faster — no extra fetch).
+  // Fall back to fetching by ID from Supabase when navigating directly to the URL.
+  const stateListng = location.state?.listing;
+  const { data: fetchedListing, isLoading: isFetchingListing } = useListing(
+    stateListng ? null : id
+  );
+  const listing = stateListng ?? fetchedListing;
 
   const { data: user, isLoading } = useUser();
+
+  // Fetch seller profile to get their avatar when seller_image_url is missing from the listing.
+  const { data: sellerProfile } = useProfile(listing?.seller_id);
+  const sellerAvatar = listing?.seller_image_url || sellerProfile?.avatar_url || "/user.jpg";
   const { mutate: deleteListing, isLoading: isDeleting } = useDeleteListing();
   const { mutate: mutateAddItem, isPending } = useAddItem();
   const { mutate: startConversation } = useStartConversation();
 
   const { data: isItemInCart } = useCartItemCheck({
-    user_id:    user?.id,
+    user_id: user?.id,
     listing_id: listing?.id,
   });
 
@@ -77,8 +88,8 @@ const ListingDetail = () => {
   const handleInquire = () => {
     startConversation(
       {
-        buyer_id:   user?.id,
-        seller_id:  listing?.seller_id,
+        buyer_id: user?.id,
+        seller_id: listing?.seller_id,
         listing_id: listing?.id,
       },
       {
@@ -89,7 +100,7 @@ const ListingDetail = () => {
     );
   };
 
-  if (isLoading) return <LoadingComponent />;
+  if (isLoading || isFetchingListing) return <LoadingComponent />;
 
   if (!listing)
     return (
@@ -136,7 +147,6 @@ const ListingDetail = () => {
         {/* ── Content ── */}
         <ContentSheet>
           <Inner>
-
             {/* Title + price */}
             <TitleRow>
               <ProductTitle>{listing.title}</ProductTitle>
@@ -146,11 +156,14 @@ const ListingDetail = () => {
               </PriceTag>
             </TitleRow>
 
+            {/* Only shown when out of stock */}
+            {listing.available === false && (
+              <AvailBadge>Out of Stock</AvailBadge>
+            )}
+
             {/* Info chips */}
             <ChipRow>
-              {listing.location && (
-                <InfoChip>📍 {listing.location}</InfoChip>
-              )}
+              {listing.location && <InfoChip>📍 {listing.location}</InfoChip>}
               {listing.minimumOrder && (
                 <InfoChip>Min: {listing.minimumOrder}</InfoChip>
               )}
@@ -172,13 +185,15 @@ const ListingDetail = () => {
             {/* Seller */}
             <Section>
               <SectionTitle>Seller</SectionTitle>
-              <SellerCard onClick={() => navigate(`/follower/${listing.seller_id}`)}>
+              <SellerCard
+                onClick={() => navigate(`/follower/${listing.seller_id}`)}
+              >
                 <SellerAvatar
-                  src={listing.seller_image_url || "/user.jpg"}
+                  src={sellerAvatar}
                   alt={listing.seller_name}
                 />
                 <SellerInfo>
-                  <SellerName>{listing.seller_name || "Farmer"}</SellerName>
+                  <SellerName>{listing.seller_name || sellerProfile?.farm_name || "Farmer"}</SellerName>
                   <SellerMeta>⭐ 4.8 · 24 reviews</SellerMeta>
                 </SellerInfo>
                 <SellerArrow>›</SellerArrow>
@@ -192,7 +207,7 @@ const ListingDetail = () => {
               {isSeller ? (
                 <>
                   <ActionBtn $variant="primary" onClick={handleGreenBtn}>
-                    ✏️ Edit Listing
+                    Edit Listing
                   </ActionBtn>
                   <ActionBtn
                     $variant="danger"
@@ -204,10 +219,22 @@ const ListingDetail = () => {
                 </>
               ) : (
                 <>
-                  <ActionBtn $variant="primary" onClick={handleGreenBtn} disabled={isPending}>
-                    {isPending ? "Adding…" : isItemInCart ? "View Cart" : "Buy Now"}
+                  <ActionBtn
+                    $variant="primary"
+                    onClick={handleGreenBtn}
+                    disabled={isPending}
+                  >
+                    {isPending
+                      ? "Adding…"
+                      : isItemInCart
+                        ? "View Cart"
+                        : "Buy Now"}
                   </ActionBtn>
-                  <ActionBtn $variant="secondary" onClick={handleOrangeBtn} disabled={isPending}>
+                  <ActionBtn
+                    $variant="secondary"
+                    onClick={handleOrangeBtn}
+                    disabled={isPending}
+                  >
                     {isItemInCart ? "Already in Cart" : "Add to Cart"}
                   </ActionBtn>
                   <ActionBtn $variant="outline" onClick={handleInquire}>
@@ -216,7 +243,6 @@ const ListingDetail = () => {
                 </>
               )}
             </Actions>
-
           </Inner>
         </ContentSheet>
       </Page>
@@ -230,14 +256,16 @@ export default ListingDetail;
 
 const Page = styled.div`
   min-height: 100vh;
-  background: #f5f8f5;
+  background: white;
 `;
 
 const HeroWrap = styled.div`
   position: relative;
   width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
   height: 380px;
-  background: #eef7ee;
+  background: white;
   overflow: hidden;
 
   img {
@@ -247,7 +275,9 @@ const HeroWrap = styled.div`
     display: block;
   }
 
-  @media (max-width: 600px) { height: 260px; }
+  @media (max-width: 600px) {
+    height: 260px;
+  }
 `;
 
 const NoImage = styled.div`
@@ -274,17 +304,19 @@ const FloatBack = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   transition: background 0.15s;
 
-  &:hover { background: white; }
+  &:hover {
+    background: white;
+  }
 `;
 
 const FloatCategory = styled.span`
   position: absolute;
   bottom: 16px;
   left: 16px;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   color: #2f5a2a;
   font-size: 0.72rem;
   font-weight: 700;
@@ -311,7 +343,9 @@ const Inner = styled.div`
   padding: 28px 28px 0;
   animation: ${fadeUp} 0.35s ease;
 
-  @media (max-width: 600px) { padding: 22px 20px 0; }
+  @media (max-width: 600px) {
+    padding: 22px 20px 0;
+  }
 `;
 
 const TitleRow = styled.div`
@@ -325,13 +359,27 @@ const ProductTitle = styled.h1`
   color: #1a3318;
   letter-spacing: -0.3px;
 
-  @media (max-width: 600px) { font-size: 1.35rem; }
+  @media (max-width: 600px) {
+    font-size: 1.35rem;
+  }
 `;
 
 const PriceTag = styled.div`
   font-size: 1.4rem;
   font-weight: 800;
   color: #2f5a2a;
+`;
+
+const AvailBadge = styled.div`
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: #fdf0f0;
+  color: #a32d2d;
+  border: 1px solid #f5c2c2;
 `;
 
 const ChipRow = styled.div`
@@ -386,7 +434,9 @@ const SellerCard = styled.div`
   cursor: pointer;
   transition: background 0.15s;
 
-  &:hover { background: #eef7ee; }
+  &:hover {
+    background: #eef7ee;
+  }
 `;
 
 const SellerAvatar = styled.img`
@@ -441,7 +491,8 @@ const ActionBtn = styled.button`
   gap: 8px;
 
   ${({ $variant }) =>
-    $variant === "primary" && `
+    $variant === "primary" &&
+    `
       background: #2f5a2a;
       color: white;
       border: none;
@@ -449,7 +500,8 @@ const ActionBtn = styled.button`
     `}
 
   ${({ $variant }) =>
-    $variant === "secondary" && `
+    $variant === "secondary" &&
+    `
       background: #ffc107;
       color: #2f5a2a;
       border: none;
@@ -457,7 +509,8 @@ const ActionBtn = styled.button`
     `}
 
   ${({ $variant }) =>
-    $variant === "outline" && `
+    $variant === "outline" &&
+    `
       background: white;
       color: #2f5a2a;
       border: 2px solid #cde5cf;
@@ -465,7 +518,8 @@ const ActionBtn = styled.button`
     `}
 
   ${({ $variant }) =>
-    $variant === "danger" && `
+    $variant === "danger" &&
+    `
       background: #fff0f0;
       color: #a32d2d;
       border: 2px solid #f5c2c2;
@@ -491,10 +545,15 @@ const NotFoundCard = styled.div`
   padding: 48px;
   background: white;
   border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(20,57,32,0.07);
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
 
-  span { font-size: 2.5rem; }
-  p { color: #7b8f7f; margin: 12px 0 20px; }
+  span {
+    font-size: 2.5rem;
+  }
+  p {
+    color: #7b8f7f;
+    margin: 12px 0 20px;
+  }
 `;
 
 const BackBtn = styled.button`
@@ -507,5 +566,7 @@ const BackBtn = styled.button`
   font-weight: 700;
   cursor: pointer;
 
-  &:hover { background: #245026; }
+  &:hover {
+    background: #245026;
+  }
 `;

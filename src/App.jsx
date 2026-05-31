@@ -75,7 +75,7 @@ function App() {
                 element={<OrderConfirmation />}
               />
               <Route path="/sales" element={<SalesDashboard />} />
-              <Route path="/edit-listing" element={<EditListing />} />
+              <Route path="/edit-listing/:id" element={<EditListing />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/order/:order_id" element={<ViewOrder />} />
               <Route path="/notifications" element={<Notifications />} />

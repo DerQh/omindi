@@ -17,31 +17,35 @@ const fadeUp = keyframes`
 // ─── Payment options ──────────────────────────────────────────────────────────
 
 const PAYMENT_METHODS = [
-  { value: "cash",   label: "Cash on Delivery", icon: "💵" },
-  { value: "mobile", label: "Mobile Money",      icon: "📱" },
-  { value: "bank",   label: "Bank Transfer",     icon: "🏦" },
+  { value: "cash", label: "Cash on Delivery", icon: "💵" },
+  { value: "mobile", label: "Mobile Money", icon: "📱" },
+  { value: "bank", label: "Bank Transfer", icon: "🏦" },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const Checkout = () => {
-  const navigate        = useNavigate();
-  const { state }       = useLocation();
-  const { user }        = useAuth();
+  const navigate = useNavigate();
+  const { state } = useLocation();
+  const { user } = useAuth();
   const { cartItems, totalCost } = state;
 
-  const { mutate:      mutateDeleteAllOrders } = useCartItemsAllDelete();
-  const { mutateAsync: mutateAddOrder,   isPending: isPendingOrder } = useAddOrder();
-  const { mutateAsync: mutateAddItems  }                             = useAddOrderItems();
-  const { mutateAsync: mutateNotify    }                             = useNotifyOrder();
+  const { mutate: mutateDeleteAllOrders } = useCartItemsAllDelete();
+  const { mutateAsync: mutateAddOrder, isPending: isPendingOrder } =
+    useAddOrder();
+  const { mutateAsync: mutateAddItems } = useAddOrderItems();
+  const { mutateAsync: mutateNotify } = useNotifyOrder();
 
   const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [address,       setAddress]       = useState("");
-  const [phone,         setPhone]         = useState("");
-  const [notes,         setNotes]         = useState("");
-  const [errors,        setErrors]        = useState({});
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [notes, setNotes] = useState("");
+  const [errors, setErrors] = useState({});
 
-  const totalCount = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const totalCount = cartItems.reduce(
+    (sum, item) => sum + (item.quantity || 0),
+    0,
+  );
 
   const orderGroupedBySeller = Object.values(
     cartItems.reduce((acc, row) => {
@@ -55,8 +59,8 @@ const Checkout = () => {
 
   const validate = () => {
     const e = {};
-    if (!address.trim())    e.address = "Delivery address is required.";
-    if (!phone.trim())      e.phone   = "Mobile number is required.";
+    if (!address.trim()) e.address = "Delivery address is required.";
+    if (!phone.trim()) e.phone = "Mobile number is required.";
     else if (!/^(07|01)\d{8}$/.test(phone.replace(/\s/g, "")))
       e.phone = "Enter a valid Kenyan number e.g. 0712 345 678";
     setErrors(e);
@@ -69,11 +73,11 @@ const Checkout = () => {
     const orderIds = [];
     for (const group of orderGroupedBySeller) {
       const rows = await mutateAddOrder({
-        user_id:          user?.id,
-        payment_method:   paymentMethod,
+        user_id: user?.id,
+        payment_method: paymentMethod,
         delivery_address: address,
-        total_cost:       group.totalCost,
-        mobile_no:        phone,
+        total_cost: group.totalCost,
+        mobile_no: phone,
       });
       const orderId = rows?.[0]?.id;
       orderIds.push(orderId);
@@ -81,16 +85,16 @@ const Checkout = () => {
       mutateNotify({
         user_id: user?.id,
         orderId,
-        status:  "pending",
-        total:   group.totalCost,
+        status: "pending",
+        total: group.totalCost,
         payment: paymentMethod,
       });
 
       for (const item of group.items) {
         await mutateAddItems({
-          order_id:          orderId,
-          listing_id:        item.listing_id,
-          quantity:          item.quantity,
+          order_id: orderId,
+          listing_id: item.listing_id,
+          quantity: item.quantity,
           price_at_purchase: item.listings?.price,
         });
       }
@@ -99,7 +103,13 @@ const Checkout = () => {
     mutateDeleteAllOrders({ user_id: user?.id });
 
     navigate("/order-confirmation", {
-      state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: orderIds },
+      state: {
+        orderGroupedBySeller,
+        totalCost,
+        paymentMethod,
+        address,
+        orderId: orderIds,
+      },
     });
   };
 
@@ -111,7 +121,9 @@ const Checkout = () => {
           <EmptyCard>
             <span>🛒</span>
             <p>No items ready for checkout.</p>
-            <GoBackBtn onClick={() => navigate("/list")}>Browse Listings</GoBackBtn>
+            <GoBackBtn onClick={() => navigate("/list")}>
+              Browse Listings
+            </GoBackBtn>
           </EmptyCard>
         </EmptyWrap>
       </>
@@ -121,26 +133,31 @@ const Checkout = () => {
     <>
       <AppNavbar />
       <Page>
-
         {/* ── Header ── */}
         <PageHeader>
           <HeaderInner>
-            <RoundBack onClick={() => navigate(-1)} aria-label="Go back">←</RoundBack>
+            <RoundBack onClick={() => navigate(-1)} aria-label="Go back">
+              ←
+            </RoundBack>
             <HeaderTitle>Checkout</HeaderTitle>
-            <HeaderMeta>{cartItems.length} item{cartItems.length !== 1 ? "s" : ""}</HeaderMeta>
+            <HeaderMeta>
+              {cartItems.length} item{cartItems.length !== 1 ? "s" : ""}
+            </HeaderMeta>
           </HeaderInner>
         </PageHeader>
 
         {/* ── Body ── */}
         <Body>
           <TwoCol>
-
             {/* ── Left: order items grouped by seller ── */}
             <LeftCol>
               <ColTitle>
                 Your Order
                 {orderGroupedBySeller.length > 1 && (
-                  <SellerCountNote> · {orderGroupedBySeller.length} sellers</SellerCountNote>
+                  <SellerCountNote>
+                    {" "}
+                    · {orderGroupedBySeller.length} sellers
+                  </SellerCountNote>
                 )}
               </ColTitle>
 
@@ -151,18 +168,31 @@ const Checkout = () => {
                     <SellerHeaderName>
                       {group.items[0]?.listings?.seller_name || "Farmer"}
                     </SellerHeaderName>
-                    <SellerSubtotal>Kes {group.totalCost.toLocaleString()}</SellerSubtotal>
+                    <SellerSubtotal>
+                      Kes {group.totalCost.toLocaleString()}
+                    </SellerSubtotal>
                   </SellerHeader>
 
                   {group.items.map((item, idx) => (
-                    <OrderRow key={item.id} $last={idx === group.items.length - 1}>
-                      <OrderImg src={item.listings?.image_url} alt={item.listings?.title} />
+                    <OrderRow
+                      key={item.id}
+                      $last={idx === group.items.length - 1}
+                    >
+                      <OrderImg
+                        src={item.listings?.image_url}
+                        alt={item.listings?.title}
+                      />
                       <OrderMeta>
                         <OrderName>{item.listings?.title}</OrderName>
-                        <OrderSub>Kes {item.listings?.price} × {item.quantity}</OrderSub>
+                        <OrderSub>
+                          Kes {item.listings?.price} × {item.quantity}
+                        </OrderSub>
                       </OrderMeta>
                       <OrderLineTotal>
-                        Kes {((item.listings?.price ?? 0) * (item.quantity ?? 1)).toLocaleString()}
+                        Kes{" "}
+                        {(
+                          (item.listings?.price ?? 0) * (item.quantity ?? 1)
+                        ).toLocaleString()}
                       </OrderLineTotal>
                     </OrderRow>
                   ))}
@@ -179,7 +209,6 @@ const Checkout = () => {
 
             {/* ── Right: form ── */}
             <RightCol>
-
               {/* Payment method */}
               <FormCard>
                 <ColTitle>Payment Method</ColTitle>
@@ -213,7 +242,10 @@ const Checkout = () => {
                   <FieldTextarea
                     id="address"
                     value={address}
-                    onChange={(e) => { setAddress(e.target.value); setErrors((p) => ({ ...p, address: "" })); }}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      setErrors((p) => ({ ...p, address: "" }));
+                    }}
                     placeholder="Enter your full delivery address…"
                     $error={!!errors.address}
                   />
@@ -226,7 +258,10 @@ const Checkout = () => {
                     id="phone"
                     type="tel"
                     value={phone}
-                    onChange={(e) => { setPhone(e.target.value); setErrors((p) => ({ ...p, phone: "" })); }}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      setErrors((p) => ({ ...p, phone: "" }));
+                    }}
                     placeholder="e.g. 0712 345 678"
                     $error={!!errors.phone}
                   />
@@ -251,7 +286,6 @@ const Checkout = () => {
                 {isPendingOrder ? "Placing order…" : `Confirm Order `}
               </ConfirmBtn>
               <CancelBtn onClick={() => navigate(-1)}>Back to Cart</CancelBtn>
-
             </RightCol>
           </TwoCol>
         </Body>
@@ -298,7 +332,9 @@ const RoundBack = styled.button`
   flex-shrink: 0;
   transition: background 0.15s;
 
-  &:hover { background: #f0f7ee; }
+  &:hover {
+    background: #f0f7ee;
+  }
 `;
 
 const HeaderTitle = styled.h1`
@@ -338,8 +374,16 @@ const TwoCol = styled.div`
   }
 `;
 
-const LeftCol  = styled.div`display: flex; flex-direction: column; gap: 16px;`;
-const RightCol = styled.div`display: flex; flex-direction: column; gap: 16px;`;
+const LeftCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+const RightCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
 
 const ColTitle = styled.h2`
   margin: 0 0 14px;
@@ -377,7 +421,9 @@ const SellerHeader = styled.div`
   border-bottom: 1px solid #f0f7ee;
 `;
 
-const SellerIcon = styled.span`font-size: 0.95rem;`;
+const SellerIcon = styled.span`
+  font-size: 0.95rem;
+`;
 
 const SellerHeaderName = styled.span`
   flex: 1;
@@ -490,10 +536,15 @@ const PaymentCard = styled.div`
   cursor: pointer;
   transition: all 0.15s;
 
-  &:hover { border-color: #2f5a2a; }
+  &:hover {
+    border-color: #2f5a2a;
+  }
 `;
 
-const PayIcon = styled.span`font-size: 1.2rem; flex-shrink: 0;`;
+const PayIcon = styled.span`
+  font-size: 1.2rem;
+  flex-shrink: 0;
+`;
 
 const PayLabel = styled.span`
   flex: 1;
@@ -511,7 +562,9 @@ const PayRadio = styled.input`
 
 const Field = styled.div`
   margin-bottom: 16px;
-  &:last-child { margin-bottom: 0; }
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 const FieldLabel = styled.label`
@@ -539,13 +592,17 @@ const inputBase = `
 const FieldInput = styled.input`
   ${inputBase}
   border-color: ${({ $error }) => ($error ? "#e63946" : "#e8f0e8")};
-  &:focus { border-color: ${({ $error }) => ($error ? "#e63946" : "#2f5a2a")}; }
+  &:focus {
+    border-color: ${({ $error }) => ($error ? "#e63946" : "#2f5a2a")};
+  }
 `;
 
 const FieldTextarea = styled.textarea`
   ${inputBase}
   border-color: ${({ $error }) => ($error ? "#e63946" : "#e8f0e8")};
-  &:focus { border-color: ${({ $error }) => ($error ? "#e63946" : "#2f5a2a")}; }
+  &:focus {
+    border-color: ${({ $error }) => ($error ? "#e63946" : "#2f5a2a")};
+  }
   min-height: 88px;
   resize: vertical;
 `;
@@ -577,8 +634,13 @@ const ConfirmBtn = styled.button`
   cursor: pointer;
   transition: background 0.2s;
 
-  &:hover:not(:disabled) { background: #245026; }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &:hover:not(:disabled) {
+    background: #245026;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 const CancelBtn = styled.button`
@@ -593,7 +655,10 @@ const CancelBtn = styled.button`
   cursor: pointer;
   transition: all 0.2s;
 
-  &:hover { background: #eef7ee; border-color: #2f5a2a; }
+  &:hover {
+    background: #eef7ee;
+    border-color: #2f5a2a;
+  }
 `;
 
 /* ── Empty state ── */
@@ -613,8 +678,13 @@ const EmptyCard = styled.div`
   border-radius: 18px;
   box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
 
-  span { font-size: 2.5rem; }
-  p { color: #7b8f7f; margin: 12px 0 20px; }
+  span {
+    font-size: 2.5rem;
+  }
+  p {
+    color: #7b8f7f;
+    margin: 12px 0 20px;
+  }
 `;
 
 const GoBackBtn = styled.button`
@@ -626,5 +696,7 @@ const GoBackBtn = styled.button`
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  &:hover { background: #245026; }
+  &:hover {
+    background: #245026;
+  }
 `;

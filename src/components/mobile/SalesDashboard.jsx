@@ -5,6 +5,7 @@ import {
   useSellerListings,
   useSellerOrders,
   useDashboardStats,
+  useUpdateOrderStatus,
 } from "../../hooks/useDashboard";
 import { useAuth } from "../../context/AuthContext";
 import { formatSmartDate } from "../../hooks/dateFormat";
@@ -23,32 +24,39 @@ import {
 import { Bar, Line } from "react-chartjs-2";
 
 ChartJS.register(
-  CategoryScale, LinearScale, BarElement, LineElement,
-  PointElement, Title, Tooltip, Legend, Filler
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
 );
 
 // ─── TOKENS ──────────────────────────────────────────────────────────────────
 const C = {
-  forest:    "#1e3d1a",
-  green:     "#2f5a2a",
-  greenMid:  "#3d7a36",
-  greenLight:"#5c9132",
-  mint:      "#eef7ee",
-  mintDark:  "#d6ead6",
-  blue:      "#1a5a8a",
+  forest: "#1e3d1a",
+  green: "#2f5a2a",
+  greenMid: "#3d7a36",
+  greenLight: "#5c9132",
+  mint: "#eef7ee",
+  mintDark: "#d6ead6",
+  blue: "#1a5a8a",
   blueLight: "#e5f4ff",
-  gold:      "#b07d00",
+  gold: "#b07d00",
   goldLight: "#fff8e5",
-  purple:    "#5a2a8a",
-  purpleLight:"#f0ebff",
-  red:       "#a32d2d",
-  redLight:  "#fdf0f0",
-  text:      "#1a2e1a",
-  textMid:   "#4a6a4a",
+  purple: "#5a2a8a",
+  purpleLight: "#f0ebff",
+  red: "#a32d2d",
+  redLight: "#fdf0f0",
+  text: "#1a2e1a",
+  textMid: "#4a6a4a",
   textMuted: "#7b9b7b",
-  border:    "#e8f2e8",
-  bg:        "#f4f7f4",
-  white:     "#ffffff",
+  border: "#e8f2e8",
+  bg: "#f4f7f4",
+  white: "#ffffff",
 };
 
 // ─── ANIMATIONS ──────────────────────────────────────────────────────────────
@@ -116,16 +124,16 @@ const PageSub = styled.p`
   color: ${C.textMuted};
 `;
 
-
 // ─── STAT CARDS ──────────────────────────────────────────────────────────────
 const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 14px;
   margin-bottom: 20px;
 
-  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
-  @media (max-width: 480px) { grid-template-columns: 1fr; }
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const StatCard = styled.div`
@@ -133,22 +141,35 @@ const StatCard = styled.div`
   background: ${C.white};
   border-radius: 16px;
   padding: 20px 22px 18px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.06);
   position: relative;
   overflow: hidden;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
+
+  @media (max-width: 480px) {
+    padding: 13px 12px 12px;
+    border-radius: 12px;
+  }
 
   &::before {
     content: "";
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 3px;
     background: ${({ $color }) => $color || C.green};
     border-radius: 16px 16px 0 0;
   }
 
   &:hover {
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05), 0 10px 28px rgba(0,0,0,0.1);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.05),
+      0 10px 28px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
   }
 `;
@@ -164,6 +185,13 @@ const StatIcon = styled.div`
   justify-content: center;
   font-size: 1.1rem;
   margin-bottom: 14px;
+  @media (max-width: 480px) {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+    border-radius: 7px;
+    margin-bottom: 8px;
+  }
 `;
 
 const StatLabel = styled.p`
@@ -173,6 +201,9 @@ const StatLabel = styled.p`
   text-transform: uppercase;
   letter-spacing: 0.09em;
   color: ${C.textMuted};
+  @media (max-width: 480px) {
+    font-size: 0.62rem;
+  }
 `;
 
 const StatValue = styled.p`
@@ -182,6 +213,10 @@ const StatValue = styled.p`
   color: ${C.text};
   letter-spacing: -1px;
   line-height: 1;
+  @media (max-width: 480px) {
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
+  }
 `;
 
 const StatTag = styled.span`
@@ -201,7 +236,9 @@ const Grid3_1 = styled.div`
   gap: 14px;
   margin-bottom: 14px;
 
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Grid2 = styled.div`
@@ -210,7 +247,9 @@ const Grid2 = styled.div`
   gap: 14px;
   margin-bottom: 14px;
 
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 // ─── PANEL ───────────────────────────────────────────────────────────────────
@@ -219,7 +258,11 @@ const Panel = styled.div`
   background: ${C.white};
   border-radius: 16px;
   padding: 22px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+  min-width: 0;
+  overflow: hidden;
 `;
 
 const PanelHeader = styled.div`
@@ -247,7 +290,9 @@ const PanelAction = styled.button`
   border: none;
   cursor: pointer;
   transition: background 0.15s;
-  &:hover { background: ${C.mintDark}; }
+  &:hover {
+    background: ${C.mintDark};
+  }
 `;
 
 const Divider = styled.hr`
@@ -302,10 +347,15 @@ const OrderRow = styled.div`
   border-bottom: 1px solid ${C.border};
   gap: 12px;
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
-const OrderLeft = styled.div`flex: 1; min-width: 0;`;
+const OrderLeft = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
 
 const OrderId = styled.p`
   margin: 0 0 2px;
@@ -338,12 +388,12 @@ const OrderAmount = styled.span`
 `;
 
 const statusMap = {
-  pending:   { bg: C.goldLight,   color: C.gold,   label: "Pending"   },
-  confirmed: { bg: C.mint,        color: C.green,  label: "Confirmed" },
-  delivering:{ bg: C.blueLight,   color: C.blue,   label: "Shipping"  },
-  delivered: { bg: C.mint,        color: C.green,  label: "Delivered" },
-  cancelled: { bg: C.redLight,    color: C.red,    label: "Cancelled" },
-  refunded:  { bg: C.purpleLight, color: C.purple, label: "Refunded"  },
+  pending: { bg: C.goldLight, color: C.gold, label: "Pending" },
+  confirmed: { bg: C.mint, color: C.green, label: "Confirmed" },
+  delivering: { bg: C.blueLight, color: C.blue, label: "Shipping" },
+  delivered: { bg: C.mint, color: C.green, label: "Delivered" },
+  cancelled: { bg: C.redLight, color: C.red, label: "Cancelled" },
+  refunded: { bg: C.purpleLight, color: C.purple, label: "Refunded" },
 };
 
 const StatusPill = styled.span`
@@ -363,7 +413,9 @@ const ListingRow = styled.div`
   gap: 12px;
   padding: 9px 0;
   border-bottom: 1px solid ${C.border};
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 const ListingRank = styled.div`
@@ -389,7 +441,10 @@ const ListingThumb = styled.img`
   flex-shrink: 0;
 `;
 
-const ListingInfo = styled.div`flex: 1; min-width: 0;`;
+const ListingInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
 
 const ListingName = styled.p`
   margin: 0 0 2px;
@@ -419,14 +474,71 @@ const EmptyText = styled.p`
 const SkeletonRow = styled.div`
   height: 48px;
   border-radius: 8px;
-  background: linear-gradient(90deg, ${C.border} 25%, #f7faf7 50%, ${C.border} 75%);
+  background: linear-gradient(
+    90deg,
+    ${C.border} 25%,
+    #f7faf7 50%,
+    ${C.border} 75%
+  );
   background-size: 800px 100%;
   animation: ${shimmer} 1.4s infinite linear;
   margin-bottom: 8px;
 `;
 
+// ─── QUICK ACTIONS ───────────────────────────────────────────────────────────
+const QuickActions = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+`;
+
+const QuickBtn = styled.button`
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid ${({ $primary }) => ($primary ? C.green : C.border)};
+  background: ${({ $primary }) => ($primary ? C.green : C.white)};
+  color: ${({ $primary }) => ($primary ? "white" : C.textMid)};
+  transition: all 0.15s;
+  &:hover {
+    background: ${({ $primary }) => ($primary ? C.greenMid : C.mint)};
+    border-color: ${({ $primary }) => ($primary ? C.greenMid : C.green)};
+    color: ${({ $primary }) => ($primary ? "white" : C.green)};
+  }
+`;
+
+// ─── STATUS SELECT ────────────────────────────────────────────────────────────
+const StatusSelect = styled.select`
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  border: 1px solid ${C.border};
+  background: ${C.bg};
+  color: ${C.text};
+  cursor: pointer;
+  outline: none;
+  &:focus { border-color: ${C.green}; }
+`;
+
 // ─── CHART OPTIONS ───────────────────────────────────────────────────────────
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 const paymentLabels = { cash: "Cash", mobile: "M-Pesa", bank: "Bank" };
 
 const barOpts = {
@@ -506,6 +618,7 @@ const SalesDashboard = () => {
   const { data: stats } = useDashboardStats(seller_id);
   const { data: listings = [] } = useSellerListings(seller_id);
   const { data: orderItems = [], isLoading: loadingOrders } = useSellerOrders(seller_id);
+  const { mutate: updateOrderStatus } = useUpdateOrderStatus();
 
   const orders = Object.values(
     orderItems.reduce((acc, item) => {
@@ -514,13 +627,13 @@ const SalesDashboard = () => {
       if (!acc[oid]) acc[oid] = { ...item.orders, items: [] };
       acc[oid].items.push(item);
       return acc;
-    }, {})
+    }, {}),
   ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   const monthlyRevenue = MONTHS.map((_, i) =>
     orders
       .filter((o) => new Date(o.created_at).getMonth() === i)
-      .reduce((sum, o) => sum + (o.total_cost || 0), 0)
+      .reduce((sum, o) => sum + (o.total_cost || 0), 0),
   );
 
   const weeklyRevenue = orders
@@ -532,45 +645,54 @@ const SalesDashboard = () => {
     return acc;
   }, {});
 
-  const topListings = [...listings].sort((a, b) => b.price - a.price).slice(0, 5);
+  // Sort listings by how many orders they've received — most demanded first.
+  const topListings = [...listings]
+    .sort((a, b) => (stats?.ordersPerListing?.[b.id] || 0) - (stats?.ordersPerListing?.[a.id] || 0))
+    .slice(0, 5);
   const recentOrders = orders.slice(0, 6);
 
   const barData = {
     labels: MONTHS,
-    datasets: [{
-      data: monthlyRevenue,
-      backgroundColor: C.green,
-      hoverBackgroundColor: C.greenLight,
-      borderRadius: 7,
-      borderSkipped: false,
-    }],
+    datasets: [
+      {
+        data: monthlyRevenue,
+        backgroundColor: C.green,
+        hoverBackgroundColor: C.greenLight,
+        borderRadius: 7,
+        borderSkipped: false,
+      },
+    ],
   };
 
   const heroLineData = {
     labels: MONTHS,
-    datasets: [{
-      data: monthlyRevenue,
-      borderColor: "rgba(255,255,255,0.7)",
-      backgroundColor: "rgba(255,255,255,0.1)",
-      fill: true,
-      tension: 0.45,
-      borderWidth: 2,
-    }],
+    datasets: [
+      {
+        data: monthlyRevenue,
+        borderColor: "rgba(255,255,255,0.7)",
+        backgroundColor: "rgba(255,255,255,0.1)",
+        fill: true,
+        tension: 0.45,
+        borderWidth: 2,
+      },
+    ],
   };
 
   const statusLabels = Object.keys(statusCounts);
   const statusColors = statusLabels.map((s) => statusMap[s]?.color ?? C.green);
-  const statusBgs    = statusLabels.map((s) => statusMap[s]?.bg    ?? C.mint);
+  const statusBgs = statusLabels.map((s) => statusMap[s]?.bg ?? C.mint);
 
   const statusData = {
     labels: statusLabels.map((s) => statusMap[s]?.label ?? s),
-    datasets: [{
-      data: Object.values(statusCounts),
-      backgroundColor: statusBgs,
-      borderColor: statusColors,
-      borderWidth: 2,
-      borderRadius: 6,
-    }],
+    datasets: [
+      {
+        data: Object.values(statusCounts),
+        backgroundColor: statusBgs,
+        borderColor: statusColors,
+        borderWidth: 2,
+        borderRadius: 6,
+      },
+    ],
   };
 
   const greeting = (() => {
@@ -584,15 +706,17 @@ const SalesDashboard = () => {
     <Page>
       <AppNavbar />
       <Wrapper>
-
         {/* TOP BAR */}
         <TopBar>
           <TitleGroup>
-            <Eyebrow>{greeting}, {user?.name?.split(" ")[0] ?? "Seller"}</Eyebrow>
+            <Eyebrow>
+              {greeting}, {user?.user_metadata?.full_name?.split(" ")[0] ?? user?.user_metadata?.username ?? "Seller"}
+            </Eyebrow>
             <PageTitle>Sales Overview</PageTitle>
             <PageSub>Here's what's happening in your store today.</PageSub>
           </TitleGroup>
         </TopBar>
+
 
         {/* STAT CARDS */}
         <StatsGrid>
@@ -622,6 +746,29 @@ const SalesDashboard = () => {
             <StatLabel>Active Listings</StatLabel>
             <StatValue>{stats?.totalListings ?? 0}</StatValue>
             <StatTag $up>↑ Live</StatTag>
+          </StatCard>
+
+          <StatCard $color={C.greenMid} $delay="0.28s">
+            <StatIcon $bg={C.mint} $color={C.greenMid}>📊</StatIcon>
+            <StatLabel>Avg Order Value</StatLabel>
+            <StatValue>Kes {(stats?.avgOrderValue ?? 0).toLocaleString()}</StatValue>
+            <StatTag $up>Per order</StatTag>
+          </StatCard>
+
+          <StatCard $color={C.blue} $delay="0.35s">
+            <StatIcon $bg={C.blueLight} $color={C.blue}>🛒</StatIcon>
+            <StatLabel>Items Sold</StatLabel>
+            <StatValue>{stats?.totalItemsSold ?? 0}</StatValue>
+            <StatTag $up>All time</StatTag>
+          </StatCard>
+
+          <StatCard $color={C.gold} $delay="0.42s">
+            <StatIcon $bg={C.goldLight} $color={C.gold}>📅</StatIcon>
+            <StatLabel>Today's Orders</StatLabel>
+            <StatValue>{stats?.todayOrders ?? 0}</StatValue>
+            <StatTag $up={stats?.todayOrders > 0}>
+              Kes {(stats?.todayRevenue ?? 0).toLocaleString()}
+            </StatTag>
           </StatCard>
         </StatsGrid>
 
@@ -659,32 +806,36 @@ const SalesDashboard = () => {
             </PanelHeader>
             <Divider />
             <div style={{ height: 185 }}>
-              {statusLabels.length > 0
-                ? <Bar data={statusData} options={statusBarOpts} />
-                : <EmptyText>No orders to display yet.</EmptyText>
-              }
+              {statusLabels.length > 0 ? (
+                <Bar data={statusData} options={statusBarOpts} />
+              ) : (
+                <EmptyText>No orders to display yet.</EmptyText>
+              )}
             </div>
           </Panel>
 
           <Panel $delay="0.4s">
             <PanelHeader>
               <PanelTitle>Top Listings</PanelTitle>
-              <PanelAction>by price</PanelAction>
+              <PanelAction onClick={() => navigate("/list")}>by orders</PanelAction>
             </PanelHeader>
             <Divider />
-            {topListings.length === 0
-              ? <EmptyText>No listings yet.</EmptyText>
-              : topListings.map((listing, i) => (
+            {topListings.length === 0 ? (
+              <EmptyText>No listings yet.</EmptyText>
+            ) : (
+              topListings.map((listing, i) => (
                 <ListingRow key={listing.id}>
                   <ListingRank>{i + 1}</ListingRank>
                   <ListingThumb src={listing.image_url} alt={listing.title} />
                   <ListingInfo>
                     <ListingName>{listing.title}</ListingName>
-                    <ListingPrice>Kes {listing.price?.toLocaleString()} / {listing.unit}</ListingPrice>
+                    <ListingPrice>
+                      Kes {listing.price?.toLocaleString()} / {listing.unit}
+                    </ListingPrice>
                   </ListingInfo>
                 </ListingRow>
               ))
-            }
+            )}
           </Panel>
         </Grid2>
 
@@ -693,7 +844,7 @@ const SalesDashboard = () => {
           <PanelHeader>
             <PanelTitle>Recent Orders</PanelTitle>
             <PanelAction onClick={() => navigate("/dashboard")}>
-              View all →
+              View all
             </PanelAction>
           </PanelHeader>
           <Divider />
@@ -710,28 +861,38 @@ const SalesDashboard = () => {
             <EmptyText>No orders received yet.</EmptyText>
           )}
 
-          {!loadingOrders && recentOrders.map((order) => (
-            <OrderRow key={order.id}>
-              <OrderLeft>
-                <OrderId>#{order.id.slice(0, 8).toUpperCase()}</OrderId>
-                <OrderMeta>
-                  {formatSmartDate(order.created_at)}
-                  &nbsp;·&nbsp;
-                  {paymentLabels[order.payment_method] ?? order.payment_method}
-                  &nbsp;·&nbsp;
-                  {order.delivery_address}
-                </OrderMeta>
-              </OrderLeft>
-              <OrderRight>
-                <OrderAmount>Kes {order.total_cost?.toLocaleString()}</OrderAmount>
-                <StatusPill $s={order.status}>
-                  {statusMap[order.status]?.label ?? order.status}
-                </StatusPill>
-              </OrderRight>
-            </OrderRow>
-          ))}
+          {!loadingOrders &&
+            recentOrders.map((order) => (
+              <OrderRow key={order.id}>
+                <OrderLeft>
+                  <OrderId>
+                    #{order.id.slice(0, 8).toUpperCase()}
+                    <span style={{ fontWeight: 400, color: C.textMuted, marginLeft: 6 }}>
+                      · {order.items?.length ?? 0} item{order.items?.length !== 1 ? "s" : ""}
+                    </span>
+                  </OrderId>
+                  <OrderMeta>
+                    {formatSmartDate(order.created_at)}
+                    &nbsp;·&nbsp;
+                    {paymentLabels[order.payment_method] ?? order.payment_method}
+                    &nbsp;·&nbsp;
+                    {order.delivery_address}
+                  </OrderMeta>
+                </OrderLeft>
+                <OrderRight>
+                  <OrderAmount>Kes {order.total_cost?.toLocaleString()}</OrderAmount>
+                  <StatusSelect
+                    value={order.status}
+                    onChange={(e) => updateOrderStatus({ order_id: order.id, status: e.target.value })}
+                  >
+                    {["pending","confirmed","delivering","delivered","cancelled"].map((s) => (
+                      <option key={s} value={s}>{statusMap[s]?.label ?? s}</option>
+                    ))}
+                  </StatusSelect>
+                </OrderRight>
+              </OrderRow>
+            ))}
         </Panel>
-
       </Wrapper>
     </Page>
   );

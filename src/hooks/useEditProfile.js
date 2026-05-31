@@ -1,11 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
-import { use } from "react";
 
-
-
-
-
+// Uploads a new avatar if provided, then updates the profile row with all supplied fields.
+// Keeps the existing avatar_url unchanged when no new image file is selected.
 export function useEditProfile() {
   const queryClient = useQueryClient();
 
@@ -16,6 +13,7 @@ export function useEditProfile() {
       location,
       location_link,
       image,
+      existingAvatarUrl,
     }) => {
       const {
         data: { user },
@@ -23,9 +21,9 @@ export function useEditProfile() {
 
       if (!user) throw new Error("Not authenticated");
 
-      let imageUrl = null;
+      // Use the existing URL as default — only overwrite it if a new file was selected.
+      let avatarUrl = existingAvatarUrl ?? null;
 
-      // ✅ Upload image if exists
       if (image) {
         const filePath = `${user.id}/${Date.now()}-${image.name}`;
 
@@ -39,19 +37,9 @@ export function useEditProfile() {
           .from("avatars")
           .getPublicUrl(filePath);
 
-        imageUrl = data.publicUrl;
+        avatarUrl = data.publicUrl;
       }
 
-      console.log("Updating profile with:", {
-        userId: user.id,
-        farm_name,
-        description,
-        location,
-        location_link,
-        imageUrl,
-      });
-
-      // ✅ Update instead of insert
       const { data, error } = await supabase
         .from("profiles")
         .update({
@@ -59,7 +47,7 @@ export function useEditProfile() {
           description,
           location,
           location_link,
-          ...(imageUrl && { avatar_url: imageUrl }),
+          avatar_url: avatarUrl,
         })
         .eq("id", user.id)
         .select()
@@ -70,8 +58,9 @@ export function useEditProfile() {
       return data;
     },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+    // Invalidate the profile cache so Profile.jsx re-fetches the updated data.
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["profile", data.id] });
     },
   });
 }

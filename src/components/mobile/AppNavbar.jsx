@@ -5,6 +5,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useUser } from "../../hooks/useUser";
 import { useAllCartItems } from "../../hooks/useCart";
 import { useIsAdmin } from "../../hooks/useShopAdmin";
+import { useUnreadConversationsCount } from "../../hooks/useMessages";
+import { useUnreadCount } from "../../hooks/useNotification";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -73,31 +75,39 @@ const DesktopLinks = styled.div`
   justify-content: center;
 
   /* Hide on mobile — bottom nav covers navigation there */
-  @media (max-width: 768px) { display: none; }
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const NavLink = styled.button`
-  background: ${({ $admin, $active }) => $admin && $active ? "#1a3318" : $admin ? "#111827" : "none"};
+  background: ${({ $admin, $active }) =>
+    $admin && $active ? "#1a3318" : $admin ? "#111827" : "none"};
   border: none;
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 0.88rem;
-  font-weight: 600;
-  color: ${({ $admin, $active }) => $admin ? "white" : $active ? "#2f5a2a" : "#44554c"};
+  font-weight: 400;
+  color: ${({ $admin, $active }) =>
+    $admin ? "white" : $active ? "#2f5a2a" : "#2c3a32"};
   cursor: pointer;
   white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 
   &:hover {
-    background: ${({ $admin }) => $admin ? "#1f2937" : "#d7ead7"};
-    color: ${({ $admin }) => $admin ? "white" : "#2f5a2a"};
+    background: ${({ $admin }) => ($admin ? "#1f2937" : "#d7ead7")};
+    color: ${({ $admin }) => ($admin ? "white" : "#2f5a2a")};
   }
 `;
 
-const NavLinkIcon = styled.span`font-size: 0.9rem;`;
+const NavLinkIcon = styled.span`
+  font-size: 0.9rem;
+`;
 
 // ─── Right side ───────────────────────────────────────────────────────────────
 
@@ -123,7 +133,9 @@ const IconBtn = styled.button`
   transition: background 0.15s;
   flex-shrink: 0;
 
-  &:hover { background: #d7ead7; }
+  &:hover {
+    background: #d7ead7;
+  }
 `;
 
 const Badge = styled.span`
@@ -144,6 +156,26 @@ const Badge = styled.span`
   pointer-events: none;
 `;
 
+// Inline superscript badge shown next to nav link text for messages / notifications
+const NavBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e63946;
+  color: white;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  line-height: 1;
+  position: relative;
+  top: -5px;
+  margin-left: 1px;
+  pointer-events: none;
+`;
+
 const AvatarBtn = styled.button`
   width: 38px;
   height: 38px;
@@ -156,7 +188,9 @@ const AvatarBtn = styled.button`
   flex-shrink: 0;
   transition: border-color 0.15s;
 
-  &:hover { border-color: #2f5a2a; }
+  &:hover {
+    border-color: #2f5a2a;
+  }
 
   img {
     width: 100%;
@@ -173,7 +207,7 @@ const DropdownWrap = styled.div`
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  width: min(240px, calc(100vw - 32px));
+  width: min(190px, calc(100vw - 32px));
   background: white;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(20, 57, 32, 0.15);
@@ -206,7 +240,9 @@ const UserAvatar = styled.div`
   text-transform: uppercase;
 `;
 
-const UserInfo = styled.div`min-width: 0;`;
+const UserInfo = styled.div`
+  min-width: 0;
+`;
 
 const UserName = styled.p`
   margin: 0 0 1px;
@@ -263,36 +299,36 @@ const MenuIcon = styled.span`
 
 // Shown inline on desktop
 const DESKTOP_LINKS = [
-  { label: "Browse",       icon: "🔍", path: "/list"          },
-  { label: "Messages",     icon: "💬", path: "/messages"      },
-  { label: "Notifications",icon: "🔔", path: "/notifications" },
-  { label: "Following",    icon: "👥", path: "/following"     },
-  { label: "My Store",     icon: "🏪", path: "/dashboard"     },
-  { label: "Shop",         icon: "🛍️", path: "/shop"          },
+  { label: "Browse", icon: "🔍", path: "/list" },
+  { label: "Messages", icon: "💬", path: "/messages" },
+  { label: "Notifications", icon: "🔔", path: "/notifications" },
+  { label: "Following", icon: "👥", path: "/following" },
+  { label: "My Store", icon: "🏪", path: "/dashboard" },
+  { label: "Shop", icon: "🛍️", path: "/shop" },
 ];
 
 // Dropdown on desktop — only items NOT already in the inline nav links
 const DESKTOP_MENU_ITEMS = [
-  { label: "View Profile", icon: "👤", path: "/profile"   },
-  { label: "Community",    icon: "🌿", path: "/community" },
+  { label: "View Profile", icon: "👤", path: "/profile" },
+  { label: "Community", icon: "🌿", path: "/community" },
 ];
 
 // Dropdown on mobile — full list since there are no inline links
 const MOBILE_MENU_ITEMS = [
-  { label: "View Profile",  icon: "👤", path: "/profile"       },
-  { label: "Messages",      icon: "💬", path: "/messages"      },
-  { label: "Following",     icon: "👥", path: "/following"     },
+  { label: "View Profile", icon: "👤", path: "/profile" },
+  { label: "Messages", icon: "💬", path: "/messages" },
+  { label: "Following", icon: "👥", path: "/following" },
   { label: "Notifications", icon: "🔔", path: "/notifications" },
-  { label: "My Store",      icon: "🏪", path: "/dashboard"     },
-  { label: "Community",     icon: "🌿", path: "/community"     },
-  { label: "Shop",          icon: "🛍️", path: "/shop"          },
+  { label: "My Store", icon: "🏪", path: "/dashboard" },
+  { label: "Community", icon: "🌿", path: "/community" },
+  { label: "Shop", icon: "🛍️", path: "/shop" },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AppNavbar() {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
   const { data: userData } = useUser();
   const [isOpen, setIsOpen] = useState(false);
@@ -300,10 +336,15 @@ export default function AppNavbar() {
 
   const { data: cartItems } = useAllCartItems(userData?.id);
   const { data: isAdminUser } = useIsAdmin(userData?.id);
-  const cartCount  = cartItems?.length ?? 0;
-  const fullName   = userData?.user_metadata?.full_name || userData?.user_metadata?.username || "User";
-  const email      = userData?.email ?? "";
-  const image_url  = userData?.profile?.avatar_url;
+  const { data: unreadMessages = 0 } = useUnreadConversationsCount(userData?.id);
+  const { data: unreadNotifs = 0 } = useUnreadCount(userData?.id);
+  const cartCount = cartItems?.length ?? 0;
+  const fullName =
+    userData?.user_metadata?.full_name ||
+    userData?.user_metadata?.username ||
+    "User";
+  const email = userData?.email ?? "";
+  const image_url = userData?.profile?.avatar_url;
 
   // Pick the right dropdown list based on screen width, then append the
   // Admin Panel item at the end — only visible to users with is_admin = true.
@@ -322,7 +363,10 @@ export default function AppNavbar() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const go = (path) => { setIsOpen(false); navigate(path); };
+  const go = (path) => {
+    setIsOpen(false);
+    navigate(path);
+  };
 
   const handleSignOut = async () => {
     setIsOpen(false);
@@ -337,74 +381,103 @@ export default function AppNavbar() {
       {/* ── Top bar ── */}
       <Nav>
         <NavInner>
-        {/* Logo */}
-        <Logo onClick={() => navigate("/mobile")}>
-          <img loading="lazy" src="/afarmer.jpg" alt="Afarmer logo" />
-          <span>AFARMER</span>
-        </Logo>
+          {/* Logo */}
+          <Logo onClick={() => navigate("/mobile")}>
+            <img loading="lazy" src="/afarmer.jpg" alt="Afarmer logo" />
+            <span>AFARMER</span>
+          </Logo>
 
-        {/* Desktop inline links — text only, no icons */}
-        <DesktopLinks>
-          {DESKTOP_LINKS.map((item) => (
-            <NavLink
-              key={item.path}
-              $active={isActive(item.path)}
-              onClick={() => navigate(item.path)}
-            >
-              {item.label}
-            </NavLink>
-          ))}
-          {/* Admin link — only rendered when the logged-in user is an admin */}
-          {isAdminUser && (
-            <NavLink $active={isActive("/admin")} onClick={() => navigate("/admin")} $admin>
-              ⚙️ Admin
-            </NavLink>
-          )}
-        </DesktopLinks>
+          {/* Desktop inline links — badges shown on Messages and Notifications when there are unreads */}
+          <DesktopLinks>
+            {DESKTOP_LINKS.map((item) => {
+              const badge =
+                item.path === "/messages" && unreadMessages > 0
+                  ? unreadMessages
+                  : item.path === "/notifications" && unreadNotifs > 0
+                  ? unreadNotifs
+                  : null;
+              return (
+                <NavLink
+                  key={item.path}
+                  $active={isActive(item.path)}
+                  onClick={() => navigate(item.path)}
+                >
+                  {item.label}
+                  {badge && <NavBadge>{badge > 99 ? "99+" : badge}</NavBadge>}
+                </NavLink>
+              );
+            })}
+            {/* Admin link — only rendered when the logged-in user is an admin */}
 
-        {/* Cart + avatar — always visible */}
-        <RightSide>
-          <IconBtn onClick={() => navigate("/cart")} aria-label="Cart">
-            🛒
-            {cartCount > 0 && <Badge>{cartCount}</Badge>}
-          </IconBtn>
-
-          <div ref={ref} style={{ position: "relative" }}>
-            <AvatarBtn onClick={() => setIsOpen((p) => !p)} aria-label="Open menu">
-              <img loading="lazy" src={image_url || "/user.jpg"} alt="Profile" />
-            </AvatarBtn>
-
-            {isOpen && (
-              <DropdownWrap>
-                <UserBlock>
-                  <UserAvatar>{fullName[0]}</UserAvatar>
-                  <UserInfo>
-                    <UserName>{fullName}</UserName>
-                    <UserEmail>{email}</UserEmail>
-                  </UserInfo>
-                </UserBlock>
-
-                <DDivider />
-
-                {menuItems.map((item) => (
-                  <MenuItem key={item.path} onClick={() => go(item.path)}>
-                    <MenuIcon>{item.icon}</MenuIcon>
-                    {item.label}
-                  </MenuItem>
-                ))}
-
-                <DDivider />
-
-                <MenuItem $danger onClick={handleSignOut}>
-                  Sign Out
-                </MenuItem>
-              </DropdownWrap>
+            {isAdminUser && (
+              <NavLink
+                $active={isActive("/admin")}
+                onClick={() => navigate("/admin")}
+                $admin
+              >
+                ⚙️ Admin
+              </NavLink>
             )}
-          </div>
-        </RightSide>
+          </DesktopLinks>
+
+          {/* Cart + avatar — always visible */}
+          <RightSide>
+            <IconBtn onClick={() => navigate("/cart")} aria-label="Cart">
+              🛒
+              {cartCount > 0 && <Badge>{cartCount}</Badge>}
+            </IconBtn>
+
+            <div ref={ref} style={{ position: "relative" }}>
+              <AvatarBtn
+                onClick={() => setIsOpen((p) => !p)}
+                aria-label="Open menu"
+              >
+                <img
+                  loading="lazy"
+                  src={image_url || "/user.jpg"}
+                  alt="Profile"
+                />
+              </AvatarBtn>
+
+              {isOpen && (
+                <DropdownWrap>
+                  <UserBlock>
+                    <UserAvatar>{fullName[0]}</UserAvatar>
+                    <UserInfo>
+                      <UserName>{fullName}</UserName>
+                      <UserEmail>{email}</UserEmail>
+                    </UserInfo>
+                  </UserBlock>
+
+                  <DDivider />
+
+                  {menuItems.map((item) => {
+                    const badge =
+                      item.path === "/messages" && unreadMessages > 0
+                        ? unreadMessages
+                        : item.path === "/notifications" && unreadNotifs > 0
+                        ? unreadNotifs
+                        : null;
+                    return (
+                      <MenuItem key={item.path} onClick={() => go(item.path)}>
+                        {/* <MenuIcon>{item.icon}</MenuIcon> */}
+                        {item.label}
+                        {badge && <NavBadge style={{ marginLeft: "auto" }}>{badge > 99 ? "99+" : badge}</NavBadge>}
+                      </MenuItem>
+                    );
+                  })}
+
+                  <DDivider />
+
+                  <MenuItem $danger onClick={handleSignOut}>
+                    Sign Out
+                  </MenuItem>
+                </DropdownWrap>
+              )}
+            </div>
+          </RightSide>
         </NavInner>
       </Nav>
-
     </>
   );
 }
