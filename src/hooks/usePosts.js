@@ -5,6 +5,7 @@ import { supabase } from "../../supabase";
    ✅ CREATE POST
 ========================= */
 
+// Creates a new post for the authenticated user, uploading an image to storage if provided.
 export function useCreatePost() {
   const queryClient = useQueryClient();
 
@@ -77,6 +78,7 @@ export function useCreatePost() {
    ✅ GET ALL POSTS
 ========================= */
 
+// Fetches all posts ordered by most recently created.
 export function usePosts() {
   return useQuery({
     queryKey: ["posts"],
@@ -126,6 +128,7 @@ export function usePosts() {
    ✅ GET SINGLE POST
 ========================= */
 
+// Fetches a single post by its ID.
 export function usePost(id) {
   return useQuery({
     queryKey: ["post", id],
@@ -148,6 +151,7 @@ export function usePost(id) {
    ✅ GET SINGLE POST LIKE STATUS
 ========================= */
 
+// Returns whether the authenticated user has liked a given post.
 export function useLikeStatus(postId) {
   return useQuery({
     queryKey: ["like-status", postId],
@@ -179,6 +183,7 @@ export function useLikeStatus(postId) {
    ✅ TOGGLE LIKE
 ========================= */
 
+// Toggles a like on a post — inserts a like row if not liked, deletes it if already liked.
 export function useToggleLike(postId) {
   const queryClient = useQueryClient();
 
@@ -235,6 +240,7 @@ export function useToggleLike(postId) {
    ✅ LIKE COUNT (Optimized)
 ========================= */
 
+// Returns the total number of likes for a given post.
 export function useLikeCount(postId) {
   return useQuery({
     queryKey: ["like-count", postId],
@@ -256,6 +262,7 @@ export function useLikeCount(postId) {
    ✅ COMMENT COUNT (Optimized)
 ========================= */
 
+// Returns the total number of comments for a given post.
 export function useCommentCount(postId) {
   return useQuery({
     queryKey: ["comment-count", postId],

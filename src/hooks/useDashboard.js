@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
 // --- fetch seller's listings
+// Fetches all listings belonging to the given seller, ordered by most recently created.
 export function useSellerListings(seller_id) {
   return useQuery({
     queryKey: ["sellerListings", seller_id],
@@ -19,6 +20,7 @@ export function useSellerListings(seller_id) {
 }
 
 // --- fetch orders received by seller (via listings)
+// Fetches all order items for listings owned by the seller, with full order and listing details.
 export function useSellerOrders(seller_id) {
   return useQuery({
     queryKey: ["sellerOrders", seller_id],
@@ -68,6 +70,7 @@ export function useSellerOrders(seller_id) {
 }
 
 // --- update order status
+// Updates an order's status by ID and invalidates the seller orders cache.
 export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -87,6 +90,7 @@ export function useUpdateOrderStatus() {
 }
 
 // --- delete listing
+// Deletes a listing by ID and invalidates the seller's listings cache.
 export function useDeleteListing() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -122,6 +126,7 @@ export function useToggleAvailability() {
 }
 
 // --- dashboard stats
+// Calculates seller dashboard stats including revenue, order counts, today's activity, and top listings.
 export function useDashboardStats(seller_id) {
   return useQuery({
     queryKey: ["dashboardStats", seller_id],
@@ -145,7 +150,9 @@ export function useDashboardStats(seller_id) {
 
       const { data: orderItems } = await supabase
         .from("order_items")
-        .select(`quantity, price_at_purchase, listing_id, orders ( id, status, total_cost, created_at )`)
+        .select(
+          `quantity, price_at_purchase, listing_id, orders ( id, status, total_cost, created_at )`,
+        )
         .in("listing_id", listing_ids);
 
       const totalRevenue =
@@ -154,29 +161,43 @@ export function useDashboardStats(seller_id) {
           0,
         ) ?? 0;
 
-      const uniqueOrderIds = new Set(orderItems?.map((i) => i.orders?.id).filter(Boolean));
+      const uniqueOrderIds = new Set(
+        orderItems?.map((i) => i.orders?.id).filter(Boolean),
+      );
       const totalOrders = uniqueOrderIds.size;
       const pendingOrders =
         orderItems?.filter((i) => i.orders?.status === "pending").length ?? 0;
 
       // Average value per unique order.
-      const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+      const avgOrderValue =
+        totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
 
       // Total units sold across all order items.
-      const totalItemsSold = orderItems?.reduce((sum, i) => sum + (i.quantity || 0), 0) ?? 0;
+      const totalItemsSold =
+        orderItems?.reduce((sum, i) => sum + (i.quantity || 0), 0) ?? 0;
 
       // Orders and revenue created today.
       const todayStr = new Date().toDateString();
-      const todayItems = orderItems?.filter(
-        (i) => i.orders?.created_at && new Date(i.orders.created_at).toDateString() === todayStr
-      ) ?? [];
-      const todayOrders = new Set(todayItems.map((i) => i.orders?.id).filter(Boolean)).size;
-      const todayRevenue = todayItems.reduce((sum, i) => sum + i.price_at_purchase * i.quantity, 0);
+      const todayItems =
+        orderItems?.filter(
+          (i) =>
+            i.orders?.created_at &&
+            new Date(i.orders.created_at).toDateString() === todayStr,
+        ) ?? [];
+      const todayOrders = new Set(
+        todayItems.map((i) => i.orders?.id).filter(Boolean),
+      ).size;
+      const todayRevenue = todayItems.reduce(
+        (sum, i) => sum + i.price_at_purchase * i.quantity,
+        0,
+      );
 
       // Orders per listing — used to rank top listings by demand.
       const ordersPerListing = {};
       orderItems?.forEach((i) => {
-        if (i.listing_id) ordersPerListing[i.listing_id] = (ordersPerListing[i.listing_id] || 0) + 1;
+        if (i.listing_id)
+          ordersPerListing[i.listing_id] =
+            (ordersPerListing[i.listing_id] || 0) + 1;
       });
 
       return {

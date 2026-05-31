@@ -17,6 +17,7 @@ export function useListings() {
   });
 }
 
+// Deletes a listing by ID and invalidates the given user's listings cache.
 export function useDeleteListing(user_id) {
   const queryClient = useQueryClient();
   return useMutation({

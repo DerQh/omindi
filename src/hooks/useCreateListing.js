@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
+// Creates a new listing for the authenticated seller, uploading an image to storage if provided.
 export function useCreateListing() {
   const queryClient = useQueryClient();
 

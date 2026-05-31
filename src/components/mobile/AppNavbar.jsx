@@ -316,6 +316,7 @@ const DESKTOP_MENU_ITEMS = [
 // Dropdown on mobile — full list since there are no inline links
 const MOBILE_MENU_ITEMS = [
   { label: "View Profile", icon: "👤", path: "/profile" },
+  { label: "My Orders", icon: "📦", path: "/my-orders" },
   { label: "Messages", icon: "💬", path: "/messages" },
   { label: "Following", icon: "👥", path: "/following" },
   { label: "Notifications", icon: "🔔", path: "/notifications" },

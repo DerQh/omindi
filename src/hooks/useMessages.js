@@ -1,5 +1,6 @@
 // hooks/useMessages.js
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "../../supabase";
 
 // Returns the number of conversations that have at least one unread message for the given user.
@@ -49,8 +50,29 @@ export function useConversations(user_id) {
   });
 }
 
-// get messages for a conversation
+// Fetches messages for a conversation and subscribes to real-time inserts so new messages arrive instantly without polling.
 export function useMessages(conversation_id) {
+  const queryClient = useQueryClient();
+
+  // Subscribe to new messages on this conversation via Supabase realtime.
+  useEffect(() => {
+    if (!conversation_id) return;
+
+    const channel = supabase
+      .channel(`messages:${conversation_id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversation_id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["messages", conversation_id] });
+          queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [conversation_id, queryClient]);
+
   return useQuery({
     queryKey: ["messages", conversation_id],
     enabled: !!conversation_id,
@@ -64,7 +86,6 @@ export function useMessages(conversation_id) {
       if (error) throw error;
       return data;
     },
-    refetchInterval: 3000, // poll every 3 seconds for new messages
   });
 }
 
@@ -148,6 +169,7 @@ export function useMarkMessagesRead() {
 
 // Delete messages
 
+// Deletes a single message by ID and invalidates the messages cache.
 export function useDeleteMessage() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -165,6 +187,7 @@ export function useDeleteMessage() {
 }
 
 // delete conversation
+// Deletes a conversation by ID (messages cascade-delete) and invalidates the conversations cache.
 export function useDeleteConversation() {
   const queryClient = useQueryClient();
   return useMutation({

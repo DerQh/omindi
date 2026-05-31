@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "../../supabase";
 
+// Uploads an image file to the uploads bucket and inserts a new post row with the file URL and text.
 export function useUploadPost() {
   return useMutation({
     mutationKey: ["upload-post"],

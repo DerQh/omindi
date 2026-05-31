@@ -50,6 +50,8 @@ import { EditListing } from "./components/mobile/EditListing";
 import AppHome from "./components/mobile/AppHome";
 import SalesDashboard from "./components/mobile/SalesDashboard";
 import Admin from "./components/mobile/Admin";
+import MyOrders from "./components/mobile/MyOrders";
+import ResetPassword from "./components/web/ResetPassword";
 
 function App() {
   // Create a client
@@ -100,6 +102,7 @@ function App() {
               <Route path="/followers" element={<Followers />} />
               <Route path="/edit-profile" element={<EditProfile />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/my-orders" element={<MyOrders />} />
             </Route>
 
             {/* WEB ROUTES */}
@@ -114,6 +117,8 @@ function App() {
             </Route>
             <Route path="/contactus" element={<ContactUs />} />
             <Route path="/sign-up" element={<SignupLogin />} />
+            <Route path="/login" element={<SignupLogin />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/news" element={<News />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/aboutus" element={<AboutUs />} />

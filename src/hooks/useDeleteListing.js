@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 import { useNavigate } from "react-router-dom";
 
+// Deletes a listing by ID, invalidates the listings cache, and navigates back to the list page.
 export function useDeleteListing(id) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();

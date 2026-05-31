@@ -4,6 +4,7 @@ import styled, { keyframes, css } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useFollowedSellers, useUnfollow } from "../../hooks/useFollows";
+import { useFavoriteListings, useFavoriteDelete } from "../../hooks/useFavListings";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -625,8 +626,9 @@ const Following = () => {
   // Track event interest toggles locally
   const [interested, setInterested] = useState(new Set());
 
-  // Track removed favorites locally
-  const [removed, setRemovedFavs] = useState(new Set());
+  // Real favorites from Supabase — replaces the old static hardcoded list.
+  const { data: favoriteListings = [] } = useFavoriteListings(user?.id);
+  const { mutate: removeFav } = useFavoriteDelete();
 
   // Stops card navigation from firing and unfollows the given seller.
   const handleUnfollow = (e, sellerId) => {
@@ -643,17 +645,11 @@ const Following = () => {
     });
   };
 
-  // Removes a listing from the saved/favorites list without navigating to the card.
-  const toggleFav = (e, id) => {
+  // Removes a saved listing from favorites via Supabase.
+  const handleRemoveFav = (e, listingId) => {
     e.stopPropagation();
-    setRemovedFavs((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+    removeFav({ user_id: user?.id, listing_id: listingId });
   };
-
-  const visibleFavs = followData.favorites.filter((f) => !removed.has(f.id));
 
   return (
     <>
@@ -685,7 +681,7 @@ const Following = () => {
                 key: "favorites",
                 label: "Saved",
                 icon: "",
-                count: visibleFavs.length,
+                count: favoriteListings.length,
               },
             ].map(({ key, label, icon, count }) => (
               <Tab
@@ -777,43 +773,31 @@ const Following = () => {
           </ContentArea>
         )}
 
-        {/* ── Favorites tab ── */}
+        {/* ── Favorites tab — real data from Supabase ── */}
         {activeTab === "favorites" && (
           <ContentArea key="favorites">
-            <SectionLabel>{visibleFavs.length} saved listings</SectionLabel>
-            {visibleFavs.length === 0 ? (
+            <SectionLabel>{favoriteListings.length} saved listing{favoriteListings.length !== 1 ? "s" : ""}</SectionLabel>
+            {favoriteListings.length === 0 ? (
               <EmptyState>
                 <EmptyIcon>💔</EmptyIcon>
                 <EmptyTitle>No saved listings</EmptyTitle>
-                <EmptyDesc>
-                  Browse listings and tap the heart to save them here.
-                </EmptyDesc>
+                <EmptyDesc>Browse listings and tap the heart to save them here.</EmptyDesc>
               </EmptyState>
             ) : (
               <Grid>
-                {visibleFavs.map((item) => (
+                {favoriteListings.map((item) => (
                   <FavCard
                     key={item.id}
-                    onClick={() => navigate(`/listing/${item.id}`)}
+                    onClick={() => navigate(`/listing/${item.id}`, { state: { listing: item } })}
                   >
                     <FavCover>
-                      <img src={item.image} alt={item.title} />
-                      <PriceBadge>{item.price}</PriceBadge>
-                      {/* Heart button removes from saved list */}
-                      <HeartBtn onClick={(e) => toggleFav(e, item.id)}>
-                        ❤️
-                      </HeartBtn>
+                      {item.image_url && <img src={item.image_url} alt={item.title} />}
+                      <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
+                      <HeartBtn onClick={(e) => handleRemoveFav(e, item.id)}>❤️</HeartBtn>
                     </FavCover>
                     <FavBody>
                       <FavTitle>{item.title}</FavTitle>
-                      <FavMeta>
-                        by {item.seller} · 📍 {item.location}
-                      </FavMeta>
-                      <RatingRow>
-                        <Stars>{renderStars(item.rating)}</Stars>
-                        <RatingText>{item.rating.toFixed(1)}</RatingText>
-                        <ReviewText>({item.reviews} reviews)</ReviewText>
-                      </RatingRow>
+                      <FavMeta>{item.seller_name} · {item.location}</FavMeta>
                     </FavBody>
                   </FavCard>
                 ))}

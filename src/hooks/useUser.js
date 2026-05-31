@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
+// Fetches the currently authenticated user along with their profile data from the profiles table.
 export function useUser() {
   return useQuery({
     queryKey: ["user"],

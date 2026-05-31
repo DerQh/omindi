@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../../supabase";
 
 // ─── Eye icons for the password toggle ───────────────────────────────────────
 
@@ -613,6 +614,10 @@ function SignupLogin() {
 
   const [isLogin, setIsLogin] = useState(true);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -674,12 +679,64 @@ function SignupLogin() {
     }
   };
 
+  // Sends a password reset email via Supabase auth and shows the confirmation state.
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) return;
+    setForgotLoading(true);
+    await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotSent(true);
+    setForgotLoading(false);
+  };
+
   const switchMode = () => {
     setIsLogin((p) => !p);
     setFormData({ username: "", email: "", password: "", confirmPassword: "" });
     setErrors({});
     setSignupSuccess(false);
   };
+
+  // Show forgot password overlay instead of the normal form.
+  if (forgotMode) {
+    return (
+      <Page>
+        <LeftPanel>
+          <LeftLogo to="/"><img src="/logo1.jpg" alt="Afarmer logo" loading="lazy" /><LeftLogoText>AFARMER</LeftLogoText></LeftLogo>
+        </LeftPanel>
+        <RightPanel>
+          <FormCard>
+            <FormHeader>
+              <FormTitle>Reset Password</FormTitle>
+              <FormSub>Enter your email and we'll send you a reset link.</FormSub>
+            </FormHeader>
+            {forgotSent ? (
+              <div style={{ textAlign: "center", padding: "24px 0" }}>
+                <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>📧</div>
+                <p style={{ fontWeight: 700, color: "#1a3318", marginBottom: 8 }}>Check your inbox</p>
+                <p style={{ color: "#7b8f7f", fontSize: "0.9rem", marginBottom: 24 }}>A reset link was sent to <strong>{forgotEmail}</strong></p>
+                <SubmitBtn type="button" onClick={() => { setForgotMode(false); setForgotSent(false); }}>Back to Sign In</SubmitBtn>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword}>
+                <Field>
+                  <FieldLabel htmlFor="forgotEmail">Email Address</FieldLabel>
+                  <Input id="forgotEmail" type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} placeholder="you@email.com" required />
+                </Field>
+                <SubmitBtn type="submit" disabled={forgotLoading} style={{ marginTop: 16 }}>
+                  {forgotLoading ? "Sending…" : "Send Reset Link"}
+                </SubmitBtn>
+                <div style={{ textAlign: "center", marginTop: 14 }}>
+                  <ForgotLink href="#" onClick={(e) => { e.preventDefault(); setForgotMode(false); }}>Back to Sign In</ForgotLink>
+                </div>
+              </form>
+            )}
+          </FormCard>
+        </RightPanel>
+      </Page>
+    );
+  }
 
   return (
     <Page>
@@ -895,7 +952,7 @@ function SignupLogin() {
                       <input type="checkbox" id="remember" name="remember" />
                       Remember me
                     </RememberRow>
-                    <ForgotLink href="#" onClick={(e) => e.preventDefault()}>
+                    <ForgotLink href="#" onClick={(e) => { e.preventDefault(); setForgotMode(true); }}>
                       Forgot password?
                     </ForgotLink>
                   </LoginExtras>

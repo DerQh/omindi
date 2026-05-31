@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "../../../supabase";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
@@ -807,9 +808,16 @@ function Body() {
   // Helper to update a single form field without replacing the whole object
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-  const handleSubmit = (e) => {
+  // Saves the wholesale inquiry to Supabase and shows the success state.
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: send form data to a backend or email service (e.g. Supabase edge function)
+    await supabase.from("wholesale_inquiries").insert({
+      first_name: form.firstName,
+      last_name:  form.lastName,
+      email:      form.email,
+      institution: form.institution,
+      interest:   form.interest,
+    });
     setSubmitted(true);
   };
 

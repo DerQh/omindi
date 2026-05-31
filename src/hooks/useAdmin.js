@@ -3,6 +3,7 @@ import { supabase } from "../../supabase";
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
+// Fetches aggregate platform stats: total users, listings, orders, revenue, pending, and disputed order counts.
 export function useAdminStats() {
   return useQuery({
     queryKey: ["admin", "stats"],
@@ -28,6 +29,7 @@ export function useAdminStats() {
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
+// Fetches all user profiles ordered by most recently created, for the admin users panel.
 export function useAdminUsers() {
   return useQuery({
     queryKey: ["admin", "users"],
@@ -42,6 +44,7 @@ export function useAdminUsers() {
   });
 }
 
+// Toggles the is_admin flag on a user's profile and invalidates the admin cache.
 export function useAdminToggleAdmin() {
   const qc = useQueryClient();
   return useMutation({
@@ -56,6 +59,7 @@ export function useAdminToggleAdmin() {
   });
 }
 
+// Deletes a user profile by ID and invalidates the admin cache.
 export function useAdminDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
@@ -69,6 +73,7 @@ export function useAdminDeleteUser() {
 
 // ─── Listings ─────────────────────────────────────────────────────────────────
 
+// Fetches all listings ordered by most recently created, for the admin listings panel.
 export function useAdminListings() {
   return useQuery({
     queryKey: ["admin", "listings"],
@@ -83,6 +88,7 @@ export function useAdminListings() {
   });
 }
 
+// Deletes a listing by ID (admin action) and invalidates the admin cache.
 export function useAdminDeleteListing() {
   const qc = useQueryClient();
   return useMutation({
@@ -96,6 +102,7 @@ export function useAdminDeleteListing() {
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
+// Fetches all orders ordered by most recently created, for the admin orders panel.
 export function useAdminOrders() {
   return useQuery({
     queryKey: ["admin", "orders"],
@@ -110,6 +117,7 @@ export function useAdminOrders() {
   });
 }
 
+// Updates an order's status by ID (admin action) and invalidates the admin cache.
 export function useAdminUpdateOrderStatus() {
   const qc = useQueryClient();
   return useMutation({

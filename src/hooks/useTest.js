@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
+// Test mutation that inserts a comment using auth user metadata, used for debugging comment insertion.
 export function useTestComment() {
   const queryClient = useQueryClient();
 
@@ -41,6 +42,7 @@ export function useTestComment() {
 }
 
 // FETCH ALL COMMENTS FOR A POST
+// Fetches all comments for a given post ordered by most recently created (test/duplicate version).
 export function useFetchPostComments(postId) {
   return useQuery({
     queryKey: ["post_comments", postId],
@@ -59,6 +61,7 @@ export function useFetchPostComments(postId) {
 }
 
 //  CREATE A COMMENT
+// Creates a new comment on a post for the authenticated user (test/duplicate version without profile lookup).
 export function useCreateComment() {
   const queryClient = useQueryClient();
 
@@ -98,6 +101,7 @@ export function useCreateComment() {
 
 // CREATE FAVORITE
 
+// Test mutation that inserts a favorite row linking a user to a listing (used for debugging).
 export function useCreateFavTEST() {
   const queryClient = useQueryClient();
 
@@ -128,6 +132,7 @@ export function useCreateFavTEST() {
 }
 
 // check if fav exists for a user - useQuery
+// Checks whether a specific listing is favorited by the given user, returning a boolean (test version).
 export function useFavCheck({ user_id, listing_id }) {
   return useQuery({
     // This gives each card its own cache entry, so the query runs independently for each listing and you'll see 10++ logs.
@@ -149,6 +154,7 @@ export function useFavCheck({ user_id, listing_id }) {
 }
 
 // DELETE LIKE - useMutation
+// Removes a favorite row for a user-listing pair from the database (test version).
 export function useFavDelete() {
   const queryClient = useQueryClient();
   // console.log(listing_id);

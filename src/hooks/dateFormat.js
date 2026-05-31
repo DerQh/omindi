@@ -8,6 +8,7 @@
 // };
 
 // e.g. "2 days ago"
+// Formats a date string as a human-readable relative time (e.g. "2h ago") or a short date for older dates.
 const formatSmartDate = (dateString) => {
   const now = new Date();
   const past = new Date(dateString);

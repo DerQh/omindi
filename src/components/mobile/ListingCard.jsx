@@ -7,6 +7,7 @@ import {
 } from "../../hooks/useFavListings";
 import { useQueryClient } from "@tanstack/react-query";
 
+// Renders a single listing card with image, price, details, and a favourite toggle button.
 export function ListingCardTest({ listingItem, handleCardClick, user_id }) {
   const queryClient = useQueryClient();
   const listing_id = listingItem?.id;

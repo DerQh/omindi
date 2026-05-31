@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useListing } from "../../hooks/useEditListing";
 import AppNavbar from "./AppNavbar";
@@ -11,6 +11,8 @@ import { useAddItem, useCartItemCheck } from "../../hooks/useCart";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStartConversation } from "../../hooks/useMessages";
 import { useProfile } from "../../hooks/useProfile";
+import { supabase } from "../../../supabase";
+import { useListingReviews, useAddReview, useHasReviewed, useCanReview, useSellerRating } from "../../hooks/useReviews";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -21,6 +23,7 @@ const fadeUp = keyframes`
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+// Displays the full detail view of a listing with seller info, cart actions, and an inquiry button.
 const ListingDetail = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -50,6 +53,20 @@ const ListingDetail = () => {
   });
 
   const [showConfirm, setShowConfirm] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+
+  const { data: reviews = [] } = useListingReviews(listing?.id);
+  const { data: sellerRating } = useSellerRating(listing?.seller_id);
+  const { data: hasReviewed } = useHasReviewed(user?.id, listing?.id);
+  const { data: canReview } = useCanReview(user?.id, listing?.id);
+  const { mutate: addReview, isPending: submittingReview } = useAddReview();
+
+  // Increments the listing's view counter once when the page mounts.
+  useEffect(() => {
+    if (!listing?.id) return;
+    supabase.rpc("increment_listing_views", { listing_id: listing.id }).catch(() => {});
+  }, [listing?.id]);
 
   const isSeller = user?.id === listing?.seller_id;
 
@@ -167,7 +184,6 @@ const ListingDetail = () => {
               {listing.minimumOrder && (
                 <InfoChip>Min: {listing.minimumOrder}</InfoChip>
               )}
-              <InfoChip $green>Available</InfoChip>
             </ChipRow>
 
             <Divider />
@@ -194,7 +210,11 @@ const ListingDetail = () => {
                 />
                 <SellerInfo>
                   <SellerName>{listing.seller_name || sellerProfile?.farm_name || "Farmer"}</SellerName>
-                  <SellerMeta>⭐ 4.8 · 24 reviews</SellerMeta>
+                  <SellerMeta>
+                    {sellerRating?.count > 0
+                      ? `⭐ ${sellerRating.avg} · ${sellerRating.count} review${sellerRating.count !== 1 ? "s" : ""}`
+                      : "No reviews yet"}
+                  </SellerMeta>
                 </SellerInfo>
                 <SellerArrow>›</SellerArrow>
               </SellerCard>
@@ -243,6 +263,55 @@ const ListingDetail = () => {
                 </>
               )}
             </Actions>
+
+            <Divider />
+
+            {/* Reviews section */}
+            <Section>
+              <SectionTitle>Reviews ({reviews.length})</SectionTitle>
+
+              {/* Write a review — only buyers who received this listing can review */}
+              {!isSeller && canReview && !hasReviewed && (
+                <ReviewForm>
+                  <ReviewLabel>Rate this listing</ReviewLabel>
+                  <StarRow>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <StarBtn key={n} $active={n <= reviewRating} onClick={() => setReviewRating(n)}>★</StarBtn>
+                    ))}
+                  </StarRow>
+                  <ReviewInput
+                    placeholder="Share your experience…"
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    rows={3}
+                  />
+                  <SubmitReviewBtn
+                    disabled={reviewRating === 0 || submittingReview}
+                    onClick={() => addReview(
+                      { listing_id: listing.id, seller_id: listing.seller_id, rating: reviewRating, comment: reviewComment },
+                      { onSuccess: () => { setReviewRating(0); setReviewComment(""); } }
+                    )}
+                  >
+                    {submittingReview ? "Submitting…" : "Submit Review"}
+                  </SubmitReviewBtn>
+                </ReviewForm>
+              )}
+
+              {reviews.length === 0 ? (
+                <NoReviews>No reviews yet for this listing.</NoReviews>
+              ) : (
+                reviews.map((r) => (
+                  <ReviewItem key={r.id}>
+                    <ReviewHeader>
+                      <ReviewerName>{r.profiles?.full_name || r.profiles?.farm_name || "Buyer"}</ReviewerName>
+                      <ReviewStars>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</ReviewStars>
+                    </ReviewHeader>
+                    {r.comment && <ReviewText>{r.comment}</ReviewText>}
+                    <ReviewDate>{new Date(r.created_at).toLocaleDateString("en-KE", { month: "short", day: "numeric", year: "numeric" })}</ReviewDate>
+                  </ReviewItem>
+                ))
+              )}
+            </Section>
           </Inner>
         </ContentSheet>
       </Page>
@@ -380,6 +449,111 @@ const AvailBadge = styled.div`
   background: #fdf0f0;
   color: #a32d2d;
   border: 1px solid #f5c2c2;
+`;
+
+// ─── Review styled components ─────────────────────────────────────────────────
+
+const ReviewForm = styled.div`
+  background: #f5f8f5;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+`;
+
+const ReviewLabel = styled.p`
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const StarRow = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+`;
+
+const StarBtn = styled.button`
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: ${({ $active }) => ($active ? "#f0b33d" : "#cde5cf")};
+  padding: 0;
+  transition: color 0.15s;
+  &:hover { color: #f0b33d; }
+`;
+
+const ReviewInput = styled.textarea`
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1.5px solid #cde5cf;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: #1a3318;
+  background: white;
+  resize: none;
+  outline: none;
+  &:focus { border-color: #2f5a2a; }
+  margin-bottom: 10px;
+`;
+
+const SubmitReviewBtn = styled.button`
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #2f5a2a;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:hover:not(:disabled) { background: #245026; }
+`;
+
+const ReviewItem = styled.div`
+  padding: 14px 0;
+  border-bottom: 1px solid #f0f7ee;
+  &:last-child { border-bottom: none; }
+`;
+
+const ReviewHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+`;
+
+const ReviewerName = styled.span`
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const ReviewStars = styled.span`
+  color: #f0b33d;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+`;
+
+const ReviewText = styled.p`
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+  color: #556652;
+  line-height: 1.6;
+`;
+
+const ReviewDate = styled.span`
+  font-size: 0.75rem;
+  color: #aac4aa;
+`;
+
+const NoReviews = styled.p`
+  color: #7b9b7b;
+  font-size: 0.88rem;
+  padding: 12px 0;
 `;
 
 const ChipRow = styled.div`

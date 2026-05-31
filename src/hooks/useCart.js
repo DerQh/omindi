@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
 // ADD  CART ITEM
+// Adds a listing to the user's cart with a quantity of 1 and invalidates the cart cache.
 export function useAddItem() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -32,6 +33,7 @@ export function useAddItem() {
 }
 
 // check if fav exists for a user - useQuery
+// Checks whether a specific listing is already in the user's cart, returning a boolean.
 export function useCartItemCheck({ user_id, listing_id }) {
   return useQuery({
     // This gives each card its own cache entry, so the query runs independently for each listing and you'll see 10++ logs.
@@ -53,6 +55,7 @@ export function useCartItemCheck({ user_id, listing_id }) {
 }
 
 // DELETE CART ITEM  - useMutation
+// Removes a specific listing from the user's cart and refetches the cart cache.
 export function useCartItemDelete() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -79,6 +82,7 @@ export function useCartItemDelete() {
 }
 
 // DELETE ALL CART ITEMS BY USER, AFTER CHECKING OUT   - useMutation
+// Deletes all cart items belonging to a user, typically called after a successful checkout.
 export function useCartItemsAllDelete() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -104,6 +108,7 @@ export function useCartItemsAllDelete() {
 }
 
 // DELETE CART ITEM  by id  - useMutation
+// Deletes a single cart item by its cart row ID and refetches the user's cart.
 export function useCartItemDeleteId() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -127,6 +132,7 @@ export function useCartItemDeleteId() {
 }
 
 // ---UPDATE THE QUANTITY CELL IN CART TABLE
+// Increments or decrements a cart item's quantity, deleting the row when quantity reaches zero.
 export function useUpdateCartItem() {
   const queryClient = useQueryClient();
 
@@ -194,6 +200,7 @@ export function useUpdateCartItem() {
 
 // ---- GET ALL ITEMS OF USER IN THE CART
 
+// Fetches all cart items for a user, joined with listing details, ordered by when they were added.
 export function useAllCartItems(user_id) {
   return useQuery({
     // This gives each card its own cache entry, so the query runs independently for each listing and you'll see 10++ logs.

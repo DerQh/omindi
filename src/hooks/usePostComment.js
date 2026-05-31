@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
 // FETCH ALL COMMENTS FOR A POST
+// Fetches all comments for a given post, ordered by most recently created.
 export function useFetchPostComments(post_id) {
   return useQuery({
     queryKey: ["post_comments", post_id],
@@ -20,6 +21,7 @@ export function useFetchPostComments(post_id) {
 }
 
 //  CREATE A COMMENT
+// Creates a new comment on a post for the authenticated user, including their profile name and avatar.
 export function useCreateComment() {
   const queryClient = useQueryClient();
 

@@ -20,6 +20,7 @@ export function useNotifications(user_id) {
 }
 
 // --- UNREAD count
+// Returns the count of unread notifications for the given user.
 export function useUnreadCount(user_id) {
   return useQuery({
     queryKey: ["notificationsUnread", user_id],
@@ -38,6 +39,7 @@ export function useUnreadCount(user_id) {
 }
 
 // --- MARK single notification as read
+// Marks a single notification as read by ID and invalidates the notification caches.
 export function useMarkRead() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -56,6 +58,7 @@ export function useMarkRead() {
 }
 
 // --- MARK ALL as read
+// Marks all unread notifications for a user as read and invalidates the notification caches.
 export function useMarkAllRead() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -136,6 +139,7 @@ export function useNotifyOrder() {
 }
 
 // --- INSERT inquiry notification (notify seller when buyer inquires)
+// Inserts an inquiry notification for the seller when a buyer asks about one of their listings.
 export function useNotifyInquiry() {
   return useMutation({
     mutationFn: async ({
@@ -158,6 +162,7 @@ export function useNotifyInquiry() {
 }
 
 // --- INSERT favorite notification (notify seller when buyer saves listing)
+// Inserts a favorite notification for the seller when a buyer saves one of their listings.
 export function useNotifyFavorite() {
   return useMutation({
     mutationFn: async ({
@@ -195,6 +200,7 @@ export function useNotifyFollow() {
 }
 
 // --- INSERT system notification (manual or from triggers)
+// Inserts a system-type notification for a user with a custom title, body, and optional action.
 export function useNotifySystem() {
   return useMutation({
     mutationFn: async ({ user_id, title, body, action }) => {

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
 // -- SAVE all ORDERS  for each checkout IN one row ORDERS TABLE
+// Inserts a new order row with payment, delivery, and status details for a checkout.
 export function useAddOrder() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -35,6 +36,7 @@ export function useAddOrder() {
 }
 
 // CHECK IF ORDER EXISTS FOR USER - useQuery
+// Fetches all orders for a given user to check if any exist.
 export function useOrderCheck({ user_id }) {
   return useQuery({
     // This gives each card its own cache entry, so the query runs independently for each listing and you'll see 10++ logs.
@@ -120,6 +122,7 @@ export function useApproveOrder() {
 }
 
 //   SAVE ORDERED ITEMS IN ORDERED_ITEMS TABLE
+// Inserts a single order item row linking an order to a listing with quantity and price.
 export function useAddOrderItems() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -156,6 +159,7 @@ export function useAddOrderItems() {
 }
 
 // FETCHES ORDER DETAILS BY ORDER ID , orders table , order_items table , listings table
+// Fetches a single order with its items and listing details by order ID.
 export function useOrderId(order_id) {
   // console.log(order_id);
   return useQuery({
@@ -198,6 +202,7 @@ export function useOrderId(order_id) {
 }
 
 // FETCHES ORDER DETAILS BY USER ID , orders table , order_items table , listings table
+// Fetches all orders for a user with their items and listing details.
 export function useOrder(user_id) {
   // console.log(order_id);
   return useQuery({
