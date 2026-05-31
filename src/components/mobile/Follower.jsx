@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes, css } from "styled-components";
@@ -7,6 +8,7 @@ import { useIsFollowing, useFollowToggle } from "../../hooks/useFollows";
 import { useStartConversation } from "../../hooks/useMessages";
 import { useAuth } from "../../context/AuthContext";
 import LoadingComponent from "./Loading";
+import { useUserRating, useMyRating, useRateUser } from "../../hooks/useUserRatings";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -396,6 +398,10 @@ const Follower = () => {
   const { data: isFollowing, isLoading: isLoadingFollow } = useIsFollowing(user?.id, id);
   const { mutate: toggleFollow, isPending: isToggling } = useFollowToggle(user?.id, id);
   const { mutate: startConversation, isPending: isStarting } = useStartConversation();
+  const { data: ratingData } = useUserRating(id);
+  const { data: myRating } = useMyRating(user?.id, id);
+  const { mutate: rateUser, isPending: isRating } = useRateUser();
+  const [hovered, setHovered] = useState(0);
 
   if (isLoadingProfile || isLoadingListings || isLoadingFollow) return <LoadingComponent />;
 
@@ -478,11 +484,39 @@ const Follower = () => {
               <StatLabel>Location</StatLabel>
             </StatItem>
             <StatItem>
-              <StatNumber style={{ fontSize: "0.88rem" }}>None</StatNumber>
-              <StatLabel>Rating</StatLabel>
+              <StatNumber style={{ fontSize: "0.88rem" }}>
+                {ratingData?.count ? `⭐ ${ratingData.avg}` : "–"}
+              </StatNumber>
+              <StatLabel>Rating ({ratingData?.count ?? 0})</StatLabel>
             </StatItem>
           </StatsCard>
         </StatsBar>
+
+        {/* ── Rate this seller ── */}
+        {user && user.id !== id && (
+          <RatingSection>
+            <RatingLabel>
+              {myRating ? `Your rating: ` : "Rate this seller:"}
+            </RatingLabel>
+            <Stars>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  $filled={star <= (hovered || myRating || 0)}
+                  onMouseEnter={() => setHovered(star)}
+                  onMouseLeave={() => setHovered(0)}
+                  onClick={() =>
+                    rateUser({ rater_id: user.id, rated_user_id: id, rating: star })
+                  }
+                  disabled={isRating}
+                >
+                  ★
+                </Star>
+              ))}
+            </Stars>
+            {myRating && <RatingNote>Tap a star to update</RatingNote>}
+          </RatingSection>
+        )}
 
         {description && (
           <Section>
@@ -527,5 +561,44 @@ const Follower = () => {
     </>
   );
 };
+
+const RatingSection = styled.div`
+  max-width: 960px;
+  margin: 0 auto 20px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
+
+const RatingLabel = styled.span`
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #556652;
+`;
+
+const Stars = styled.div`
+  display: flex;
+  gap: 4px;
+`;
+
+const Star = styled.button`
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  color: ${({ $filled }) => ($filled ? "#f59e0b" : "#d1d5db")};
+  transition: color 0.1s, transform 0.1s;
+  &:hover { transform: scale(1.15); }
+  &:disabled { cursor: not-allowed; opacity: 0.6; }
+`;
+
+const RatingNote = styled.span`
+  font-size: 0.78rem;
+  color: #9ca3af;
+`;
 
 export default Follower;

@@ -27,7 +27,7 @@ export default function AppHome() {
   const [query, setQuery] = useState("");
 
   const handleSearch = () => {
-    if (query.trim()) navigate("/list");
+    if (query.trim()) navigate(`/list?q=${encodeURIComponent(query.trim())}`);
   };
 
   return (
@@ -80,7 +80,7 @@ export default function AppHome() {
 
         {/* ── Farm card ── */}
         <FarmCard>
-          <CardAccent />
+
 
           <CardHeader>
             <FarmAvatarWrap>
@@ -319,7 +319,7 @@ const FarmCard = styled.div`
     right: 14px;
     left: 14px;
     width: auto;
-    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(100px + env(safe-area-inset-bottom, 0px));
     max-height: 50vh;
     overflow-y: auto;
   }

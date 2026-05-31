@@ -45,7 +45,7 @@ const ListingDetail = () => {
   const sellerAvatar = listing?.seller_image_url || sellerProfile?.avatar_url || "/user.jpg";
   const { mutate: deleteListing, isLoading: isDeleting } = useDeleteListing();
   const { mutate: mutateAddItem, isPending } = useAddItem();
-  const { mutate: startConversation } = useStartConversation();
+  const { mutateAsync: startConversation, isPending: isStarting } = useStartConversation();
 
   const { data: isItemInCart } = useCartItemCheck({
     user_id: user?.id,
@@ -65,7 +65,7 @@ const ListingDetail = () => {
   // Increments the listing's view counter once when the page mounts.
   useEffect(() => {
     if (!listing?.id) return;
-    supabase.rpc("increment_listing_views", { listing_id: listing.id }).catch(() => {});
+    supabase.rpc("increment_listing_views", { listing_id: listing.id }).then(null, () => {});
   }, [listing?.id]);
 
   const isSeller = user?.id === listing?.seller_id;
@@ -102,19 +102,25 @@ const ListingDetail = () => {
     setShowConfirm(false);
   };
 
-  const handleInquire = () => {
-    startConversation(
-      {
-        buyer_id: user?.id,
+  const handleInquire = async () => {
+    if (!user) {
+      alert("Please log in to send an inquiry.");
+      return;
+    }
+    try {
+      const conversation = await startConversation({
+        buyer_id: user.id,
         seller_id: listing?.seller_id,
         listing_id: listing?.id,
-      },
-      {
-        onSuccess: (conversation) =>
-          navigate("/messages", { state: { conversationId: conversation.id } }),
-        onError: (e) => console.log("error:", e),
-      },
-    );
+      });
+      supabase.rpc("increment_inquiry_count", { listing_id: listing.id }).then(({ error }) => {
+        if (error) console.error("inquiry rpc:", error);
+      });
+      navigate("/messages", { state: { conversationId: conversation.id } });
+    } catch (e) {
+      console.error("Inquiry error:", e);
+      alert("Could not open conversation. Please try again.");
+    }
   };
 
   if (isLoading || isFetchingListing) return <LoadingComponent />;
@@ -257,8 +263,8 @@ const ListingDetail = () => {
                   >
                     {isItemInCart ? "Already in Cart" : "Add to Cart"}
                   </ActionBtn>
-                  <ActionBtn $variant="outline" onClick={handleInquire}>
-                    Send Inquiry
+                  <ActionBtn $variant="outline" onClick={handleInquire} disabled={isStarting}>
+                    {isStarting ? "Opening…" : "Send Inquiry"}
                   </ActionBtn>
                 </>
               )}

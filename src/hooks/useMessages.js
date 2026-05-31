@@ -116,21 +116,15 @@ export function useStartConversation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ buyer_id, seller_id, listing_id = null }) => {
-      // Build the lookup query — use .is() for null listing_id, .eq() otherwise.
-      const lookup = supabase
+      const { data: existing } = await supabase
         .from("conversations")
         .select("id")
         .eq("buyer_id", buyer_id)
-        .eq("seller_id", seller_id);
-
-      const { data: existing } = await (listing_id
-        ? lookup.eq("listing_id", listing_id)
-        : lookup.is("listing_id", null)
-      ).maybeSingle();
+        .eq("seller_id", seller_id)
+        .maybeSingle();
 
       if (existing) return existing;
 
-      // No existing conversation — create a fresh one.
       const { data, error } = await supabase
         .from("conversations")
         .insert({ buyer_id, seller_id, listing_id })
@@ -142,6 +136,7 @@ export function useStartConversation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.refetchQueries({ queryKey: ["listings"] });
     },
   });
 }

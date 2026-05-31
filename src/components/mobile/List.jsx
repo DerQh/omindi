@@ -1,7 +1,7 @@
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useListings } from "../../hooks/useListings";
 import LoadingComponent from "./Loading";
 import { ListingCardTest } from "./ListingCard";
@@ -21,7 +21,8 @@ const SORT_OPTIONS = [
 const PAGE_SIZE = 15;
 
 const List = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
   const [activeCategory, setActiveCategory] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
   const [page, setPage] = useState(0);
@@ -176,7 +177,7 @@ const List = () => {
                 {searchTerm ? ` for "${searchTerm}"` : ""}
               </ResultsCount>
               <AddListingBtn onClick={() => navigate("/newlist")}>
-                Add Listing
+                + Add Listing
               </AddListingBtn>
             </ResultsMeta>
 
@@ -356,7 +357,7 @@ const CategorySelect = styled.select`
   border: 1.5px solid #cde5cf;
   background: white;
   color: #44554c;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   outline: none;
@@ -394,7 +395,7 @@ const SortSelect = styled.select`
   border: 1.5px solid #cde5cf;
   background: white;
   color: #44554c;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   outline: none;
@@ -424,21 +425,32 @@ const ResultsMeta = styled.div`
 `;
 
 const AddListingBtn = styled.button`
-  padding: 7px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 18px;
   border-radius: 999px;
   border: none;
-  background: #2f5a2a;
+  background: linear-gradient(135deg, #3a6e34, #2f5a2a);
   color: white;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
+  letter-spacing: 0.3px;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(47, 90, 42, 0.35);
   transition:
-    background 0.15s,
-    transform 0.15s;
+    box-shadow 0.15s,
+    transform 0.15s,
+    background 0.15s;
   &:hover {
-    background: #245026;
+    background: linear-gradient(135deg, #2f5a2a, #245026);
+    box-shadow: 0 4px 14px rgba(47, 90, 42, 0.45);
     transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(47, 90, 42, 0.3);
   }
 `;
 

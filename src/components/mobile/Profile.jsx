@@ -7,6 +7,7 @@ import { useProfile } from "../../hooks/useProfile";
 import LoadingComponent from "./Loading";
 import { useUserListings, useDeleteListing } from "../../hooks/useListings";
 import { useFavoriteListings, useFavoriteDelete } from "../../hooks/useFavListings";
+import { useUserRating } from "../../hooks/useUserRatings";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -540,6 +541,7 @@ const Profile = () => {
   // Listings the user has saved/hearted across the marketplace.
   const { data: favoriteListings = [] } = useFavoriteListings(user?.id);
   const { mutate: removeFavorite } = useFavoriteDelete();
+  const { data: ratingData } = useUserRating(user?.id);
 
   if (isLoading || isLoadingListings) return <LoadingComponent />;
 
@@ -600,9 +602,9 @@ const Profile = () => {
             </StatItem>
             <StatItem>
               <StatNumber style={{ fontSize: "0.88rem" }}>
-                {location ? location.split(",")[0] : "–"}
+                {ratingData?.count ? `⭐ ${ratingData.avg}` : "–"}
               </StatNumber>
-              <StatLabel>Location</StatLabel>
+              <StatLabel>Rating ({ratingData?.count ?? 0})</StatLabel>
             </StatItem>
           </StatsCard>
         </StatsBarWrap>

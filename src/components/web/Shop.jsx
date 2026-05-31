@@ -3,7 +3,6 @@ import styled, { keyframes, css } from "styled-components";
 import { Link } from "react-router-dom";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
-import { shopProducts as staticProducts } from "../../data/shopProducts";
 import { useAuth } from "../../context/AuthContext";
 import {
   useIsAdmin,
@@ -24,7 +23,6 @@ const shimmerMove = keyframes`
   100% { background-position:  600px 0; }
 `;
 
-// Static products are defined in src/data/shopProducts.js
 // DB products (added by admins) come from the shop_products Supabase table
 // Both are merged into a single list in the component below
 
@@ -759,16 +757,11 @@ function Shop() {
   const [email, setEmail] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // Merge static products with admin-added DB products
-  // DB products get a dynamic link via their numeric id
-  const products = [
-    ...staticProducts,
-    ...dbProducts.map((p) => ({
-      ...p,
-      image: p.image_url,
-      alt: p.name,
-    })),
-  ];
+  const products = dbProducts.map((p) => ({
+    ...p,
+    image: p.image_url,
+    alt: p.name,
+  }));
 
   const filtered =
     activeFilter === "All"
@@ -916,18 +909,16 @@ function Shop() {
                   {product.stock <= 8 && (
                     <LowStockChip>Only {product.stock} left</LowStockChip>
                   )}
-                  {/* Admin-only delete button — visible on card hover */}
-                  {isAdmin &&
-                    !staticProducts.find((s) => s.id === product.id) && (
-                      <AdminDeleteBtn
-                        onClick={(e) => {
-                          e.preventDefault();
-                          deleteItem(product.id);
-                        }}
-                      >
-                        🗑 Remove
-                      </AdminDeleteBtn>
-                    )}
+                  {isAdmin && (
+                    <AdminDeleteBtn
+                      onClick={(e) => {
+                        e.preventDefault();
+                        deleteItem(product.id);
+                      }}
+                    >
+                      🗑 Remove
+                    </AdminDeleteBtn>
+                  )}
                   <HoverOverlay>
                     <QuickViewBtn>Quick View</QuickViewBtn>
                   </HoverOverlay>
@@ -992,18 +983,16 @@ function Shop() {
                 {product.stock <= 8 && (
                   <LowStockChip>Only {product.stock} left</LowStockChip>
                 )}
-                {/* Admin-only delete — only for DB products, not static ones */}
-                {isAdmin &&
-                  !staticProducts.find((s) => s.id === product.id) && (
-                    <AdminDeleteBtn
-                      onClick={(e) => {
-                        e.preventDefault();
-                        deleteItem(product.id);
-                      }}
-                    >
-                      🗑 Remove
-                    </AdminDeleteBtn>
-                  )}
+                {isAdmin && (
+                  <AdminDeleteBtn
+                    onClick={(e) => {
+                      e.preventDefault();
+                      deleteItem(product.id);
+                    }}
+                  >
+                    🗑 Remove
+                  </AdminDeleteBtn>
+                )}
                 <HoverOverlay>
                   <QuickViewBtn>Quick View</QuickViewBtn>
                 </HoverOverlay>

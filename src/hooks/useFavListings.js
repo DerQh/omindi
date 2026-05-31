@@ -16,6 +16,9 @@ export function useCreateFavorite() {
 
       if (error) throw error;
 
+      const { error: rpcErr } = await supabase.rpc("increment_favourites_count", { listing_id });
+      if (rpcErr) console.error("fav rpc:", rpcErr);
+
       // Fetch the listing's title and seller so we can notify them.
       const { data: listing } = await supabase
         .from("listings")
@@ -66,6 +69,7 @@ export function useCreateFavorite() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listing_favorites"] });
+      queryClient.refetchQueries({ queryKey: ["listings"] });
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
@@ -100,12 +104,15 @@ export function useFavoriteDelete() {
         .eq("user_id", user_id)
         .eq("listing_id", listing_id);
       if (error) throw error;
+      const { error: rpcErr } = await supabase.rpc("decrement_favourites_count", { listing_id });
+      if (rpcErr) console.error("unfav rpc:", rpcErr);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listing_favorites"] });
       queryClient.invalidateQueries({ queryKey: ["userFavorites"] });
       queryClient.invalidateQueries({ queryKey: ["favoriteListings"] });
+      queryClient.refetchQueries({ queryKey: ["listings"] });
     },
   });
 }

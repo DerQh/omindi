@@ -337,7 +337,9 @@ export default function AppNavbar() {
 
   const { data: cartItems } = useAllCartItems(userData?.id);
   const { data: isAdminUser } = useIsAdmin(userData?.id);
-  const { data: unreadMessages = 0 } = useUnreadConversationsCount(userData?.id);
+  const { data: unreadMessages = 0 } = useUnreadConversationsCount(
+    userData?.id,
+  );
   const { data: unreadNotifs = 0 } = useUnreadCount(userData?.id);
   const cartCount = cartItems?.length ?? 0;
   const fullName =
@@ -395,8 +397,8 @@ export default function AppNavbar() {
                 item.path === "/messages" && unreadMessages > 0
                   ? unreadMessages
                   : item.path === "/notifications" && unreadNotifs > 0
-                  ? unreadNotifs
-                  : null;
+                    ? unreadNotifs
+                    : null;
               return (
                 <NavLink
                   key={item.path}
@@ -457,13 +459,17 @@ export default function AppNavbar() {
                       item.path === "/messages" && unreadMessages > 0
                         ? unreadMessages
                         : item.path === "/notifications" && unreadNotifs > 0
-                        ? unreadNotifs
-                        : null;
+                          ? unreadNotifs
+                          : null;
                     return (
                       <MenuItem key={item.path} onClick={() => go(item.path)}>
                         {/* <MenuIcon>{item.icon}</MenuIcon> */}
                         {item.label}
-                        {badge && <NavBadge style={{ marginLeft: "auto" }}>{badge > 99 ? "99+" : badge}</NavBadge>}
+                        {badge && (
+                          <NavBadge style={{ marginLeft: "auto" }}>
+                            {badge > 99 ? "99+" : badge}
+                          </NavBadge>
+                        )}
                       </MenuItem>
                     );
                   })}
