@@ -321,19 +321,26 @@ const FilterBar = styled.div`
 const FilterInner = styled.div`
   max-width: 960px;
   margin: 0 auto;
-  padding: 12px 24px;
+  padding: 10px 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 12px;
+  flex-wrap: nowrap;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    padding: 8px 16px;
+  }
 `;
 
 const CategoryChips = styled.div`
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
   flex: 1;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 
   @media (max-width: 768px) {
     display: none;
@@ -343,6 +350,8 @@ const CategoryChips = styled.div`
 const SelectsRow = styled.div`
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
 
   @media (max-width: 768px) {
     width: 100%;
@@ -372,10 +381,11 @@ const CategorySelect = styled.select`
 `;
 
 const Chip = styled.button`
-  padding: 6px 14px;
+  padding: 5px 13px;
   border-radius: 999px;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
+  font-family: inherit;
   border: 1.5px solid ${({ $active }) => ($active ? "#2f5a2a" : "#cde5cf")};
   background: ${({ $active }) => ($active ? "#2f5a2a" : "white")};
   color: ${({ $active }) => ($active ? "white" : "#44554c")};

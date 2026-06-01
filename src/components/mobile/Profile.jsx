@@ -8,6 +8,8 @@ import LoadingComponent from "./Loading";
 import { useUserListings, useDeleteListing } from "../../hooks/useListings";
 import { useFavoriteListings, useFavoriteDelete } from "../../hooks/useFavListings";
 import { useUserRating } from "../../hooks/useUserRatings";
+import { useFollowerCount } from "../../hooks/useFollows";
+import { useSellerReviews } from "../../hooks/useReviews";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -312,6 +314,16 @@ const MapPlaceholder = styled.div`
 
 // ─── Listing Cards ────────────────────────────────────────────────────────────
 
+const CardIconRow = styled.div`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.18s;
+`;
+
 const ListingGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -328,6 +340,10 @@ const ListingCard = styled.div`
     transform 0.2s ease,
     box-shadow 0.2s ease;
   cursor: pointer;
+
+  &:hover ${CardIconRow} {
+    opacity: 1;
+  }
 
   &:hover {
     transform: translateY(-3px);
@@ -375,105 +391,76 @@ const ListingTitle = styled.h4`
   text-overflow: ellipsis;
 `;
 
-const CardActions = styled.div`
+// Floating icon buttons that sit in the top-right corner of the listing image.
+// Invisible at rest, appear on card hover so they don't clutter the grid.
+const CardIconBtn = styled.button`
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: ${({ $danger }) => ($danger ? "rgba(163,45,45,0.85)" : "rgba(255,255,255,0.92)")};
+  backdrop-filter: blur(4px);
+  font-size: 0.82rem;
+  cursor: pointer;
   display: flex;
-  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: transform 0.1s, background 0.15s;
+  &:hover { transform: scale(1.1); }
 `;
 
-const EditListingBtn = styled.button`
-  flex: 1;
-  padding: 8px;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  background: #eef7ee;
-  color: #2f5a2a;
-  border: 1px solid #cde5cf;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #2f5a2a;
-    color: white;
-    border-color: #2f5a2a;
-  }
-`;
-
-const DeleteListingBtn = styled.button`
-  flex: 1;
-  padding: 8px;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  background: #fff0f0;
-  color: #a32d2d;
-  border: 1px solid #f5c2c2;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #a32d2d;
-    color: white;
-    border-color: #a32d2d;
-  }
-`;
-
-const ConfirmRow = styled.div`
+// Overlay the image with a minimal "Delete?" confirmation — no ugly buttons outside the card.
+const DeleteOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px);
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 16px 16px 0 0;
 `;
 
-const ConfirmText = styled.p`
-  margin: 0 0 4px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #a32d2d;
-  text-align: center;
-`;
-
-const ConfirmActions = styled.div`
-  display: flex;
-  gap: 6px;
-`;
-
-const ConfirmYes = styled.button`
-  flex: 1;
-  padding: 7px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  background: #a32d2d;
+const DeleteOverlayText = styled.p`
+  margin: 0;
   color: white;
-  border: none;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #8a2020;
-  }
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+  font-size: 0.88rem;
+  font-weight: 700;
 `;
 
-const ConfirmNo = styled.button`
-  flex: 1;
-  padding: 7px;
+const DeleteOverlayActions = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const DeleteYes = styled.button`
+  padding: 6px 18px;
   border-radius: 8px;
-  font-size: 0.8rem;
+  border: none;
+  background: #ef4444;
+  color: white;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  background: #f0f7ee;
-  color: #2f5a2a;
-  border: 1px solid #cde5cf;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #d7edd7;
-  }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &:hover:not(:disabled) { background: #dc2626; }
 `;
+
+const DeleteNo = styled.button`
+  padding: 6px 18px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.6);
+  background: transparent;
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover { background: rgba(255,255,255,0.15); }
+`;
+
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
@@ -542,6 +529,8 @@ const Profile = () => {
   const { data: favoriteListings = [] } = useFavoriteListings(user?.id);
   const { mutate: removeFavorite } = useFavoriteDelete();
   const { data: ratingData } = useUserRating(user?.id);
+  const { data: followerCount = 0 } = useFollowerCount(user?.id);
+  const { data: sellerReviews = [] } = useSellerReviews(user?.id);
 
   if (isLoading || isLoadingListings) return <LoadingComponent />;
 
@@ -584,8 +573,27 @@ const Profile = () => {
 
           <ActionRow>
             <PrimaryBtn onClick={() => navigate("/edit-profile")}>
-              Edit Profile
+              ✏️ Edit Profile
             </PrimaryBtn>
+            <PrimaryBtn
+              onClick={() => navigate("/newlist")}
+              style={{ background: "white", color: "#2f5a2a", border: "2px solid #2f5a2a" }}
+            >
+              + Add Listing
+            </PrimaryBtn>
+            <ShareBtn
+              onClick={() => {
+                const url = `${window.location.origin}/follower/${user?.id}`;
+                if (navigator.share) {
+                  navigator.share({ title: farmName, url });
+                } else {
+                  navigator.clipboard.writeText(url);
+                  alert("Profile link copied!");
+                }
+              }}
+            >
+              Share
+            </ShareBtn>
           </ActionRow>
         </ProfileSection>
 
@@ -593,7 +601,7 @@ const Profile = () => {
         <StatsBarWrap>
           <StatsCard>
             <StatItem $clickable onClick={() => navigate("/followers")}>
-              <StatNumber>–</StatNumber>
+              <StatNumber>{followerCount}</StatNumber>
               <StatLabel>Followers</StatLabel>
             </StatItem>
             <StatItem $clickable onClick={() => navigate("/list")}>
@@ -631,45 +639,46 @@ const Profile = () => {
                   >
                     <ListingImageWrap>
                       <img src={item.image_url} alt={item.title} />
-                      <PriceBadge>
-                        Kes {item.price}/{item.unit}
-                      </PriceBadge>
-                    </ListingImageWrap>
-                    <ListingBody>
-                      <ListingTitle>{item.title}</ListingTitle>
-                      {confirmDeleteId === item.id ? (
-                        <ConfirmRow onClick={(e) => e.stopPropagation()}>
-                          <ConfirmText>Delete this listing?</ConfirmText>
-                          <ConfirmActions>
-                            <ConfirmYes
-                              disabled={isDeleting}
-                              onClick={() =>
-                                deleteListing(item.id, {
-                                  onSuccess: () => setConfirmDeleteId(null),
-                                })
-                              }
-                            >
-                              {isDeleting ? "Deleting…" : "Yes, delete"}
-                            </ConfirmYes>
-                            <ConfirmNo onClick={() => setConfirmDeleteId(null)}>
-                              Cancel
-                            </ConfirmNo>
-                          </ConfirmActions>
-                        </ConfirmRow>
-                      ) : (
-                        <CardActions onClick={(e) => e.stopPropagation()}>
-                          <EditListingBtn
+                      <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
+
+                      {/* Floating edit / delete icons — stop propagation so card click doesn't fire */}
+                      {confirmDeleteId !== item.id && (
+                        <CardIconRow onClick={(e) => e.stopPropagation()}>
+                          <CardIconBtn
+                            title="Edit listing"
                             onClick={() => navigate(`/edit-listing/${item.id}`)}
                           >
-                            ✏️ Edit
-                          </EditListingBtn>
-                          <DeleteListingBtn
+                            ✏️
+                          </CardIconBtn>
+                          <CardIconBtn
+                            $danger
+                            title="Delete listing"
                             onClick={() => setConfirmDeleteId(item.id)}
                           >
-                            🗑 Delete
-                          </DeleteListingBtn>
-                        </CardActions>
+                            🗑
+                          </CardIconBtn>
+                        </CardIconRow>
                       )}
+
+                      {/* Delete confirm — overlays the image */}
+                      {confirmDeleteId === item.id && (
+                        <DeleteOverlay onClick={(e) => e.stopPropagation()}>
+                          <DeleteOverlayText>Delete?</DeleteOverlayText>
+                          <DeleteOverlayActions>
+                            <DeleteYes
+                              disabled={isDeleting}
+                              onClick={() => deleteListing(item.id, { onSuccess: () => setConfirmDeleteId(null) })}
+                            >
+                              {isDeleting ? "…" : "Yes"}
+                            </DeleteYes>
+                            <DeleteNo onClick={() => setConfirmDeleteId(null)}>No</DeleteNo>
+                          </DeleteOverlayActions>
+                        </DeleteOverlay>
+                      )}
+                    </ListingImageWrap>
+
+                    <ListingBody>
+                      <ListingTitle>{item.title}</ListingTitle>
                     </ListingBody>
                   </ListingCard>
                 ))}
@@ -716,26 +725,67 @@ const Profile = () => {
                   >
                     <ListingImageWrap>
                       <img src={item.image_url} alt={item.title} />
-                      <PriceBadge>
-                        Kes {item.price}/{item.unit}
-                      </PriceBadge>
+                      <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
+                      <CardIconRow onClick={(e) => e.stopPropagation()}>
+                        <CardIconBtn
+                          $danger
+                          title="Remove from saved"
+                          onClick={() => removeFavorite({ user_id: user?.id, listing_id: item.id })}
+                        >
+                          🤍
+                        </CardIconBtn>
+                      </CardIconRow>
                     </ListingImageWrap>
                     <ListingBody>
                       <ListingTitle>{item.title}</ListingTitle>
-                      {/* Unsave button — removes the favorite without navigating away */}
-                      <CardActions onClick={(e) => e.stopPropagation()}>
-                        <DeleteListingBtn
-                          onClick={() =>
-                            removeFavorite({ user_id: user?.id, listing_id: item.id })
-                          }
-                        >
-                          Remove
-                        </DeleteListingBtn>
-                      </CardActions>
                     </ListingBody>
                   </ListingCard>
                 ))}
               </ListingGrid>
+            )}
+          </SectionCard>
+        </Section>
+
+        {/* ── Reviews received ── */}
+        <Section>
+          <SectionCard>
+            <SectionHeader>
+              <SectionTitle>
+                Reviews Received
+                <SectionCount>· {sellerReviews.length}</SectionCount>
+              </SectionTitle>
+            </SectionHeader>
+
+            {sellerReviews.length === 0 ? (
+              <EmptyState>
+                <EmptyIcon>⭐</EmptyIcon>
+                <EmptyTitle>No reviews yet</EmptyTitle>
+                <EmptyDesc>Reviews from buyers will appear here.</EmptyDesc>
+              </EmptyState>
+            ) : (
+              <ReviewsList>
+                {sellerReviews.map((r) => (
+                  <ReviewItem key={r.id}>
+                    <ReviewAvatar>
+                      {r.profiles?.avatar_url
+                        ? <img src={r.profiles.avatar_url} alt="" />
+                        : <ReviewAvatarFallback>
+                            {(r.profiles?.full_name || r.profiles?.farm_name || "?")[0].toUpperCase()}
+                          </ReviewAvatarFallback>
+                      }
+                    </ReviewAvatar>
+                    <ReviewBody>
+                      <ReviewTop>
+                        <ReviewName>{r.profiles?.full_name || r.profiles?.farm_name || "Buyer"}</ReviewName>
+                        <ReviewStars>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</ReviewStars>
+                      </ReviewTop>
+                      {r.listings?.title && <ReviewListing>on {r.listings.title}</ReviewListing>}
+                      {r.comment && <ReviewComment>{r.comment}</ReviewComment>}
+                      <ReviewDate>{new Date(r.created_at).toLocaleDateString("en-KE", { month: "short", day: "numeric", year: "numeric" })}</ReviewDate>
+                    </ReviewBody>
+                  </ReviewItem>
+                ))}
+              </ReviewsList>
             )}
           </SectionCard>
         </Section>
@@ -770,3 +820,94 @@ const Profile = () => {
 };
 
 export default Profile;
+
+const ShareBtn = styled.button`
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: white;
+  color: #7b8f7f;
+  border: 2px solid #e8f0e8;
+  transition: all 0.2s;
+  &:hover { border-color: #2f5a2a; color: #2f5a2a; }
+`;
+
+const ReviewsList = styled.div`
+  padding: 0 22px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+`;
+
+const ReviewItem = styled.div`
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0f7ee;
+  &:last-child { border-bottom: none; }
+`;
+
+const ReviewAvatar = styled.div`
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #d7edd9;
+  img { width: 100%; height: 100%; object-fit: cover; }
+`;
+
+const ReviewAvatarFallback = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #2f5a2a;
+`;
+
+const ReviewBody = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const ReviewTop = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+`;
+
+const ReviewName = styled.span`
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const ReviewStars = styled.span`
+  color: #f0b33d;
+  font-size: 0.82rem;
+  letter-spacing: 1px;
+`;
+
+const ReviewListing = styled.p`
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+`;
+
+const ReviewComment = styled.p`
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+  color: #556652;
+  line-height: 1.5;
+`;
+
+const ReviewDate = styled.span`
+  font-size: 0.75rem;
+  color: #b0c4b0;
+`;

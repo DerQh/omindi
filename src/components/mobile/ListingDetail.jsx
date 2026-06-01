@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useListing } from "../../hooks/useEditListing";
+import { useListings } from "../../hooks/useListings";
 import AppNavbar from "./AppNavbar";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import { useUser } from "../../hooks/useUser";
 import { useDeleteListing } from "../../hooks/useDeleteListing";
 import LoadingComponent from "./Loading";
 import ConfirmModule from "./ConfirmModule";
 import { useAddItem, useCartItemCheck } from "../../hooks/useCart";
+import { useCreateFavorite, useFavoriteCheck, useFavoriteDelete } from "../../hooks/useFavListings";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStartConversation } from "../../hooks/useMessages";
 import { useProfile } from "../../hooks/useProfile";
@@ -17,21 +19,37 @@ import { useListingReviews, useAddReview, useHasReviewed, useCanReview, useSelle
 // ─── Animations ───────────────────────────────────────────────────────────────
 
 const fadeUp = keyframes`
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
 `;
 
+const slideIn = keyframes`
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+`;
+
+const toastIn = keyframes`
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+const renderStars = (rating) =>
+  Array.from({ length: 5 }, (_, i) => (
+    <StarIcon key={i} $filled={i < Math.round(rating)}>
+      {i < Math.round(rating) ? "★" : "☆"}
+    </StarIcon>
+  ));
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
-// Displays the full detail view of a listing with seller info, cart actions, and an inquiry button.
 const ListingDetail = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const location = useLocation();
   const { id } = useParams();
 
-  // Use listing from navigation state when available (faster — no extra fetch).
-  // Fall back to fetching by ID from Supabase when navigating directly to the URL.
   const stateListng = location.state?.listing;
   const { data: fetchedListing, isLoading: isFetchingListing } = useListing(
     stateListng ? null : id
@@ -39,8 +57,6 @@ const ListingDetail = () => {
   const listing = stateListng ?? fetchedListing;
 
   const { data: user, isLoading } = useUser();
-
-  // Fetch seller profile to get their avatar when seller_image_url is missing from the listing.
   const { data: sellerProfile } = useProfile(listing?.seller_id);
   const sellerAvatar = listing?.seller_image_url || sellerProfile?.avatar_url || "/user.jpg";
   const { mutate: deleteListing, isLoading: isDeleting } = useDeleteListing();
@@ -52,23 +68,52 @@ const ListingDetail = () => {
     listing_id: listing?.id,
   });
 
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [reviewRating, setReviewRating] = useState(0);
+  const [showConfirm, setShowConfirm]     = useState(false);
+  const [reviewRating, setReviewRating]   = useState(0);
   const [reviewComment, setReviewComment] = useState("");
+  const [quantity, setQuantity]           = useState(1);
+  const [activeTab, setActiveTab]         = useState("description");
+  const [activeThumb, setActiveThumb]     = useState(0);
+  const [cartMsg, setCartMsg]             = useState({ text: "", error: false });
+  const [hoverStar, setHoverStar]         = useState(0);
+
+  const { data: isFavourited } = useFavoriteCheck({ user_id: user?.id, listing_id: listing?.id });
+  const { mutate: addFav }     = useCreateFavorite();
+  const { mutate: removeFav }  = useFavoriteDelete();
+
+  const { data: allListings = [] } = useListings();
+  const related = allListings
+    .filter((l) => l.id !== listing?.id && l.category === listing?.category)
+    .slice(0, 4)
+    .concat(
+      allListings
+        .filter((l) => l.id !== listing?.id && l.category !== listing?.category)
+        .slice(0, Math.max(0, 4 - allListings.filter((l) => l.id !== listing?.id && l.category === listing?.category).length))
+    )
+    .slice(0, 4);
 
   const { data: reviews = [] } = useListingReviews(listing?.id);
-  const { data: sellerRating } = useSellerRating(listing?.seller_id);
-  const { data: hasReviewed } = useHasReviewed(user?.id, listing?.id);
-  const { data: canReview } = useCanReview(user?.id, listing?.id);
+  const { data: sellerRating }  = useSellerRating(listing?.seller_id);
+  const { data: hasReviewed }   = useHasReviewed(user?.id, listing?.id);
+  const { data: canReview }     = useCanReview(user?.id, listing?.id);
   const { mutate: addReview, isPending: submittingReview } = useAddReview();
 
-  // Increments the listing's view counter once when the page mounts.
   useEffect(() => {
     if (!listing?.id) return;
     supabase.rpc("increment_listing_views", { listing_id: listing.id }).then(null, () => {});
   }, [listing?.id]);
 
   const isSeller = user?.id === listing?.seller_id;
+
+  const avgRating = reviews.length
+    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+    : 0;
+
+  const images = [
+    listing?.image_url || "/afarmer.jpg",
+    listing?.image_url || "/afarmer.jpg",
+    listing?.image_url || "/afarmer.jpg",
+  ];
 
   const handleGreenBtn = () => {
     if (isSeller) {
@@ -90,9 +135,12 @@ const ListingDetail = () => {
       setShowConfirm(true);
     } else {
       if (isItemInCart) {
-        alert("Item is already in the cart");
+        setCartMsg({ text: "Item is already in your cart.", error: true });
       } else {
-        mutateAddItem({ user_id: user?.id, listing_id: listing?.id });
+        mutateAddItem(
+          { user_id: user?.id, listing_id: listing?.id },
+          { onSuccess: () => setCartMsg({ text: `✓ ${listing.title} added to cart.`, error: false }) },
+        );
       }
     }
   };
@@ -120,6 +168,15 @@ const ListingDetail = () => {
     } catch (e) {
       console.error("Inquiry error:", e);
       alert("Could not open conversation. Please try again.");
+    }
+  };
+
+  const handleFav = () => {
+    if (!user) return;
+    if (isFavourited) {
+      removeFav({ user_id: user.id, listing_id: listing.id });
+    } else {
+      addFav({ user_id: user.id, listing_id: listing.id });
     }
   };
 
@@ -152,174 +209,408 @@ const ListingDetail = () => {
       <AppNavbar />
 
       <Page>
-        {/* ── Hero image ── */}
-        <HeroWrap>
-          {listing.image_url ? (
-            <img src={listing.image_url} alt={listing.title} />
-          ) : (
-            <NoImage>🌱</NoImage>
-          )}
-          <FloatBack onClick={() => navigate(-1)} aria-label="Go back">
-            ←
-          </FloatBack>
-          {listing.category && (
-            <FloatCategory>{listing.category}</FloatCategory>
-          )}
-        </HeroWrap>
+        <Container>
+          {/* ── Breadcrumb ── */}
+          <Breadcrumb>
+            <span onClick={() => navigate("/list")}>Listings</span>
+            <BreadSep>›</BreadSep>
+            {listing.category && (
+              <>
+                <span onClick={() => navigate("/list")}>{listing.category}</span>
+                <BreadSep>›</BreadSep>
+              </>
+            )}
+            <span style={{ color: "#7b8f7f", fontWeight: 400, cursor: "default" }}>
+              {listing.title}
+            </span>
+          </Breadcrumb>
 
-        {/* ── Content ── */}
-        <ContentSheet>
-          <Inner>
-            {/* Title + price */}
-            <TitleRow>
+          {/* ── Product layout ── */}
+          <ProductLayout>
+            {/* Left: image gallery */}
+            <ImageSection>
+              <MainImage>
+                {listing.image_url ? (
+                  <img
+                    src={images[activeThumb]}
+                    alt={listing.title}
+                    onError={(e) => { e.target.src = "/afarmer.jpg"; }}
+                  />
+                ) : (
+                  <NoImage>🌱</NoImage>
+                )}
+                {!isSeller && (
+                  <FloatHeart $saved={isFavourited} onClick={handleFav}>
+                    {isFavourited ? "❤️" : "🤍"}
+                  </FloatHeart>
+                )}
+              </MainImage>
+              <ThumbRow>
+                {images.map((img, i) => (
+                  <Thumb key={i} $active={activeThumb === i} onClick={() => setActiveThumb(i)}>
+                    <img
+                      src={img}
+                      alt=""
+                      onError={(e) => { e.target.src = "/afarmer.jpg"; }}
+                    />
+                  </Thumb>
+                ))}
+              </ThumbRow>
+            </ImageSection>
+
+            {/* Right: product summary */}
+            <Summary>
+              {listing.category && <CategoryChip>{listing.category}</CategoryChip>}
               <ProductTitle>{listing.title}</ProductTitle>
-              <PriceTag>
+
+              <RatingRow>
+                {renderStars(avgRating)}
+                <RatingText>{avgRating > 0 ? avgRating.toFixed(1) : "—"}</RatingText>
+                <RatingCount>({reviews.length} review{reviews.length !== 1 ? "s" : ""})</RatingCount>
+              </RatingRow>
+
+              <Price>
                 Kes {listing.price}
                 {listing.unit ? ` / ${listing.unit}` : ""}
-              </PriceTag>
-            </TitleRow>
+              </Price>
 
-            {/* Only shown when out of stock */}
-            {listing.available === false && (
-              <AvailBadge>Out of Stock</AvailBadge>
-            )}
+              {listing.available === false && <AvailBadge>Out of Stock</AvailBadge>}
 
-            {/* Info chips */}
-            <ChipRow>
-              {listing.location && <InfoChip>📍 {listing.location}</InfoChip>}
-              {listing.minimumOrder && (
-                <InfoChip>Min: {listing.minimumOrder}</InfoChip>
+              <HRule />
+
+              {listing.description && (
+                <DescText>
+                  {listing.description.slice(0, 200)}
+                  {listing.description.length > 200 ? "…" : ""}
+                </DescText>
               )}
-            </ChipRow>
 
-            <Divider />
-
-            {/* Description */}
-            {listing.description && (
-              <Section>
-                <SectionTitle>Description</SectionTitle>
-                <DescText>{listing.description}</DescText>
-              </Section>
-            )}
-
-            <Divider />
-
-            {/* Seller */}
-            <Section>
-              <SectionTitle>Seller</SectionTitle>
-              <SellerCard
-                onClick={() => navigate(`/follower/${listing.seller_id}`)}
-              >
-                <SellerAvatar
-                  src={sellerAvatar}
-                  alt={listing.seller_name}
-                />
-                <SellerInfo>
-                  <SellerName>{listing.seller_name || sellerProfile?.farm_name || "Farmer"}</SellerName>
-                  <SellerMeta>
-                    {sellerRating?.count > 0
-                      ? `⭐ ${sellerRating.avg} · ${sellerRating.count} review${sellerRating.count !== 1 ? "s" : ""}`
-                      : "No reviews yet"}
-                  </SellerMeta>
-                </SellerInfo>
-                <SellerArrow>›</SellerArrow>
-              </SellerCard>
-            </Section>
-
-            <Divider />
-
-            {/* Actions */}
-            <Actions>
-              {isSeller ? (
-                <>
-                  <ActionBtn $variant="primary" onClick={handleGreenBtn}>
-                    Edit Listing
-                  </ActionBtn>
-                  <ActionBtn
-                    $variant="danger"
-                    onClick={handleOrangeBtn}
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? "Deleting…" : "🗑 Delete"}
-                  </ActionBtn>
-                </>
-              ) : (
-                <>
-                  <ActionBtn
-                    $variant="primary"
-                    onClick={handleGreenBtn}
-                    disabled={isPending}
-                  >
-                    {isPending
-                      ? "Adding…"
-                      : isItemInCart
-                        ? "View Cart"
-                        : "Buy Now"}
-                  </ActionBtn>
-                  <ActionBtn
-                    $variant="secondary"
-                    onClick={handleOrangeBtn}
-                    disabled={isPending}
-                  >
-                    {isItemInCart ? "Already in Cart" : "Add to Cart"}
-                  </ActionBtn>
-                  <ActionBtn $variant="outline" onClick={handleInquire} disabled={isStarting}>
-                    {isStarting ? "Opening…" : "Send Inquiry"}
-                  </ActionBtn>
-                </>
+              {/* Location + min order chips */}
+              {(listing.location || listing.minimumOrder) && (
+                <InfoChipRow>
+                  {listing.location && (
+                    <InfoChip>Location: {listing.location}</InfoChip>
+                  )}
+                  {listing.minimumOrder && (
+                    <InfoChip>Minimum order: {listing.minimumOrder}</InfoChip>
+                  )}
+                </InfoChipRow>
               )}
-            </Actions>
 
-            <Divider />
+              {/* Quantity stepper */}
+              <OptionBlock>
+                <OptionLabel>Quantity</OptionLabel>
+                <QuantityRow>
+                  <QtyBtn
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    disabled={quantity <= 1}
+                  >
+                    −
+                  </QtyBtn>
+                  <QtyVal>{quantity}</QtyVal>
+                  <QtyBtn onClick={() => setQuantity((q) => q + 1)}>+</QtyBtn>
+                </QuantityRow>
+              </OptionBlock>
 
-            {/* Reviews section */}
-            <Section>
-              <SectionTitle>Reviews ({reviews.length})</SectionTitle>
+              {/* CTA buttons */}
+              <CtaStack>
+                {isSeller ? (
+                  <>
+                    <AddBtn onClick={handleGreenBtn}>Edit Listing</AddBtn>
+                    <CtaSecRow>
+                      <WishBtn $danger onClick={handleOrangeBtn} disabled={isDeleting}>
+                        {isDeleting ? "Deleting…" : "Delete Listing"}
+                      </WishBtn>
+                    </CtaSecRow>
+                  </>
+                ) : (
+                  <>
+                    <AddBtn onClick={handleGreenBtn} disabled={isPending}>
+                      {isPending ? "Adding…" : isItemInCart ? "View Cart" : "Buy Now"}
+                    </AddBtn>
+                    <CtaSecRow>
+                      <WishBtn onClick={handleOrangeBtn} disabled={isPending}>
+                        {isItemInCart ? "✓ In Cart" : "Add to Cart"}
+                      </WishBtn>
+                      <InquiryBtn onClick={handleInquire} disabled={isStarting}>
+                        {isStarting ? "Opening…" : "Inquiry"}
+                      </InquiryBtn>
+                    </CtaSecRow>
+                  </>
+                )}
+              </CtaStack>
 
-              {/* Write a review — only buyers who received this listing can review */}
-              {!isSeller && canReview && !hasReviewed && (
-                <ReviewForm>
-                  <ReviewLabel>Rate this listing</ReviewLabel>
-                  <StarRow>
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <StarBtn key={n} $active={n <= reviewRating} onClick={() => setReviewRating(n)}>★</StarBtn>
-                    ))}
-                  </StarRow>
-                  <ReviewInput
-                    placeholder="Share your experience…"
-                    value={reviewComment}
-                    onChange={(e) => setReviewComment(e.target.value)}
-                    rows={3}
-                  />
-                  <SubmitReviewBtn
-                    disabled={reviewRating === 0 || submittingReview}
-                    onClick={() => addReview(
-                      { listing_id: listing.id, seller_id: listing.seller_id, rating: reviewRating, comment: reviewComment },
-                      { onSuccess: () => { setReviewRating(0); setReviewComment(""); } }
+              {cartMsg.text &&
+                (cartMsg.error ? (
+                  <CartToastError>{cartMsg.text}</CartToastError>
+                ) : (
+                  <CartToast>{cartMsg.text}</CartToast>
+                ))}
+
+              {/* Seller */}
+              <SellerBlock>
+                <SellerBlockTitle>Seller</SellerBlockTitle>
+                <SellerCard onClick={() => navigate(`/follower/${listing.seller_id}`)}>
+                  <SellerAvatar src={sellerAvatar} alt={listing.seller_name} />
+                  <SellerInfo>
+                    <SellerName>
+                      {listing.seller_name || sellerProfile?.farm_name || "Farmer"}
+                    </SellerName>
+                    <SellerMeta>
+                      {sellerRating?.count > 0
+                        ? `⭐ ${sellerRating.avg} · ${sellerRating.count} review${sellerRating.count !== 1 ? "s" : ""}`
+                        : "No reviews yet"}
+                    </SellerMeta>
+                  </SellerInfo>
+                  <SellerArrow>›</SellerArrow>
+                </SellerCard>
+              </SellerBlock>
+            </Summary>
+          </ProductLayout>
+
+          {/* ── Tabs: Description | Details | Reviews ── */}
+          <TabsWrap>
+            <TabBar>
+              {["description", "details", "reviews"].map((tab) => (
+                <TabBtn
+                  key={tab}
+                  $active={activeTab === tab}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === "reviews" && ` (${reviews.length})`}
+                </TabBtn>
+              ))}
+            </TabBar>
+
+            <TabContent key={activeTab}>
+              <TabCard>
+                {/* ── Description ── */}
+                {activeTab === "description" && (
+                  <p style={{ margin: 0, lineHeight: 1.8, color: "#556652", fontSize: "0.95rem" }}>
+                    {listing.description || "No description available."}
+                  </p>
+                )}
+
+                {/* ── Details ── */}
+                {activeTab === "details" && (
+                  <>
+                    <InfoTable>
+                      <tbody>
+                        {listing.category && (
+                          <tr>
+                            <td>Category</td>
+                            <td>{listing.category}</td>
+                          </tr>
+                        )}
+                        {listing.location && (
+                          <tr>
+                            <td>Location</td>
+                            <td>{listing.location}</td>
+                          </tr>
+                        )}
+                        {listing.unit && (
+                          <tr>
+                            <td>Unit</td>
+                            <td>{listing.unit}</td>
+                          </tr>
+                        )}
+                        {listing.minimumOrder && (
+                          <tr>
+                            <td>Minimum Order</td>
+                            <td>{listing.minimumOrder}</td>
+                          </tr>
+                        )}
+                        <tr>
+                          <td>Availability</td>
+                          <td>
+                            {listing.available === false ? "Out of Stock" : "In Stock"}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </InfoTable>
+
+                    <SellerDivider />
+
+                    <SellerSectionTitle>Seller</SellerSectionTitle>
+                    <SellerCard onClick={() => navigate(`/follower/${listing.seller_id}`)}>
+                      <SellerAvatar src={sellerAvatar} alt={listing.seller_name} />
+                      <SellerInfo>
+                        <SellerName>
+                          {listing.seller_name || sellerProfile?.farm_name || "Farmer"}
+                        </SellerName>
+                        <SellerMeta>
+                          {sellerRating?.count > 0
+                            ? `⭐ ${sellerRating.avg} · ${sellerRating.count} review${sellerRating.count !== 1 ? "s" : ""}`
+                            : "No reviews yet"}
+                        </SellerMeta>
+                      </SellerInfo>
+                      <SellerArrow>›</SellerArrow>
+                    </SellerCard>
+                  </>
+                )}
+
+                {/* ── Reviews ── */}
+                {activeTab === "reviews" && (
+                  <>
+                    {/* Rating summary */}
+                    {reviews.length > 0 && (() => {
+                      const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+                      return (
+                        <RatingSummary>
+                          <RatingBig>{avg.toFixed(1)}</RatingBig>
+                          <RatingSummaryRight>
+                            <RatingStarsLarge>
+                              {"★".repeat(Math.round(avg))}{"☆".repeat(5 - Math.round(avg))}
+                            </RatingStarsLarge>
+                            <RatingCount2>
+                              {reviews.length} review{reviews.length !== 1 ? "s" : ""}
+                            </RatingCount2>
+                            <RatingBars>
+                              {[5, 4, 3, 2, 1].map((star) => {
+                                const count = reviews.filter((r) => r.rating === star).length;
+                                const pct = Math.round((count / reviews.length) * 100);
+                                return (
+                                  <RatingBarRow key={star}>
+                                    <RatingBarLabel>{star}★</RatingBarLabel>
+                                    <RatingBarTrack>
+                                      <RatingBarFill style={{ width: `${pct}%` }} />
+                                    </RatingBarTrack>
+                                    <RatingBarNum>{count}</RatingBarNum>
+                                  </RatingBarRow>
+                                );
+                              })}
+                            </RatingBars>
+                          </RatingSummaryRight>
+                        </RatingSummary>
+                      );
+                    })()}
+
+                    {!isSeller && hasReviewed && (
+                      <AlreadyReviewed>✓ You've reviewed this listing</AlreadyReviewed>
                     )}
-                  >
-                    {submittingReview ? "Submitting…" : "Submit Review"}
-                  </SubmitReviewBtn>
-                </ReviewForm>
-              )}
 
-              {reviews.length === 0 ? (
-                <NoReviews>No reviews yet for this listing.</NoReviews>
-              ) : (
-                reviews.map((r) => (
-                  <ReviewItem key={r.id}>
-                    <ReviewHeader>
-                      <ReviewerName>{r.profiles?.full_name || r.profiles?.farm_name || "Buyer"}</ReviewerName>
-                      <ReviewStars>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</ReviewStars>
-                    </ReviewHeader>
-                    {r.comment && <ReviewText>{r.comment}</ReviewText>}
-                    <ReviewDate>{new Date(r.created_at).toLocaleDateString("en-KE", { month: "short", day: "numeric", year: "numeric" })}</ReviewDate>
-                  </ReviewItem>
-                ))
-              )}
-            </Section>
-          </Inner>
-        </ContentSheet>
+                    {!isSeller && canReview && !hasReviewed && (
+                      <ReviewForm>
+                        <ReviewLabel>Rate this listing</ReviewLabel>
+                        <StarBtnRow>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <StarBtn
+                              key={n}
+                              $active={n <= (hoverStar || reviewRating)}
+                              onMouseEnter={() => setHoverStar(n)}
+                              onMouseLeave={() => setHoverStar(0)}
+                              onClick={() => setReviewRating(n)}
+                            >
+                              ★
+                            </StarBtn>
+                          ))}
+                        </StarBtnRow>
+                        <ReviewInput
+                          placeholder="Share your experience…"
+                          value={reviewComment}
+                          onChange={(e) => setReviewComment(e.target.value)}
+                          rows={3}
+                        />
+                        <SubmitReviewBtn
+                          disabled={reviewRating === 0 || submittingReview}
+                          onClick={() =>
+                            addReview(
+                              {
+                                listing_id: listing.id,
+                                seller_id: listing.seller_id,
+                                rating: reviewRating,
+                                comment: reviewComment,
+                              },
+                              {
+                                onSuccess: () => {
+                                  setReviewRating(0);
+                                  setReviewComment("");
+                                  setHoverStar(0);
+                                },
+                              },
+                            )
+                          }
+                        >
+                          {submittingReview ? "Submitting…" : "Submit Review"}
+                        </SubmitReviewBtn>
+                      </ReviewForm>
+                    )}
+
+                    {reviews.length === 0 ? (
+                      <NoReviews>
+                        <NoReviewsIcon>🌱</NoReviewsIcon>
+                        No reviews yet — be the first to review this listing.
+                      </NoReviews>
+                    ) : (
+                      reviews.map((r) => (
+                        <ReviewItem key={r.id}>
+                          <ReviewAvatar>
+                            {r.profiles?.avatar_url ? (
+                              <img src={r.profiles.avatar_url} alt="" />
+                            ) : (
+                              <ReviewAvatarFallback>
+                                {(r.profiles?.full_name || r.profiles?.farm_name || "?")[0].toUpperCase()}
+                              </ReviewAvatarFallback>
+                            )}
+                          </ReviewAvatar>
+                          <ReviewBody>
+                            <ReviewHeader>
+                              <ReviewerName>
+                                {r.profiles?.full_name || r.profiles?.farm_name || "Buyer"}
+                              </ReviewerName>
+                              <ReviewStars>
+                                {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
+                              </ReviewStars>
+                            </ReviewHeader>
+                            {r.comment && <ReviewText>{r.comment}</ReviewText>}
+                            <ReviewDate>
+                              {new Date(r.created_at).toLocaleDateString("en-KE", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </ReviewDate>
+                          </ReviewBody>
+                        </ReviewItem>
+                      ))
+                    )}
+                  </>
+                )}
+              </TabCard>
+            </TabContent>
+          </TabsWrap>
+
+          {/* ── Related listings ── */}
+          {related.length > 0 && (
+            <RelatedSection>
+              <SectionEyebrow>You might also like</SectionEyebrow>
+              <SectionTitle>Related Listings</SectionTitle>
+              <RelatedGrid>
+                {related.map((l) => (
+                  <RelatedCard
+                    key={l.id}
+                    onClick={() => navigate(`/listing/${l.id}`, { state: { listing: l } })}
+                  >
+                    <RelatedImg
+                      src={l.image_url || "/afarmer.jpg"}
+                      alt={l.title}
+                      onError={(e) => { e.target.src = "/afarmer.jpg"; }}
+                    />
+                    <RelatedBody>
+                      {l.category && <RelatedCategory>{l.category}</RelatedCategory>}
+                      <RelatedName>{l.title}</RelatedName>
+                      <RelatedPrice>
+                        Kes {l.price}
+                        {l.unit ? ` / ${l.unit}` : ""}
+                      </RelatedPrice>
+                    </RelatedBody>
+                  </RelatedCard>
+                ))}
+              </RelatedGrid>
+            </RelatedSection>
+          )}
+        </Container>
       </Page>
     </>
   );
@@ -330,28 +621,110 @@ export default ListingDetail;
 // ─── Styled components ────────────────────────────────────────────────────────
 
 const Page = styled.div`
+  background: #f7f9f7;
   min-height: 100vh;
-  background: white;
 `;
 
-const HeroWrap = styled.div`
-  position: relative;
-  width: 100%;
-  max-width: 780px;
+const Container = styled.div`
+  max-width: 1180px;
   margin: 0 auto;
-  height: 380px;
-  background: white;
+  padding: 32px 32px 80px;
+
+  @media (max-width: 600px) {
+    padding: 20px 16px 60px;
+  }
+`;
+
+const Breadcrumb = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  margin-bottom: 28px;
+  color: #7b8f7f;
+
+  span {
+    cursor: pointer;
+    color: #2f5a2a;
+    font-weight: 600;
+    &:hover { text-decoration: underline; }
+  }
+`;
+
+const BreadSep = styled.span`
+  color: #cde5cf;
+  cursor: default !important;
+  text-decoration: none !important;
+`;
+
+// ─── Product layout ───────────────────────────────────────────────────────────
+
+const ProductLayout = styled.div`
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
+  align-items: start;
+  margin-bottom: 56px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+`;
+
+const ImageSection = styled.div`
+  position: sticky;
+  top: 100px;
+
+  @media (max-width: 900px) {
+    position: static;
+  }
+`;
+
+const MainImage = styled.div`
+  border-radius: 20px;
   overflow: hidden;
+  background: #e8f0e8;
+  aspect-ratio: 4/3;
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform 0.4s ease;
+    &:hover { transform: scale(1.03); }
   }
 
-  @media (max-width: 600px) {
-    height: 260px;
+  @media (max-width: 900px) {
+    border-radius: 0;
+    aspect-ratio: unset;
+    height: 280px;
+  }
+`;
+
+const FloatHeart = styled.button`
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(6px);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  transition: background 0.15s, transform 0.15s;
+  z-index: 2;
+
+  &:hover {
+    background: white;
+    transform: scale(1.1);
   }
 `;
 
@@ -364,85 +737,102 @@ const NoImage = styled.div`
   font-size: 5rem;
 `;
 
-const FloatBack = styled.button`
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(6px);
-  font-size: 1.2rem;
-  cursor: pointer;
+const ThumbRow = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
-  transition: background 0.15s;
+  gap: 10px;
+  margin-top: 14px;
 
-  &:hover {
-    background: white;
+  @media (max-width: 900px) {
+    padding: 0 16px;
   }
 `;
 
-const FloatCategory = styled.span`
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  background: rgba(255, 255, 255, 0.9);
+const Thumb = styled.div`
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid ${({ $active }) => ($active ? "#2f5a2a" : "transparent")};
+  cursor: pointer;
+  background: #e8f0e8;
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:hover { border-color: #2f5a2a; }
+`;
+
+// ─── Summary column ───────────────────────────────────────────────────────────
+
+const Summary = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: ${fadeUp} 0.4s ease;
+  padding: 0;
+
+  @media (max-width: 900px) {
+    padding: 20px 16px 0;
+  }
+`;
+
+const CategoryChip = styled.span`
+  display: inline-block;
+  background: #eef7ee;
   color: #2f5a2a;
   font-size: 0.72rem;
   font-weight: 700;
-  padding: 5px 12px;
+  padding: 4px 12px;
   border-radius: 999px;
+  margin-bottom: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  backdrop-filter: blur(4px);
-`;
-
-const ContentSheet = styled.div`
-  background: white;
-  border-radius: 24px 24px 0 0;
-  margin-top: -20px;
-  position: relative;
-  z-index: 1;
-  min-height: calc(100vh - 340px);
-  padding-bottom: 40px;
-`;
-
-const Inner = styled.div`
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 28px 28px 0;
-  animation: ${fadeUp} 0.35s ease;
-
-  @media (max-width: 600px) {
-    padding: 22px 20px 0;
-  }
-`;
-
-const TitleRow = styled.div`
-  margin-bottom: 16px;
+  letter-spacing: 0.07em;
 `;
 
 const ProductTitle = styled.h1`
-  margin: 0 0 8px;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #1a3318;
-  letter-spacing: -0.3px;
-
-  @media (max-width: 600px) {
-    font-size: 1.35rem;
-  }
+  margin: 0 0 10px;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 900;
+  color: #1a2e1a;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
 `;
 
-const PriceTag = styled.div`
-  font-size: 1.4rem;
-  font-weight: 800;
+const RatingRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+`;
+
+const StarIcon = styled.span`
+  font-size: 0.95rem;
+  color: ${({ $filled }) => ($filled ? "#f0b33d" : "#d0d8d0")};
+  line-height: 1;
+`;
+
+const RatingText = styled.span`
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a2e1a;
+`;
+
+const RatingCount = styled.span`
+  font-size: 0.82rem;
+  color: #7b8f7f;
+`;
+
+const Price = styled.p`
+  margin: 0 0 10px;
+  font-size: 2rem;
+  font-weight: 900;
   color: #2f5a2a;
+  letter-spacing: -0.03em;
 `;
 
 const AvailBadge = styled.div`
@@ -457,7 +847,441 @@ const AvailBadge = styled.div`
   border: 1px solid #f5c2c2;
 `;
 
-// ─── Review styled components ─────────────────────────────────────────────────
+const HRule = styled.div`
+  height: 1px;
+  background: #e8f0e8;
+  margin: 4px 0 18px;
+`;
+
+const DescText = styled.p`
+  margin: 0 0 20px;
+  font-size: 0.93rem;
+  color: #556652;
+  line-height: 1.75;
+`;
+
+// ─── Quantity stepper ─────────────────────────────────────────────────────────
+
+const OptionBlock = styled.div`
+  margin-bottom: 20px;
+`;
+
+const OptionLabel = styled.p`
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1a2e1a;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+`;
+
+const QuantityRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 2px solid #d7edd9;
+  border-radius: 12px;
+  overflow: hidden;
+  width: fit-content;
+`;
+
+const QtyBtn = styled.button`
+  width: 42px;
+  height: 44px;
+  border: none;
+  background: white;
+  color: #2f5a2a;
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #eef7ee; }
+  &:disabled { color: #cde5cf; cursor: not-allowed; }
+`;
+
+const QtyVal = styled.span`
+  min-width: 44px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a2e1a;
+  border-left: 1px solid #e8f0e8;
+  border-right: 1px solid #e8f0e8;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+// ─── CTA buttons ──────────────────────────────────────────────────────────────
+
+const CtaStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 0 16px;
+`;
+
+const CtaSecRow = styled.div`
+  display: flex;
+  gap: 10px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+  }
+`;
+
+const AddBtn = styled.button`
+  flex: 1;
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.12s;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) { background: #1e3d1a; transform: translateY(-2px); }
+  &:active { transform: translateY(0); }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+`;
+
+const WishBtn = styled.button`
+  flex: 1;
+  min-width: 0;
+  background: ${({ $danger }) => ($danger ? "#fff0f0" : "#ffc107")};
+  color: ${({ $danger }) => ($danger ? "#a32d2d" : "#2f5a2a")};
+  border: ${({ $danger }) => ($danger ? "2px solid #f5c2c2" : "none")};
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  &:hover:not(:disabled) {
+    background: ${({ $danger }) => ($danger ? "#a32d2d" : "#e0a800")};
+    color: ${({ $danger }) => ($danger ? "white" : "#1a2e1a")};
+    border-color: ${({ $danger }) => ($danger ? "#a32d2d" : "transparent")};
+  }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+`;
+
+const InquiryBtn = styled.button`
+  flex: 1;
+  min-width: 0;
+  background: white;
+  color: #2f5a2a;
+  border: 2px solid #cde5cf;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  &:hover:not(:disabled) { background: #eef7ee; border-color: #2f5a2a; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+`;
+
+// ─── Cart toast ───────────────────────────────────────────────────────────────
+
+const CartToast = styled.div`
+  background: #eef7ee;
+  border: 1.5px solid #a8d5ac;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #2f5a2a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: ${toastIn} 0.3s ease;
+  margin-bottom: 12px;
+`;
+
+const CartToastError = styled(CartToast)`
+  background: #fdf0f0;
+  border-color: #f5c6c2;
+  color: #a32d2d;
+`;
+
+
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+
+const TabsWrap = styled.div`
+  margin-bottom: 56px;
+`;
+
+const TabBar = styled.div`
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e8f0e8;
+  margin-bottom: 28px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+`;
+
+const TabBtn = styled.button`
+  padding: 13px 24px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  color: ${({ $active }) => ($active ? "#2f5a2a" : "#7b8f7f")};
+  border-bottom: 3px solid ${({ $active }) => ($active ? "#2f5a2a" : "transparent")};
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+
+  &:hover { color: #2f5a2a; }
+`;
+
+const TabContent = styled.div`
+  animation: ${slideIn} 0.25s ease;
+`;
+
+const TabCard = styled.div`
+  background: white;
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+
+  @media (max-width: 600px) {
+    padding: 20px 16px;
+  }
+`;
+
+
+// ─── Info chips ───────────────────────────────────────────────────────────────
+
+const InfoChipRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+`;
+
+const InfoChip = styled.span`
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: #f5f8f5;
+  color: #44554c;
+  border: 1.5px solid #e2ebe2;
+`;
+
+// ─── Seller block (in Summary column) ────────────────────────────────────────
+
+const SellerBlock = styled.div`
+  margin-top: 16px;
+`;
+
+const SellerBlockTitle = styled.p`
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #7b8f7f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+`;
+
+// ─── Details tab ──────────────────────────────────────────────────────────────
+
+const InfoTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+
+  tr {
+    border-bottom: 1px solid #f0f7ee;
+    &:last-child { border-bottom: none; }
+  }
+
+  td {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+
+    &:first-child {
+      color: #7b8f7f;
+      font-weight: 600;
+      width: 180px;
+    }
+    &:last-child {
+      color: #1a2e1a;
+      font-weight: 500;
+    }
+  }
+`;
+
+const SellerDivider = styled.div`
+  height: 1px;
+  background: #f0f7ee;
+  margin: 24px 0 20px;
+`;
+
+const SellerSectionTitle = styled.p`
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #7b8f7f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+`;
+
+const SellerCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: #f8faf6;
+  border-radius: 14px;
+  border: 1px solid #e8f0e8;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #eef7ee; }
+`;
+
+const SellerAvatar = styled.img`
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #d7ead7;
+  flex-shrink: 0;
+`;
+
+const SellerInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const SellerName = styled.p`
+  margin: 0 0 3px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a2e1a;
+`;
+
+const SellerMeta = styled.span`
+  font-size: 0.82rem;
+  color: #7b8f7f;
+`;
+
+const SellerArrow = styled.span`
+  font-size: 1.4rem;
+  color: #b0c4b0;
+  flex-shrink: 0;
+`;
+
+// ─── Reviews tab ──────────────────────────────────────────────────────────────
+
+const RatingSummary = styled.div`
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: #f8faf6;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+`;
+
+const RatingBig = styled.div`
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #1a3318;
+  line-height: 1;
+`;
+
+const RatingSummaryRight = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const RatingStarsLarge = styled.div`
+  color: #f0b33d;
+  font-size: 1rem;
+  letter-spacing: 2px;
+`;
+
+const RatingCount2 = styled.div`
+  font-size: 0.78rem;
+  color: #7b8f7f;
+  margin-bottom: 6px;
+`;
+
+const RatingBars = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+`;
+
+const RatingBarRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+const RatingBarLabel = styled.span`
+  font-size: 0.7rem;
+  color: #9ca3af;
+  width: 20px;
+  text-align: right;
+`;
+
+const RatingBarTrack = styled.div`
+  flex: 1;
+  height: 5px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+`;
+
+const RatingBarFill = styled.div`
+  height: 100%;
+  background: #f0b33d;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+`;
+
+const RatingBarNum = styled.span`
+  font-size: 0.7rem;
+  color: #9ca3af;
+  width: 12px;
+`;
+
+const AlreadyReviewed = styled.div`
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #2f5a2a;
+  background: #f0fdf4;
+  border: 1px solid #cde5cf;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+`;
 
 const ReviewForm = styled.div`
   background: #f5f8f5;
@@ -473,7 +1297,7 @@ const ReviewLabel = styled.p`
   color: #1a3318;
 `;
 
-const StarRow = styled.div`
+const StarBtnRow = styled.div`
   display: flex;
   gap: 6px;
   margin-bottom: 12px;
@@ -512,7 +1336,7 @@ const SubmitReviewBtn = styled.button`
   border-radius: 10px;
   background: #2f5a2a;
   color: white;
-  font-size: 0.85rem;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   &:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -520,6 +1344,8 @@ const SubmitReviewBtn = styled.button`
 `;
 
 const ReviewItem = styled.div`
+  display: flex;
+  gap: 12px;
   padding: 14px 0;
   border-bottom: 1px solid #f0f7ee;
   &:last-child { border-bottom: none; }
@@ -556,161 +1382,122 @@ const ReviewDate = styled.span`
   color: #aac4aa;
 `;
 
-const NoReviews = styled.p`
-  color: #7b9b7b;
-  font-size: 0.88rem;
-  padding: 12px 0;
+const ReviewAvatar = styled.div`
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #d7edd9;
+  img { width: 100%; height: 100%; object-fit: cover; }
 `;
 
-const ChipRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 24px;
-`;
-
-const InfoChip = styled.span`
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  background: ${({ $green }) => ($green ? "#eef7ee" : "#f5f8f5")};
-  color: ${({ $green }) => ($green ? "#2f5a2a" : "#44554c")};
-  border: 1.5px solid ${({ $green }) => ($green ? "#cde5cf" : "#e2ebe2")};
-`;
-
-const Divider = styled.div`
-  height: 1px;
-  background: #f0f7ee;
-  margin: 24px 0;
-`;
-
-const Section = styled.div``;
-
-const SectionTitle = styled.h3`
-  margin: 0 0 12px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #7b8f7f;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-`;
-
-const DescText = styled.p`
-  margin: 0;
-  font-size: 0.95rem;
-  color: #44554c;
-  line-height: 1.75;
-`;
-
-const SellerCard = styled.div`
+const ReviewAvatarFallback = styled.div`
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px;
-  background: #f8faf6;
-  border-radius: 14px;
-  border: 1px solid #e8f0e8;
-  cursor: pointer;
-  transition: background 0.15s;
-
-  &:hover {
-    background: #eef7ee;
-  }
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #2f5a2a;
 `;
 
-const SellerAvatar = styled.img`
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #d7ead7;
-  flex-shrink: 0;
-`;
-
-const SellerInfo = styled.div`
+const ReviewBody = styled.div`
   flex: 1;
   min-width: 0;
 `;
 
-const SellerName = styled.p`
-  margin: 0 0 3px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #1a3318;
-`;
-
-const SellerMeta = styled.span`
-  font-size: 0.82rem;
-  color: #7b8f7f;
-`;
-
-const SellerArrow = styled.span`
-  font-size: 1.4rem;
-  color: #b0c4b0;
-  flex-shrink: 0;
-`;
-
-const Actions = styled.div`
+const NoReviews = styled.div`
+  color: #7b9b7b;
+  font-size: 0.88rem;
+  padding: 20px 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
 `;
 
-const ActionBtn = styled.button`
-  width: 100%;
-  padding: 16px;
-  border-radius: 14px;
-  font-size: 1rem;
-  font-weight: 700;
+const NoReviewsIcon = styled.span`font-size: 2rem;`;
+
+// ─── Related listings ─────────────────────────────────────────────────────────
+
+const RelatedSection = styled.div``;
+
+const SectionEyebrow = styled.p`
+  margin: 0 0 6px;
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2f5a2a;
+`;
+
+const SectionTitle = styled.h2`
+  margin: 0 0 24px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1a2e1a;
+  letter-spacing: -0.03em;
+`;
+
+const RelatedGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+`;
+
+const RelatedCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-  ${({ $variant }) =>
-    $variant === "primary" &&
-    `
-      background: #2f5a2a;
-      color: white;
-      border: none;
-      &:hover:not(:disabled) { background: #245026; box-shadow: 0 4px 16px rgba(47,90,42,0.3); }
-    `}
-
-  ${({ $variant }) =>
-    $variant === "secondary" &&
-    `
-      background: #ffc107;
-      color: #2f5a2a;
-      border: none;
-      &:hover:not(:disabled) { background: #e0a800; }
-    `}
-
-  ${({ $variant }) =>
-    $variant === "outline" &&
-    `
-      background: white;
-      color: #2f5a2a;
-      border: 2px solid #cde5cf;
-      &:hover:not(:disabled) { background: #eef7ee; border-color: #2f5a2a; }
-    `}
-
-  ${({ $variant }) =>
-    $variant === "danger" &&
-    `
-      background: #fff0f0;
-      color: #a32d2d;
-      border: 2px solid #f5c2c2;
-      &:hover:not(:disabled) { background: #a32d2d; color: white; border-color: #a32d2d; }
-    `}
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
   }
 `;
+
+const RelatedImg = styled.img`
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  background: #e8f0e8;
+`;
+
+const RelatedBody = styled.div`
+  padding: 14px 16px 18px;
+`;
+
+const RelatedCategory = styled.p`
+  margin: 0 0 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #2f5a2a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+`;
+
+const RelatedName = styled.p`
+  margin: 0 0 6px;
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: #1a2e1a;
+`;
+
+const RelatedPrice = styled.p`
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #2f5a2a;
+`;
+
+// ─── Not found ────────────────────────────────────────────────────────────────
 
 const NotFoundWrap = styled.div`
   min-height: 100vh;
@@ -727,13 +1514,8 @@ const NotFoundCard = styled.div`
   border-radius: 18px;
   box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
 
-  span {
-    font-size: 2.5rem;
-  }
-  p {
-    color: #7b8f7f;
-    margin: 12px 0 20px;
-  }
+  span { font-size: 2.5rem; }
+  p { color: #7b8f7f; margin: 12px 0 20px; }
 `;
 
 const BackBtn = styled.button`
@@ -746,7 +1528,5 @@ const BackBtn = styled.button`
   font-weight: 700;
   cursor: pointer;
 
-  &:hover {
-    background: #245026;
-  }
+  &:hover { background: #245026; }
 `;

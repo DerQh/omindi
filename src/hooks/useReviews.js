@@ -18,6 +18,24 @@ export function useListingReviews(listing_id) {
   });
 }
 
+// Fetches all reviews received by a seller across all their listings, with reviewer profile info.
+// Used in Profile.jsx to show the "Reviews Received" section.
+export function useSellerReviews(seller_id) {
+  return useQuery({
+    queryKey: ["sellerReviews", seller_id],
+    enabled: !!seller_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*, profiles!reviewer_id(full_name, avatar_url, farm_name), listings(title)")
+        .eq("seller_id", seller_id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 // Returns the average rating and review count for a seller across all their listings.
 export function useSellerRating(seller_id) {
   return useQuery({

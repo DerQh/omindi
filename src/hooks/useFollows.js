@@ -1,6 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 
+// Returns the total number of followers for a given user (rows where following_id = userId).
+export function useFollowerCount(userId) {
+  return useQuery({
+    queryKey: ["followerCount", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("following_id", userId);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
 // Checks whether the current user (followerId) is following a specific seller (followingId), returns a boolean.
 export function useIsFollowing(followerId, followingId) {
   return useQuery({

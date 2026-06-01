@@ -8,20 +8,24 @@ export function useAdminStats() {
   return useQuery({
     queryKey: ["admin", "stats"],
     queryFn: async () => {
-      const [usersRes, listingsRes, ordersRes] = await Promise.all([
+      const [usersRes, listingsRes, ordersRes, statsRes] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("listings").select("*", { count: "exact", head: true }),
         supabase.from("orders").select("id, total_cost, created_at, status"),
+        supabase.from("listings").select("inquiries, favourites"),
       ]);
       const orders = ordersRes.data ?? [];
+      const listingStats = statsRes.data ?? [];
       return {
-        userCount:     usersRes.count    ?? 0,
-        listingCount:  listingsRes.count ?? 0,
-        orderCount:    orders.length,
-        totalRevenue:  orders.reduce((s, o) => s + (o.total_cost || 0), 0),
-        pendingOrders: orders.filter((o) => o.status === "pending").length,
+        userCount:      usersRes.count   ?? 0,
+        listingCount:   listingsRes.count ?? 0,
+        orderCount:     orders.length,
+        totalRevenue:   orders.reduce((s, o) => s + (o.total_cost || 0), 0),
+        pendingOrders:  orders.filter((o) => o.status === "pending").length,
         disputedOrders: orders.filter((o) => o.status === "disputed").length,
-        ordersRaw:     orders,
+        totalInquiries: listingStats.reduce((s, l) => s + (l.inquiries || 0), 0),
+        totalFavourites: listingStats.reduce((s, l) => s + (l.favourites || 0), 0),
+        ordersRaw:      orders,
       };
     },
   });
@@ -129,5 +133,112 @@ export function useAdminUpdateOrderStatus() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin"] }),
+  });
+}
+
+// Bulk-updates status for multiple orders in a single DB call.
+// Accepts an array of order IDs and a target status string.
+// Used by the bulk-select toolbar in the Orders tab.
+export function useAdminBulkUpdateStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ ids, status }) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin"] }),
+  });
+}
+
+// Saves a free-text admin note on an order row (admin_note column).
+// Displayed inline in the Disputes tab so admins can record resolution context.
+// Requires: ALTER TABLE orders ADD COLUMN IF NOT EXISTS admin_note text;
+export function useAdminUpdateOrderNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, admin_note }) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ admin_note })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin"] }),
+  });
+}
+
+// Bans or unbans a user by toggling the is_banned flag on their profile.
+// Requires: ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_banned boolean DEFAULT false;
+// Banned users can still log in — enforce ban checks at the app/RLS level as needed.
+export function useAdminBanUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, is_banned }) => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ is_banned })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin"] }),
+  });
+}
+
+// ─── Reviews ──────────────────────────────────────────────────────────────────
+
+// Fetches all reviews across every listing, joining the listing title for display.
+// Used in the Reviews moderation tab so admins can read and remove any review.
+export function useAdminReviews() {
+  return useQuery({
+    queryKey: ["admin", "reviews"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*, listings(title)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// Permanently deletes a review by ID. Invalidates the admin reviews cache.
+export function useAdminDeleteReview() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const { error } = await supabase.from("reviews").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin"] }),
+  });
+}
+
+// ─── Broadcast notification ───────────────────────────────────────────────────
+
+// Sends a notification to every user on the platform in a single batch insert.
+// Fetches all profile IDs first, then inserts one notification row per user.
+// The notification type is "broadcast" so the frontend can style it distinctly.
+export function useAdminBroadcast() {
+  return useMutation({
+    mutationFn: async ({ title, body }) => {
+      const { data: profiles, error: pErr } = await supabase
+        .from("profiles")
+        .select("id");
+      if (pErr) throw pErr;
+      const rows = profiles.map((p) => ({
+        user_id: p.id,
+        type: "broadcast",
+        title,
+        body,
+        detail: {},
+        read: false,
+      }));
+      const { error } = await supabase.from("notifications").insert(rows);
+      if (error) throw error;
+    },
   });
 }

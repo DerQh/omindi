@@ -210,30 +210,39 @@ export function useAllCartItems(user_id) {
 
     // You need to join the cart table with the listings table. In Supabase you can do this in one query:
     queryFn: async () => {
+      // Step 1: fetch cart items with listing data
       const { data, error } = await supabase
         .from("cart")
-        .select(
-          `
-      id,
-      quantity,
-      listing_id,
-      listings (
-        id,
-        title,
-        price,
-        image_url,
-        unit,
-        seller_id
-      )
-    `,
-        )
+        .select(`
+          id, quantity, listing_id,
+          listings ( id, title, price, image_url, unit, seller_id )
+        `)
         .eq("user_id", user_id)
-        .order("created_at", { ascending: true }); // keeps order stable
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
-      //   console.log("Cart:", data);
 
-      return data;
+      // Step 2: fetch seller profiles for all unique seller_ids in one query
+      const sellerIds = [...new Set(
+        (data ?? []).map((row) => row.listings?.seller_id).filter(Boolean)
+      )];
+
+      let profileMap = {};
+      if (sellerIds.length) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, farm_name, full_name")
+          .in("id", sellerIds);
+        profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+      }
+
+      // Step 3: merge profile into each listing
+      return (data ?? []).map((row) => ({
+        ...row,
+        listings: row.listings
+          ? { ...row.listings, profiles: profileMap[row.listings.seller_id] ?? null }
+          : null,
+      }));
     },
     onSuccess: (data, variables) => {
       queryClient.refetchQueries({ queryKey: ["cart", variables.user_id] });

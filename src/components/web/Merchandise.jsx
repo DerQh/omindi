@@ -892,7 +892,7 @@ function Merchandise() {
       <Page>
         <Container>
           {/* ── Breadcrumb ── */}
-          <Breadcrumb>
+          {/* <Breadcrumb>
             <Link to="/">Home</Link>
             <BreadSep>/</BreadSep>
             <Link to="/shop">Shop</Link>
@@ -900,7 +900,7 @@ function Merchandise() {
             <span>{product.category}</span>
             <BreadSep>/</BreadSep>
             <strong style={{ color: "#1a2e1a" }}>{product.name}</strong>
-          </Breadcrumb>
+          </Breadcrumb> */}
 
           {/* ── Product layout ── */}
           <ProductLayout>
@@ -1069,16 +1069,20 @@ function Merchandise() {
                 )}
 
                 {activeTab === "details" && (
-                  <InfoTable>
-                    <tbody>
-                      {product.details.map((d) => (
-                        <tr key={d.label}>
-                          <td>{d.label}</td>
-                          <td>{d.value}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </InfoTable>
+                  product.details?.length > 0 ? (
+                    <InfoTable>
+                      <tbody>
+                        {product.details.map((d) => (
+                          <tr key={d.label}>
+                            <td>{d.label}</td>
+                            <td>{d.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </InfoTable>
+                  ) : (
+                    <p style={{ color: "#9ca3af", fontSize: "0.9rem" }}>No additional details available.</p>
+                  )
                 )}
 
                 {activeTab === "reviews" && (

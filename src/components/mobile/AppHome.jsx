@@ -172,6 +172,14 @@ const SearchWrap = styled.div`
   z-index: 10;
   max-width: 560px;
   animation: ${slideUp} 0.4s ease;
+
+  @media (min-width: 768px) {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 600px;
+    max-width: calc(100% - 48px);
+  }
 `;
 
 const SearchInner = styled.div`
@@ -277,6 +285,11 @@ const LiveBadge = styled.div`
   position: absolute;
   top: 120px;
   left: 14px;
+
+  @media (min-width: 768px) {
+    left: 50%;
+    transform: translateX(-50%);
+  }
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
   border-radius: 999px;
@@ -314,6 +327,18 @@ const FarmCard = styled.div`
   z-index: 10;
   overflow: hidden;
   animation: ${slideUp} 0.5s ease 0.1s both;
+
+  @media (min-width: 768px) {
+    width: 380px;
+    bottom: 32px;
+    right: 32px;
+  }
+
+  @media (min-width: 1200px) {
+    width: 440px;
+    bottom: 48px;
+    right: 48px;
+  }
 
   @media (max-width: 600px) {
     right: 14px;

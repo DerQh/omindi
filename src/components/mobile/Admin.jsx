@@ -27,6 +27,12 @@ import {
   useAdminDeleteListing,
   useAdminOrders,
   useAdminUpdateOrderStatus,
+  useAdminBulkUpdateStatus,
+  useAdminUpdateOrderNote,
+  useAdminBanUser,
+  useAdminReviews,
+  useAdminDeleteReview,
+  useAdminBroadcast,
 } from "../../hooks/useAdmin";
 import { formatSmartDate } from "../../hooks/dateFormat";
 
@@ -38,6 +44,8 @@ const NAV = [
   { id: "listings", label: "Listings", icon: "🌿" },
   { id: "orders", label: "Orders", icon: "📦" },
   { id: "disputes", label: "Disputes", icon: "⚠️" },
+  { id: "reviews", label: "Reviews", icon: "⭐" },
+  { id: "broadcast", label: "Broadcast", icon: "📢" },
 ];
 
 const PERIODS = [
@@ -151,6 +159,11 @@ const Admin = () => {
   const [orderSearch, setOrderSearch] = useState("");
   const [orderStatus, setOrderStatus] = useState("all");
   const [confirmAction, setConfirmAction] = useState(null);
+  const [selectedOrders, setSelectedOrders] = useState(new Set());
+  const [bulkStatus, setBulkStatus] = useState("confirmed");
+  const [broadcastTitle, setBroadcastTitle] = useState("");
+  const [broadcastBody, setBroadcastBody] = useState("");
+  const [broadcastDone, setBroadcastDone] = useState(false);
 
   const { data: currentUser } = useUser();
   const { data: isAdmin, isLoading: checkingAdmin } = useIsAdmin(
@@ -165,6 +178,12 @@ const Admin = () => {
   const { mutate: deleteUser } = useAdminDeleteUser();
   const { mutate: deleteListing } = useAdminDeleteListing();
   const { mutate: updateStatus } = useAdminUpdateOrderStatus();
+  const { mutate: bulkUpdateStatus, isPending: bulkUpdating } = useAdminBulkUpdateStatus();
+  const { mutate: updateOrderNote } = useAdminUpdateOrderNote();
+  const { mutate: banUser } = useAdminBanUser();
+  const { data: reviews, isLoading: loadingReviews } = useAdminReviews();
+  const { mutate: deleteReview } = useAdminDeleteReview();
+  const { mutate: broadcast, isPending: broadcasting } = useAdminBroadcast();
 
   // ── Computed ──────────────────────────────────────────────────────────────
 
@@ -287,6 +306,8 @@ const Admin = () => {
       deleteUser(id, { onSuccess: () => setConfirmAction(null) });
     if (type === "deleteListing")
       deleteListing(id, { onSuccess: () => setConfirmAction(null) });
+    if (type === "deleteReview")
+      deleteReview(id, { onSuccess: () => setConfirmAction(null) });
     setConfirmAction(null);
   };
 
@@ -418,6 +439,20 @@ const Admin = () => {
                       value: stats?.disputedOrders,
                       color: "#ec4899",
                       light: "#fdf2f8",
+                    },
+                    {
+                      icon: "💬",
+                      label: "Inquiries",
+                      value: stats?.totalInquiries,
+                      color: "#06b6d4",
+                      light: "#ecfeff",
+                    },
+                    {
+                      icon: "❤️",
+                      label: "Favourites",
+                      value: stats?.totalFavourites,
+                      color: "#f43f5e",
+                      light: "#fff1f2",
                     },
                   ].map((c) => (
                     <StatCard key={c.label} $light={c.light} $wide={c.wide}>
@@ -744,6 +779,7 @@ const Admin = () => {
                             <TH>Listings</TH>
                             <TH>Joined</TH>
                             <TH>Role</TH>
+                            <TH>Ban</TH>
                             <TH>Remove</TH>
                           </tr>
                         </thead>
@@ -830,6 +866,17 @@ const Admin = () => {
                                   </RoleGroup>
                                 </TD>
                                 <TD>
+                                  <BanBtn
+                                    $banned={u.is_banned}
+                                    onClick={() =>
+                                      banUser({ id: u.id, is_banned: !u.is_banned })
+                                    }
+                                    title={u.is_banned ? "Unban user" : "Ban user"}
+                                  >
+                                    {u.is_banned ? "Unban" : "Ban"}
+                                  </BanBtn>
+                                </TD>
+                                <TD>
                                   <DangerBtn
                                     onClick={() =>
                                       setConfirmAction({
@@ -848,7 +895,7 @@ const Admin = () => {
                           {!filteredUsers.length && (
                             <tr>
                               <TD
-                                colSpan={7}
+                                colSpan={8}
                                 style={{
                                   textAlign: "center",
                                   padding: "40px",
@@ -1053,6 +1100,34 @@ const Admin = () => {
                   <CountPill>{filteredOrders.length} orders</CountPill>
                 </ToolBar>
 
+                {selectedOrders.size > 0 && (
+                  <BulkBar>
+                    <BulkCount>{selectedOrders.size} selected</BulkCount>
+                    <BulkStatusSelect
+                      value={bulkStatus}
+                      onChange={(e) => setBulkStatus(e.target.value)}
+                    >
+                      {ORDER_STATUSES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </BulkStatusSelect>
+                    <BulkApplyBtn
+                      disabled={bulkUpdating}
+                      onClick={() =>
+                        bulkUpdateStatus(
+                          { ids: [...selectedOrders], status: bulkStatus },
+                          { onSuccess: () => setSelectedOrders(new Set()) },
+                        )
+                      }
+                    >
+                      {bulkUpdating ? "Updating…" : "Apply"}
+                    </BulkApplyBtn>
+                    <BulkClearBtn onClick={() => setSelectedOrders(new Set())}>
+                      Clear
+                    </BulkClearBtn>
+                  </BulkBar>
+                )}
+
                 {loadingOrders ? (
                   <LoadMsg>Loading orders…</LoadMsg>
                 ) : (
@@ -1061,6 +1136,22 @@ const Admin = () => {
                       <DataTable>
                         <thead>
                           <tr>
+                            <TH style={{ width: 36 }}>
+                              <input
+                                type="checkbox"
+                                checked={
+                                  filteredOrders.length > 0 &&
+                                  filteredOrders.every((o) => selectedOrders.has(o.id))
+                                }
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedOrders(new Set(filteredOrders.map((o) => o.id)));
+                                  } else {
+                                    setSelectedOrders(new Set());
+                                  }
+                                }}
+                              />
+                            </TH>
                             <TH>Order ID</TH>
                             <TH>Amount</TH>
                             <TH>Payment</TH>
@@ -1073,6 +1164,20 @@ const Admin = () => {
                         <tbody>
                           {filteredOrders.map((o) => (
                             <TR key={o.id}>
+                              <TD>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedOrders.has(o.id)}
+                                  onChange={(e) => {
+                                    setSelectedOrders((prev) => {
+                                      const next = new Set(prev);
+                                      if (e.target.checked) next.add(o.id);
+                                      else next.delete(o.id);
+                                      return next;
+                                    });
+                                  }}
+                                />
+                              </TD>
                               <TD>
                                 <Mono>{shortId(o.id)}</Mono>
                               </TD>
@@ -1119,7 +1224,7 @@ const Admin = () => {
                           {!filteredOrders.length && (
                             <tr>
                               <TD
-                                colSpan={7}
+                                colSpan={8}
                                 style={{
                                   textAlign: "center",
                                   padding: "40px",
@@ -1226,6 +1331,16 @@ const Admin = () => {
                                       Mark Delivered
                                     </option>
                                   </ResolveSelect>
+                                  <NoteInput
+                                    placeholder="Admin note…"
+                                    defaultValue={o.admin_note ?? ""}
+                                    onBlur={(e) =>
+                                      updateOrderNote({
+                                        id: o.id,
+                                        admin_note: e.target.value,
+                                      })
+                                    }
+                                  />
                                 </TD>
                               </TR>
                             ))}
@@ -1237,6 +1352,145 @@ const Admin = () => {
                 )}
               </Fade>
             )}
+            {/* ══════════════════════════════════════════════════════════════
+                REVIEWS
+            ══════════════════════════════════════════════════════════════ */}
+            {tab === "reviews" && (
+              <Fade key="reviews">
+                <PageHeading>Review Moderation</PageHeading>
+
+                {loadingReviews ? (
+                  <LoadMsg>Loading reviews…</LoadMsg>
+                ) : (reviews ?? []).length === 0 ? (
+                  <EmptyCard>
+                    <EmptyIcon>⭐</EmptyIcon>
+                    <EmptyTitle>No reviews yet</EmptyTitle>
+                    <EmptySub>Reviews left by buyers on listings appear here.</EmptySub>
+                  </EmptyCard>
+                ) : (
+                  <DataCard>
+                    <DataScroll>
+                      <DataTable>
+                        <thead>
+                          <tr>
+                            <TH>Listing</TH>
+                            <TH>Rating</TH>
+                            <TH>Review</TH>
+                            <TH>Date</TH>
+                            <TH>Remove</TH>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(reviews ?? []).map((r) => (
+                            <TR key={r.id}>
+                              <TD>
+                                <ListingTitle style={{ maxWidth: 140 }}>
+                                  {r.listings?.title ?? "—"}
+                                </ListingTitle>
+                              </TD>
+                              <TD>
+                                <StarRow>
+                                  {[1, 2, 3, 4, 5].map((n) => (
+                                    <Star key={n} $filled={n <= (r.rating ?? 0)}>
+                                      ★
+                                    </Star>
+                                  ))}
+                                </StarRow>
+                              </TD>
+                              <TD>
+                                <ReviewText title={r.comment}>
+                                  {(r.comment ?? "—").slice(0, 60)}
+                                  {(r.comment ?? "").length > 60 ? "…" : ""}
+                                </ReviewText>
+                              </TD>
+                              <TD>
+                                <Muted>{formatSmartDate(r.created_at)}</Muted>
+                              </TD>
+                              <TD>
+                                <DangerBtn
+                                  onClick={() =>
+                                    setConfirmAction({
+                                      type: "deleteReview",
+                                      id: r.id,
+                                      label: `Remove this review?`,
+                                    })
+                                  }
+                                >
+                                  Remove
+                                </DangerBtn>
+                              </TD>
+                            </TR>
+                          ))}
+                        </tbody>
+                      </DataTable>
+                    </DataScroll>
+                    <TableFooter>{(reviews ?? []).length} reviews</TableFooter>
+                  </DataCard>
+                )}
+              </Fade>
+            )}
+
+            {/* ══════════════════════════════════════════════════════════════
+                BROADCAST
+            ══════════════════════════════════════════════════════════════ */}
+            {tab === "broadcast" && (
+              <Fade key="broadcast">
+                <PageHeading>Broadcast Notification</PageHeading>
+
+                {broadcastDone ? (
+                  <EmptyCard>
+                    <EmptyIcon>✅</EmptyIcon>
+                    <EmptyTitle>Notification sent!</EmptyTitle>
+                    <EmptySub>Your message was delivered to all users.</EmptySub>
+                    <AccessBtn
+                      style={{ marginTop: 16 }}
+                      onClick={() => {
+                        setBroadcastTitle("");
+                        setBroadcastBody("");
+                        setBroadcastDone(false);
+                      }}
+                    >
+                      Send another
+                    </AccessBtn>
+                  </EmptyCard>
+                ) : (
+                  <BroadcastCard>
+                    <BroadcastLabel>Title</BroadcastLabel>
+                    <BroadcastInput
+                      placeholder="Notification title…"
+                      value={broadcastTitle}
+                      onChange={(e) => setBroadcastTitle(e.target.value)}
+                      maxLength={80}
+                    />
+                    <BroadcastLabel style={{ marginTop: 16 }}>Message</BroadcastLabel>
+                    <BroadcastTextarea
+                      placeholder="Write your message to all users…"
+                      value={broadcastBody}
+                      onChange={(e) => setBroadcastBody(e.target.value)}
+                      maxLength={400}
+                      rows={5}
+                    />
+                    <BroadcastFooter>
+                      <BroadcastHint>
+                        This will send a notification to every user on the platform.
+                      </BroadcastHint>
+                      <BroadcastSendBtn
+                        disabled={!broadcastTitle.trim() || !broadcastBody.trim() || broadcasting}
+                        onClick={() =>
+                          broadcast(
+                            { title: broadcastTitle.trim(), body: broadcastBody.trim() },
+                            { onSuccess: () => setBroadcastDone(true) },
+                          )
+                        }
+                      >
+                        {broadcasting ? "Sending…" : "Send to all users"}
+                      </BroadcastSendBtn>
+                    </BroadcastFooter>
+                  </BroadcastCard>
+                )}
+              </Fade>
+            )}
+
           </MainInner>
         </Main>
       </Shell>
@@ -1869,7 +2123,7 @@ const ListingCountBadge = styled.span`
   display: inline-block;
   padding: 2px 10px;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 16px;
   font-weight: 700;
   background: ${({ $zero }) => ($zero ? "#f3f4f6" : "#f0fdf4")};
   color: ${({ $zero }) => ($zero ? "#9ca3af" : "#166534")};
@@ -1883,7 +2137,7 @@ const RoleGroup = styled.div`
 const RoleBadge = styled.span`
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 0.68rem;
+  font-size: 16px;
   font-weight: 700;
   background: ${({ $admin, $seller }) =>
     $admin ? "#fef2f2" : $seller ? "#eff6ff" : "#f3f4f6"};
@@ -1974,7 +2228,7 @@ const ListingTitle = styled.span`
 const CatTag = styled.span`
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 16px;
   font-weight: 700;
   white-space: nowrap;
 `;
@@ -1991,7 +2245,7 @@ const StatusPill = styled.span`
   gap: 5px;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 16px;
   font-weight: 700;
   text-transform: capitalize;
   white-space: nowrap;
@@ -2025,7 +2279,7 @@ const StatusSelect = styled.select`
 const PayBadge = styled.span`
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 16px;
   font-weight: 600;
   background: #f3f4f6;
   color: #374151;
@@ -2043,7 +2297,7 @@ const AddressTrunc = styled.span`
 const DangerBtn = styled.button`
   padding: 5px 12px;
   border-radius: 8px;
-  font-size: 0.75rem;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   background: #fef2f2;
@@ -2111,6 +2365,216 @@ const EmptySub = styled.p`
   font-size: 0.88rem;
   line-height: 1.6;
   max-width: 360px;
+`;
+
+// ── Ban button ──
+
+const BanBtn = styled.button`
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid ${({ $banned }) => ($banned ? "#fed7aa" : "#e5e7eb")};
+  background: ${({ $banned }) => ($banned ? "#fff7ed" : "#f9fafb")};
+  color: ${({ $banned }) => ($banned ? "#b45309" : "#6b7280")};
+  transition: all 0.15s;
+  white-space: nowrap;
+  &:hover {
+    background: ${({ $banned }) => ($banned ? "#b45309" : "#374151")};
+    color: white;
+    border-color: ${({ $banned }) => ($banned ? "#b45309" : "#374151")};
+  }
+`;
+
+// ── Bulk action toolbar ──
+
+const BulkBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+`;
+const BulkCount = styled.span`
+  font-size: 16px;
+  font-weight: 700;
+  color: #1d4ed8;
+`;
+const BulkStatusSelect = styled.select`
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1.5px solid #bfdbfe;
+  background: white;
+  color: #374151;
+  outline: none;
+  cursor: pointer;
+`;
+const BulkApplyBtn = styled.button`
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  background: #1d4ed8;
+  color: white;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover:not(:disabled) {
+    background: #1e40af;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+const BulkClearBtn = styled.button`
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1.5px solid #bfdbfe;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  &:hover {
+    background: #e5e7eb;
+  }
+`;
+
+// ── Admin note input ──
+
+const NoteInput = styled.input`
+  display: block;
+  margin-top: 6px;
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  font-size: 16px;
+  color: #374151;
+  outline: none;
+  background: white;
+  &:focus {
+    border-color: #2f5a2a;
+  }
+  &::placeholder {
+    color: #d1d5db;
+  }
+`;
+
+// ── Reviews tab ──
+
+const StarRow = styled.div`
+  display: flex;
+  gap: 2px;
+`;
+const Star = styled.span`
+  font-size: 0.9rem;
+  color: ${({ $filled }) => ($filled ? "#f59e0b" : "#e5e7eb")};
+`;
+const ReviewText = styled.span`
+  color: #374151;
+  font-size: 0.82rem;
+  max-width: 220px;
+  display: block;
+`;
+
+// ── Broadcast tab ──
+
+const BroadcastCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 600px;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.06),
+    0 4px 16px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f3f4f6;
+`;
+const BroadcastLabel = styled.label`
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+`;
+const BroadcastInput = styled.input`
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 16px;
+  color: #111827;
+  outline: none;
+  background: white;
+  box-sizing: border-box;
+  &:focus {
+    border-color: #2f5a2a;
+  }
+  &::placeholder {
+    color: #d1d5db;
+  }
+`;
+const BroadcastTextarea = styled.textarea`
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 16px;
+  color: #111827;
+  outline: none;
+  background: white;
+  resize: vertical;
+  box-sizing: border-box;
+  font-family: inherit;
+  &:focus {
+    border-color: #2f5a2a;
+  }
+  &::placeholder {
+    color: #d1d5db;
+  }
+`;
+const BroadcastFooter = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+`;
+const BroadcastHint = styled.p`
+  margin: 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  max-width: 300px;
+`;
+const BroadcastSendBtn = styled.button`
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  background: #2f5a2a;
+  color: white;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  &:hover:not(:disabled) {
+    background: #3d7336;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 // ── Loading ──
