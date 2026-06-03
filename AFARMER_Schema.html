@@ -2513,6 +2513,7 @@ src/
         <tr><td>chart.js</td><td>^4.5.1</td><td>Chart library (admin/sales dashboards)</td></tr>
         <tr><td>react-chartjs-2</td><td>^5.3.1</td><td>React wrapper for Chart.js</td></tr>
         <tr><td>recharts</td><td>^2.15.4</td><td>Alternative chart library (some dashboard views)</td></tr>
+        <tr><td>react-helmet-async</td><td>^3.0.0</td><td>Page &lt;title&gt; and meta tags per route — SEO</td></tr>
       </table>
       <h3>Development</h3>
       <table>
@@ -3245,6 +3246,83 @@ RETURNS void LANGUAGE sql SECURITY DEFINER AS $$
 $$;</pre
           >
         </div>
+      </div>
+
+
+      <!-- ── Additional SQL ── -->
+      <h3 style="margin-top:32px;color:#6fcf6f">— Additional SQL (run after base tables)</h3>
+
+      <div class="sql-block" id="sql-newsletter">
+        <div class="sql-header"><span class="sql-title">-- newsletter_subscribers</span><button class="copy-btn" onclick="copySql('sql-newsletter')">Copy</button></div>
+        <div class="sql-body"><pre>CREATE TABLE IF NOT EXISTS public.newsletter_subscribers (
+  id         bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  email      text NOT NULL UNIQUE,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.newsletter_subscribers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "newsletter_insert_all" ON public.newsletter_subscribers FOR INSERT WITH CHECK (true);
+CREATE POLICY "newsletter_admin_select" ON public.newsletter_subscribers FOR SELECT TO authenticated
+  USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));</pre></div>
+      </div>
+
+      <div class="sql-block" id="sql-trigger">
+        <div class="sql-header"><span class="sql-title">-- Auto-create profile on sign-up (trigger)</span><button class="copy-btn" onclick="copySql('sql-trigger')">Copy</button></div>
+        <div class="sql-body"><pre>CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name)
+  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'username', ''))
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();</pre></div>
+      </div>
+
+      <div class="sql-block" id="sql-fts">
+        <div class="sql-header"><span class="sql-title">-- Full-text search on listings</span><button class="copy-btn" onclick="copySql('sql-fts')">Copy</button></div>
+        <div class="sql-body"><pre>ALTER TABLE public.listings
+  ADD COLUMN IF NOT EXISTS search_vector tsvector
+  GENERATED ALWAYS AS (
+    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(description, '')), 'B') ||
+    setweight(to_tsvector('english', coalesce(category, '')), 'C') ||
+    setweight(to_tsvector('english', coalesce(location, '')), 'C')
+  ) STORED;
+
+CREATE INDEX IF NOT EXISTS listings_search_idx ON public.listings USING GIN(search_vector);
+
+CREATE OR REPLACE FUNCTION public.search_listings(search_query text)
+RETURNS SETOF public.listings LANGUAGE sql STABLE AS $$
+  SELECT * FROM public.listings
+  WHERE search_vector @@ plainto_tsquery('english', search_query)
+  ORDER BY ts_rank(search_vector, plainto_tsquery('english', search_query)) DESC;
+$$;</pre></div>
+      </div>
+
+      <div class="sql-block" id="sql-realtime2">
+        <div class="sql-header"><span class="sql-title">-- Enable Realtime on messages + notifications</span><button class="copy-btn" onclick="copySql('sql-realtime2')">Copy</button></div>
+        <div class="sql-body"><pre>ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;</pre></div>
+      </div>
+
+      <div class="sql-block" id="sql-storage-rls">
+        <div class="sql-header"><span class="sql-title">-- Storage bucket RLS</span><button class="copy-btn" onclick="copySql('sql-storage-rls')">Copy</button></div>
+        <div class="sql-body"><pre>-- NOTE: Supabase Dashboard → Storage → Policies is the easiest way.
+-- SQL alternative — run per bucket:
+CREATE POLICY "avatars_read"   ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+CREATE POLICY "avatars_upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'avatars');
+CREATE POLICY "listing_images_read"   ON storage.objects FOR SELECT USING (bucket_id = 'listing-images');
+CREATE POLICY "listing_images_upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'listing-images');
+CREATE POLICY "post_images_read"   ON storage.objects FOR SELECT USING (bucket_id = 'post-images');
+CREATE POLICY "post_images_upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'post-images');
+CREATE POLICY "shop_products_read" ON storage.objects FOR SELECT USING (bucket_id = 'shop-products');
+CREATE POLICY "shop_products_upload" ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'shop-products' AND
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));</pre></div>
       </div>
 
       <script>
