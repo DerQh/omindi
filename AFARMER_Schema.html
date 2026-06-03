@@ -576,7 +576,342 @@
       });
     </script>
 
-    <!-- ── Cover ── -->
+    
+<!-- ── Beta Tester Checklist ── -->
+<div id="beta-section">
+<div class="beta-hero">
+  <div class="beta-hero-inner">
+    <div class="beta-eyebrow">🌾 Beta Tester</div>
+    <h1 class="beta-title">Test AFARMER™ Together</h1>
+    <p class="beta-sub">Work through the checklist below. Tick each item once you've confirmed it works. When you're done, leave a star rating — your feedback shapes the next release.</p>
+    <div class="beta-progress-card">
+      <div class="beta-progress-nums">
+        <div>
+          <div class="beta-prog-big" id="prog-done">0</div>
+          <div class="beta-prog-label">tasks completed</div>
+        </div>
+        <div style="text-align:right">
+          <div class="beta-prog-big" id="prog-left">30</div>
+          <div class="beta-prog-label">remaining</div>
+        </div>
+      </div>
+      <div class="beta-bar-track">
+        <div class="beta-bar-fill" id="prog-bar" style="width:0%"></div>
+      </div>
+      <div class="beta-pct" id="prog-pct">0% complete</div>
+    </div>
+  </div>
+</div>
+
+<div class="checklist-wrap">
+  <div class="checklist-grid">
+
+    <!-- Auth -->
+    <div class="check-group">
+      <div class="check-group-header">
+        <span class="check-group-icon">🔐</span>
+        <span class="check-group-title">Authentication</span>
+        <span class="check-group-count" id="gc-auth">0/4</span>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t1','auth')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t1">
+        <label for="t1">Sign up with a new email address<span class="sub">Go to /sign-up → create account</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t2','auth')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t2">
+        <label for="t2">Log in with existing account<span class="sub">Go to /login → confirm you reach the app</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t3','auth')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t3">
+        <label for="t3">Log out and back in<span class="sub">Use the logout option, then sign in again</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t4','auth')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t4">
+        <label for="t4">Edit your profile<span class="sub">/edit-profile → update name, bio, avatar</span></label>
+      </div>
+    </div>
+
+    <!-- Listings -->
+    <div class="check-group">
+      <div class="check-group-header">
+        <span class="check-group-icon">🌾</span>
+        <span class="check-group-title">Listings</span>
+        <span class="check-group-count" id="gc-list">0/5</span>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t5','list')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t5">
+        <label for="t5">Browse and search listings<span class="sub">/list → type in search bar, confirm results</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t6','list')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t6">
+        <label for="t6">Filter by category<span class="sub">Tap a category chip → only that category shows</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t7','list')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t7">
+        <label for="t7">Open a listing detail page<span class="sub">Tap any listing card → full detail loads</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t8','list')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t8">
+        <label for="t8">Create a new listing<span class="sub">/newlist → fill fields, upload image, submit</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t9','list')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t9">
+        <label for="t9">Bookmark a listing<span class="sub">Tap bookmark icon → confirm it turns amber</span></label>
+      </div>
+    </div>
+
+    <!-- Cart & Orders -->
+    <div class="check-group">
+      <div class="check-group-header">
+        <span class="check-group-icon">🛒</span>
+        <span class="check-group-title">Cart &amp; Orders</span>
+        <span class="check-group-count" id="gc-cart">0/4</span>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t10','cart')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t10">
+        <label for="t10">Add a listing to cart<span class="sub">Listing detail → tap "Add to Cart"</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t11','cart')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t11">
+        <label for="t11">View and manage the cart<span class="sub">/cart → adjust quantity, remove item</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t12','cart')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t12">
+        <label for="t12">Complete checkout<span class="sub">/checkout → fill delivery + M-Pesa, place order</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t13','cart')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t13">
+        <label for="t13">View order history<span class="sub">/my-orders → confirm placed order appears</span></label>
+      </div>
+    </div>
+
+    <!-- Messaging -->
+    <div class="check-group">
+      <div class="check-group-header">
+        <span class="check-group-icon">💬</span>
+        <span class="check-group-title">Messaging</span>
+        <span class="check-group-count" id="gc-msg">0/3</span>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t14','msg')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t14">
+        <label for="t14">Send an inquiry to a seller<span class="sub">Listing detail → tap "Inquiry" → conversation opens</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t15','msg')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t15">
+        <label for="t15">Send and receive messages<span class="sub">/messages → open thread → send a message</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t16','msg')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t16">
+        <label for="t16">Follow another user<span class="sub">/follower/:id → tap Follow button</span></label>
+      </div>
+    </div>
+
+    <!-- Community -->
+    <div class="check-group">
+      <div class="check-group-header">
+        <span class="check-group-icon">🌱</span>
+        <span class="check-group-title">Community</span>
+        <span class="check-group-count" id="gc-comm">0/3</span>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t17','comm')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t17">
+        <label for="t17">Create a community post<span class="sub">/community → tap post, write, submit</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t18','comm')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t18">
+        <label for="t18">Like and comment on a post<span class="sub">Tap like button and leave a comment</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t19','comm')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t19">
+        <label for="t19">View another user's profile<span class="sub">/follower/:id → check their listings and stats</span></label>
+      </div>
+    </div>
+
+    <!-- Reviews -->
+    <div class="check-group">
+      <div class="check-group-header">
+        <span class="check-group-icon">⭐</span>
+        <span class="check-group-title">Reviews</span>
+        <span class="check-group-count" id="gc-rev">0/3</span>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t20','rev')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t20">
+        <label for="t20">Leave a review on a listing<span class="sub">Listing detail → Reviews tab → select stars + submit</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t21','rev')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t21">
+        <label for="t21">Leave a review on a shop item<span class="sub">/shop → open a product → Reviews tab → submit</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t22','rev')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t22">
+        <label for="t22">Review appears immediately after submit<span class="sub">No page refresh needed — it should appear instantly</span></label>
+      </div>
+    </div>
+
+    <!-- Shop -->
+    <div class="check-group">
+      <div class="check-group-header">
+        <span class="check-group-icon">🛍️</span>
+        <span class="check-group-title">Shop</span>
+        <span class="check-group-count" id="gc-shop">0/3</span>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t23','shop')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t23">
+        <label for="t23">Browse the merchandise shop<span class="sub">/shop → browse, filter by Apparel / Accessories</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t24','shop')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t24">
+        <label for="t24">Open a product detail page<span class="sub">Click a product → check description and tabs</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t25','shop')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t25">
+        <label for="t25">Click a related product — correct item loads<span class="sub">Scroll to Related Products → click one → verify it's right</span></label>
+      </div>
+    </div>
+
+    <!-- Notifications & Contact -->
+    <div class="check-group">
+      <div class="check-group-header">
+        <span class="check-group-icon">🔔</span>
+        <span class="check-group-title">Notifications &amp; Contact</span>
+        <span class="check-group-count" id="gc-notif">0/3</span>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t26','notif')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t26">
+        <label for="t26">Check notifications page<span class="sub">/notifications → confirm actions appear here</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t27','notif')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t27">
+        <label for="t27">Subscribe to the newsletter<span class="sub">Footer → enter email → tap Subscribe</span></label>
+      </div>
+      <div class="c-item" onclick="toggle(this,'t28','notif')">
+        <div class="cb-wrap"></div><input type="checkbox" id="t28">
+        <label for="t28">Submit the contact form<span class="sub">/contactus → fill form → Send Message</span></label>
+      </div>
+    </div>
+
+  </div><!-- end grid -->
+
+  <!-- Rating card -->
+  <div class="rating-card" id="rating-card">
+    <span class="rating-trophy">🏆</span>
+    <div class="rating-card-title">All tests complete — amazing!</div>
+    <p class="rating-card-sub">Thank you for testing AFARMER™. How would you rate the overall experience?</p>
+    <div class="stars-large" id="star-row">
+      <button onclick="setRating(1)" id="s1">★</button>
+      <button onclick="setRating(2)" id="s2">★</button>
+      <button onclick="setRating(3)" id="s3">★</button>
+      <button onclick="setRating(4)" id="s4">★</button>
+      <button onclick="setRating(5)" id="s5">★</button>
+    </div>
+    <div class="rating-labels"><span>Needs work</span><span>Average</span><span>Excellent</span></div>
+    <textarea class="fb-textarea" id="feedback-text" rows="4" placeholder="What worked well? What felt broken or confusing? Any suggestions? (optional)"></textarea>
+    <br>
+    <button class="fb-submit" id="submit-fb" onclick="submitFeedback()" disabled>Submit Feedback</button>
+    <div class="fb-thanks" id="thanks-msg">✓ Thank you! Your feedback has been saved.</div>
+  </div>
+
+  <div class="skip-link"><a href="#stack">Skip to technical schema ↓</a></div>
+</div><!-- end checklist-wrap -->
+</div><!-- end beta-section -->
+
+<script>
+  const GROUPS = {
+    auth: ['t1','t2','t3','t4'],
+    list: ['t5','t6','t7','t8','t9'],
+    cart: ['t10','t11','t12','t13'],
+    msg:  ['t14','t15','t16'],
+    comm: ['t17','t18','t19'],
+    rev:  ['t20','t21','t22'],
+    shop: ['t23','t24','t25'],
+    notif:['t26','t27','t28'],
+  };
+  const TOTAL = Object.values(GROUPS).flat().length;
+  let selectedRating = 0;
+
+  function getChecked() { return JSON.parse(localStorage.getItem('afarmer_checks_v2') || '{}'); }
+  function saveChecked(obj) { localStorage.setItem('afarmer_checks_v2', JSON.stringify(obj)); }
+
+  function toggle(row, id, group) {
+    const cb = document.getElementById(id);
+    const newVal = !cb.checked;
+    cb.checked = newVal;
+    row.classList.toggle('done', newVal);
+    const checks = getChecked();
+    checks[id] = newVal;
+    saveChecked(checks);
+    updateProgress();
+    updateGroupCount(group);
+  }
+
+  function updateGroupCount(group) {
+    const checks = getChecked();
+    const ids = GROUPS[group];
+    const done = ids.filter(id => checks[id]).length;
+    const el = document.getElementById('gc-' + group);
+    if (el) el.textContent = done + '/' + ids.length;
+  }
+
+  function updateProgress() {
+    const checks = getChecked();
+    const done = Object.values(checks).filter(Boolean).length;
+    const pct = Math.round((done / TOTAL) * 100);
+    document.getElementById('prog-done').textContent = done;
+    document.getElementById('prog-left').textContent = TOTAL - done;
+    document.getElementById('prog-bar').style.width = pct + '%';
+    document.getElementById('prog-pct').textContent = pct + '% complete';
+    if (done >= TOTAL) {
+      document.getElementById('rating-card').classList.add('visible');
+      document.getElementById('rating-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  function setRating(n) {
+    selectedRating = n;
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById('s' + i).classList.toggle('lit', i <= n);
+    }
+    document.getElementById('submit-fb').disabled = false;
+  }
+
+  function submitFeedback() {
+    const comment = document.getElementById('feedback-text').value.trim();
+    localStorage.setItem('afarmer_feedback', JSON.stringify({ rating: selectedRating, comment, date: new Date().toISOString() }));
+    document.getElementById('submit-fb').disabled = true;
+    document.getElementById('thanks-msg').classList.add('visible');
+  }
+
+  function resetChecklist() {
+    if (!confirm('Reset all progress?')) return;
+    localStorage.removeItem('afarmer_checks_v2');
+    document.querySelectorAll('.c-item').forEach(r => { r.classList.remove('done'); r.querySelector('input').checked = false; });
+    document.getElementById('rating-card').classList.remove('visible');
+    Object.keys(GROUPS).forEach(updateGroupCount);
+    updateProgress();
+  }
+
+  // Restore on load
+  (function restore() {
+    const checks = getChecked();
+    for (const [id, val] of Object.entries(checks)) {
+      const cb = document.getElementById(id);
+      if (!cb) continue;
+      cb.checked = val;
+      if (val) cb.closest('.c-item').classList.add('done');
+    }
+    Object.keys(GROUPS).forEach(updateGroupCount);
+    updateProgress();
+    const fb = JSON.parse(localStorage.getItem('afarmer_feedback') || 'null');
+    if (fb && fb.rating) {
+      setRating(fb.rating);
+      document.getElementById('feedback-text').value = fb.comment || '';
+      document.getElementById('thanks-msg').classList.add('visible');
+      document.getElementById('submit-fb').disabled = true;
+    }
+  })();
+</script>
+
+<!-- ── Cover ── -->
     <div class="cover">
       <h1>AFARMER™</h1>
       <p class="sub">Project Schema &amp; Technical Backup Document</p>
@@ -606,7 +941,8 @@
       <div class="toc">
         <h3>Table of Contents</h3>
         <ol>
-          <li><a href="#stack">Tech Stack</a></li>
+          <li><a href="#beta" style="color:#4e9643;font-weight:800">🌾 Beta Tester Checklist</a></li>
+      <li><a href="#stack">Tech Stack</a></li>
           <li><a href="#env">Environment Variables</a></li>
           <li><a href="#credentials">Third-Party Credentials</a></li>
           <li><a href="#db">Database Schema (19 Tables)</a></li>
@@ -623,7 +959,7 @@
           <li><a href="#todos">Known TODOs &amp; Limitations</a></li>
           <li><a href="#sql">SQL Commands — Click to Copy</a></li>
           <li><a href="#suggestions">Suggestions &amp; Next Steps</a></li>
-      <li><a href="#beta">Beta Tester Checklist &amp; Rating</a></li>
+      
         </ol>
       </div>
 
@@ -3477,281 +3813,7 @@ CREATE POLICY "shop_products_upload" ON storage.objects FOR INSERT TO authentica
       </table>
 
 
-      <!-- ── Beta Tester Checklist ── -->
-      <h2 id="beta">Beta Tester Checklist &amp; Rating</h2>
-      <p>Share this page with testers. They tick each item as they verify it works. When everything is checked, a rating form appears.</p>
-
-      <div class="tester-section">
-        <button class="reset-btn" onclick="resetChecklist()">Reset all</button>
-
-        <div class="progress-wrap">
-          <div class="progress-label">
-            <span>Progress</span>
-            <span id="prog-text">0 / 0 done</span>
-          </div>
-          <div class="progress-bar-track">
-            <div class="progress-bar-fill" id="prog-bar" style="width:0%"></div>
-          </div>
-        </div>
-
-        <!-- Auth -->
-        <div class="tester-group">
-          <div class="tester-group-title">🔐 Authentication</div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t1"><label for="t1">Sign up with a new email address
-              <span class="sub">Go to /sign-up, create an account, confirm email if required</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t2"><label for="t2">Log in with existing account
-              <span class="sub">Go to /login, sign in, confirm you land on the app home</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t3"><label for="t3">Log out and back in
-              <span class="sub">Use the logout option, then log back in</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t4"><label for="t4">Edit your profile
-              <span class="sub">Go to /edit-profile, update name, bio, and avatar photo</span></label>
-          </div>
-        </div>
-
-        <!-- Listings -->
-        <div class="tester-group">
-          <div class="tester-group-title">🌾 Listings</div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t5"><label for="t5">Browse the listings page
-              <span class="sub">Go to /list, scroll through available produce listings</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t6"><label for="t6">Search for a listing
-              <span class="sub">Type in the search bar and confirm results update</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t7"><label for="t7">Filter by category
-              <span class="sub">Tap a category chip and confirm only that category shows</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t8"><label for="t8">Open a listing detail page
-              <span class="sub">Tap any listing card and confirm the full detail page loads</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t9"><label for="t9">Create a new listing
-              <span class="sub">Go to /newlist, fill all fields, upload an image, and submit</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t10"><label for="t10">Edit an existing listing
-              <span class="sub">Go to your listing detail, tap Edit Listing, change a field and save</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t11"><label for="t11">Bookmark a listing
-              <span class="sub">Tap the bookmark icon on any listing — confirm it turns amber</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t12"><label for="t12">View your bookmarked listings
-              <span class="sub">Go to your profile and check the bookmarks tab</span></label>
-          </div>
-        </div>
-
-        <!-- Cart & Orders -->
-        <div class="tester-group">
-          <div class="tester-group-title">🛒 Cart &amp; Orders</div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t13"><label for="t13">Add a listing to cart
-              <span class="sub">On a listing detail page, tap "Add to Cart"</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t14"><label for="t14">View and manage the cart
-              <span class="sub">Go to /cart, adjust quantity, remove an item</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t15"><label for="t15">Complete checkout
-              <span class="sub">Go to /checkout, fill delivery address and M-Pesa number, place order</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t16"><label for="t16">View order history
-              <span class="sub">Go to /my-orders and confirm the placed order appears</span></label>
-          </div>
-        </div>
-
-        <!-- Messaging -->
-        <div class="tester-group">
-          <div class="tester-group-title">💬 Messaging</div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t17"><label for="t17">Send an inquiry to a seller
-              <span class="sub">On a listing detail page, tap "Inquiry" — confirm conversation opens</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t18"><label for="t18">Send and receive messages
-              <span class="sub">Go to /messages, open a conversation, send a message</span></label>
-          </div>
-        </div>
-
-        <!-- Community -->
-        <div class="tester-group">
-          <div class="tester-group-title">🌱 Community</div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t19"><label for="t19">Create a community post
-              <span class="sub">Go to /community, tap post, write something and submit</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t20"><label for="t20">Like and comment on a post
-              <span class="sub">Tap the like button and leave a comment on any post</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t21"><label for="t21">Follow another user
-              <span class="sub">Visit another user's profile (/follower/:id) and tap Follow</span></label>
-          </div>
-        </div>
-
-        <!-- Reviews -->
-        <div class="tester-group">
-          <div class="tester-group-title">⭐ Reviews</div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t22"><label for="t22">Leave a review on a listing
-              <span class="sub">Open a listing, go to the Reviews tab, select stars and submit</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t23"><label for="t23">Leave a review on a shop item
-              <span class="sub">Go to /shop, open a product, go to Reviews tab and submit</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t24"><label for="t24">Confirm review appears after submitting
-              <span class="sub">After submitting, the review should show immediately without a page refresh</span></label>
-          </div>
-        </div>
-
-        <!-- Shop -->
-        <div class="tester-group">
-          <div class="tester-group-title">🛍️ Shop</div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t25"><label for="t25">Browse the merchandise shop
-              <span class="sub">Go to /shop, browse products, filter by category</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t26"><label for="t26">Open a product detail page
-              <span class="sub">Click a product, check images, description, and related products</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t27"><label for="t27">Click a related product and verify correct item loads
-              <span class="sub">Scroll to Related Products section, click one, confirm it's the right product</span></label>
-          </div>
-        </div>
-
-        <!-- Notifications -->
-        <div class="tester-group">
-          <div class="tester-group-title">🔔 Notifications &amp; Newsletter</div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t28"><label for="t28">Check notifications page
-              <span class="sub">Go to /notifications — confirm actions (orders, follows) appear here</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t29"><label for="t29">Subscribe to the newsletter
-              <span class="sub">Go to the footer on any web page, enter an email and tap Subscribe</span></label>
-          </div>
-          <div class="tester-item" onclick="toggle(this)">
-            <input type="checkbox" id="t30"><label for="t30">Submit the contact form
-              <span class="sub">Go to /contactus, fill in the form and hit Send Message</span></label>
-          </div>
-        </div>
-
-        <!-- Rating -->
-        <div class="rating-section" id="rating-section">
-          <div class="rating-title">🎉 All checks complete — thank you!</div>
-          <p class="rating-sub">How would you rate AFARMER™ overall?</p>
-          <div class="star-row" id="star-row">
-            <button onclick="setRating(1)" id="s1">★</button>
-            <button onclick="setRating(2)" id="s2">★</button>
-            <button onclick="setRating(3)" id="s3">★</button>
-            <button onclick="setRating(4)" id="s4">★</button>
-            <button onclick="setRating(5)" id="s5">★</button>
-          </div>
-          <textarea class="feedback-input" id="feedback-text" rows="3" placeholder="What worked well? What needs improvement? (optional)"></textarea>
-          <br>
-          <button class="submit-feedback-btn" id="submit-fb" onclick="submitFeedback()" disabled>Submit Rating</button>
-          <div class="thanks-msg" id="thanks-msg">✓ Thank you for your feedback! Your rating has been saved.</div>
-        </div>
-      </div>
-
-      <script>
-        const TOTAL = 30;
-        let selectedRating = 0;
-
-        function getChecked() {
-          return JSON.parse(localStorage.getItem('afarmer_checks') || '{}');
-        }
-        function saveChecked(obj) {
-          localStorage.setItem('afarmer_checks', JSON.stringify(obj));
-        }
-
-        function toggle(row) {
-          const cb = row.querySelector('input[type="checkbox"]');
-          cb.checked = !cb.checked;
-          row.classList.toggle('done', cb.checked);
-          const checks = getChecked();
-          checks[cb.id] = cb.checked;
-          saveChecked(checks);
-          updateProgress();
-        }
-
-        function updateProgress() {
-          const checks = getChecked();
-          const done = Object.values(checks).filter(Boolean).length;
-          document.getElementById('prog-text').textContent = done + ' / ' + TOTAL + ' done';
-          document.getElementById('prog-bar').style.width = Math.round((done / TOTAL) * 100) + '%';
-          if (done >= TOTAL) {
-            document.getElementById('rating-section').classList.add('visible');
-          }
-        }
-
-        function resetChecklist() {
-          if (!confirm('Reset all checkboxes?')) return;
-          localStorage.removeItem('afarmer_checks');
-          document.querySelectorAll('.tester-item input[type="checkbox"]').forEach(cb => {
-            cb.checked = false;
-            cb.closest('.tester-item').classList.remove('done');
-          });
-          document.getElementById('rating-section').classList.remove('visible');
-          updateProgress();
-        }
-
-        function setRating(n) {
-          selectedRating = n;
-          for (let i = 1; i <= 5; i++) {
-            document.getElementById('s' + i).classList.toggle('lit', i <= n);
-          }
-          document.getElementById('submit-fb').disabled = false;
-        }
-
-        function submitFeedback() {
-          const comment = document.getElementById('feedback-text').value.trim();
-          const payload = { rating: selectedRating, comment, date: new Date().toISOString() };
-          localStorage.setItem('afarmer_feedback', JSON.stringify(payload));
-          document.getElementById('submit-fb').disabled = true;
-          document.getElementById('thanks-msg').classList.add('visible');
-        }
-
-        // Restore state on load
-        (function restore() {
-          const checks = getChecked();
-          for (const [id, val] of Object.entries(checks)) {
-            const cb = document.getElementById(id);
-            if (cb) {
-              cb.checked = val;
-              if (val) cb.closest('.tester-item').classList.add('done');
-            }
-          }
-          updateProgress();
-          // Restore submitted feedback
-          const fb = JSON.parse(localStorage.getItem('afarmer_feedback') || 'null');
-          if (fb) {
-            setRating(fb.rating);
-            document.getElementById('feedback-text').value = fb.comment || '';
-            document.getElementById('thanks-msg').classList.add('visible');
-          }
-        })();
-      </script>
-
-      <div class="footer-note">
+            <div class="footer-note">
         AFARMER™ — Project Schema Document &nbsp;·&nbsp; Built by
         <a
           href="https://www.linkedin.com/in/fredricksana"
