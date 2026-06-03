@@ -18,7 +18,7 @@ const shimmer = keyframes`
 const FEATURED = {
   tag: "Platform Update",
   date: "May 2026",
-  title: "AFARMER Now Supports In-App Checkout for Verified Sellers",
+  title: "AFARMER™ Now Supports In-App Checkout for Verified Sellers",
   excerpt:
     "We're rolling out a new checkout flow that lets verified sellers receive payments directly through the app — no third-party tools required. Here's everything you need to know about the update and how to get verified.",
   img: "/farming.jpg",
@@ -30,7 +30,7 @@ const ARTICLES = [
     tag: "Community",
     date: "Apr 2026",
     title:
-      "How Smallholder Farmers in Kisumu Are Using AFARMER to Reach New Markets",
+      "How Smallholder Farmers in Kisumu Are Using AFARMER™ to Reach New Markets",
     excerpt:
       "Three farmers share their stories of connecting with urban buyers and doubling their weekly sales through the platform.",
     img: "/eggs.jpg",
@@ -41,7 +41,7 @@ const ARTICLES = [
     date: "Apr 2026",
     title: "5 Ways to Write a Listing That Sells Faster",
     excerpt:
-      "From high-quality photos to clear pricing, here are the proven tactics that top AFARMER sellers use to move inventory quickly.",
+      "From high-quality photos to clear pricing, here are the proven tactics that top AFARMER™ sellers use to move inventory quickly.",
     img: "/tomatoes.jpg",
     readTime: "3 min read",
   },
@@ -78,7 +78,7 @@ const ARTICLES = [
     title:
       "Farmers Market Managers: How to Build Your Market's Digital Presence",
     excerpt:
-      "Practical steps for using AFARMER to connect vendors with shoppers, promote events, and keep your community engaged off-site.",
+      "Practical steps for using AFARMER™ to connect vendors with shoppers, promote events, and keep your community engaged off-site.",
     img: "/afarmer.jpg",
     readTime: "5 min read",
   },
@@ -107,7 +107,7 @@ const ARTICLES = [
     date: "Dec 2025",
     title: "How One Farm Turned a Weekend Festival Into a Kes 200,000 Weekend",
     excerpt:
-      "Mwangi's Farm in Nakuru used AFARMER to promote their harvest festival and sold out every ticket in 72 hours. Here's what they did.",
+      "Mwangi's Farm in Nakuru used AFARMER™ to promote their harvest festival and sold out every ticket in 72 hours. Here's what they did.",
     img: "/workshop.jpg",
     readTime: "5 min read",
   },
@@ -158,7 +158,7 @@ function News() {
         <HeroBlob1 />
         <HeroBlob2 />
         <HeroInner>
-          <Eyebrow>AFARMER News &amp; Updates</Eyebrow>
+          <Eyebrow>AFARMER™ News &amp; Updates</Eyebrow>
           <HeroTitle>Stay in the Loop</HeroTitle>
           <HeroSub>
             Platform updates, farming insights, community stories, and

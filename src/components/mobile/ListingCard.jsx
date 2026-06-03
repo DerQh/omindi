@@ -62,10 +62,14 @@ export function ListingCardTest({ listingItem, handleCardClick, user_id }) {
             handleFavourite();
           }}
           aria-label={
-            isFavorited ? "Remove from favourites" : "Save to favourites"
+            isFavorited ? "Remove from saved" : "Save listing"
           }
         >
-          {isFavorited ? "❤️" : "🤍"}
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+            fill={isFavorited ? "currentColor" : "none"}
+            stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
         </FavBtn>
       </ImageWrap>
 
@@ -104,7 +108,7 @@ export function ListingCardTest({ listingItem, handleCardClick, user_id }) {
 
         <StatsRow>
           <Stat>{listingItem.inquiries || 0} inquiries</Stat>
-          <Stat>{listingItem.favourites || 0} saves</Stat>
+          <Stat>{listingItem.favourites || 0} bookmarks</Stat>
           <Stat style={{ marginLeft: "auto" }}>
             {formatSmartDate(listingItem.created_at)}
           </Stat>
@@ -193,15 +197,16 @@ const FavBtn = styled.button`
   border: none;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(4px);
-  font-size: 1.1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.18s;
+  color: ${({ $active }) => ($active ? "#f59e0b" : "#7b9b7b")};
+  transition: transform 0.18s, color 0.15s;
 
   &:hover {
     transform: scale(1.15);
+    color: #f59e0b;
   }
   &:active {
     transform: scale(0.9);

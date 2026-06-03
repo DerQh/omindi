@@ -191,7 +191,7 @@ export default function Navbar() {
   return (
     <Nav>
       <LogoContainer onClick={() => handleNavigation("/")}>
-        <img loading="lazy" src="/logo1.jpg" alt="logo" />
+        <img loading="lazy" src="/afarmer.jpg" alt="logo" />
         <h1>AFARMER</h1>
       </LogoContainer>
       <MenuContainer>

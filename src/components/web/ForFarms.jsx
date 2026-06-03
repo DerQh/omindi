@@ -117,7 +117,7 @@ const ForFarms = () => {
       {/* ── Feature image ── */}
       <ImageSection>
         <ImageInner>
-          <img src="/For Consumers.png" alt="AFARMER platform for farmers" />
+          <img src="/For Consumers.png" alt="AFARMER™ platform for farmers" />
         </ImageInner>
       </ImageSection>
 
@@ -157,7 +157,7 @@ const ForFarms = () => {
       {/* ── CTA ── */}
       <CtaBanner>
         <CtaTitle>Ready to Reach More Buyers?</CtaTitle>
-        <CtaSub>Join hundreds of farmers already selling on AFARMER™.</CtaSub>
+        <CtaSub>Join hundreds of farmers already selling on AFARMER™__TM__.</CtaSub>
         <PrimaryBtn onClick={() => navigate("/sign-up")}>
           Set Up Your Listing
         </PrimaryBtn>

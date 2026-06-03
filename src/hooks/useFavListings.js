@@ -69,7 +69,8 @@ export function useCreateFavorite() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listing_favorites"] });
-      queryClient.refetchQueries({ queryKey: ["listings"] });
+      queryClient.invalidateQueries({ queryKey: ["userFavorites"] });
+      queryClient.invalidateQueries({ queryKey: ["listings"], refetchType: "none" });
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
@@ -112,7 +113,7 @@ export function useFavoriteDelete() {
       queryClient.invalidateQueries({ queryKey: ["listing_favorites"] });
       queryClient.invalidateQueries({ queryKey: ["userFavorites"] });
       queryClient.invalidateQueries({ queryKey: ["favoriteListings"] });
-      queryClient.refetchQueries({ queryKey: ["listings"] });
+      queryClient.invalidateQueries({ queryKey: ["listings"], refetchType: "none" });
     },
   });
 }

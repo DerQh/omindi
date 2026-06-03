@@ -22,11 +22,11 @@ const CATEGORIES = [
     icon: "🛒",
     faqs: [
       {
-        q: "Is there a fee to buy or sell on AFARMER™?",
-        a: "No. There are no buyer fees, and sellers always have the option to list and sell for free. Transactions happen between buyer and seller directly — AFARMER never takes a cut.",
+        q: "Is there a fee to buy or sell on AFARMER™__TM__?",
+        a: "No. There are no buyer fees, and sellers always have the option to list and sell for free. Transactions happen between buyer and seller directly — AFARMER™ never takes a cut.",
       },
       {
-        q: "How do I buy items listed on AFARMER?",
+        q: "How do I buy items listed on AFARMER™?",
         a: "Message the seller directly from the listing screen to arrange a meetup, porch pickup, or drop-off point. All payments are made offline — cash, mobile money, or whatever both parties agree on.",
       },
       {
@@ -34,15 +34,15 @@ const CATEGORIES = [
         a: "Payments can be arranged with the seller via cash, mobile money (e.g. M-Pesa), debit/credit card, EBT (where applicable), or bartering. All transactions are made off the app.",
       },
       {
-        q: "What food items can I sell on AFARMER?",
+        q: "What food items can I sell on AFARMER™?",
         a: "You can sell fresh, raw, uncut, and unprocessed food products grown or produced by you — including meat, dairy, honey, maple syrup, and eggs — subject to local and national regulations.",
       },
       {
-        q: "What non-food items can I sell on AFARMER?",
+        q: "What non-food items can I sell on AFARMER™?",
         a: "You can sell farm and garden supplies, plants and trees (as permitted by law), poultry, small farm animals, and non-vehicle farm or garden equipment.",
       },
       {
-        q: "What items are prohibited on AFARMER?",
+        q: "What items are prohibited on AFARMER™?",
         a: "Prohibited items include: any product that violates local, national, or international law; marijuana or its derivatives; food items not grown or produced on location; vehicles requiring a title or license; misrepresented products; and items outside the applicable categories.",
       },
     ],
@@ -72,7 +72,7 @@ const CATEGORIES = [
     icon: "📅",
     faqs: [
       {
-        q: "What types of events can I list on AFARMER?",
+        q: "What types of events can I list on AFARMER™?",
         a: "You can list any event that connects people with local agriculture — farmers markets, U-pick days, farm tours, seasonal festivals, workshops (gardening or cooking), and agritourism experiences like pumpkin patches or hayrides.",
       },
       {
@@ -81,7 +81,7 @@ const CATEGORIES = [
       },
       {
         q: "Can I charge admission for my event?",
-        a: "Yes. AFARMER doesn't handle ticket payments — you manage admission offline or through your preferred system. Mention pricing in your listing description.",
+        a: "Yes. AFARMER™ doesn't handle ticket payments — you manage admission offline or through your preferred system. Mention pricing in your listing description.",
       },
       {
         q: "Can I promote a recurring event like a weekly farmers market?",
@@ -104,7 +104,7 @@ const CATEGORIES = [
     faqs: [
       {
         q: "Am I legally allowed to sell raw milk, unwashed eggs, or similar products?",
-        a: "It is the seller's responsibility to know and comply with applicable laws around production, sale, and distribution. Resources include your local agricultural extension office and Kenya's Ministry of Agriculture. AFARMER does not provide legal advice.",
+        a: "It is the seller's responsibility to know and comply with applicable laws around production, sale, and distribution. Resources include your local agricultural extension office and Kenya's Ministry of Agriculture. AFARMER™ does not provide legal advice.",
       },
       {
         q: "Is it safe to meet a buyer or seller in person?",
@@ -118,8 +118,8 @@ const CATEGORIES = [
     icon: "🏭",
     faqs: [
       {
-        q: "How does wholesale work on AFARMER?",
-        a: "AFARMER connects farms and producers with wholesale buyers such as retailers, restaurants, and food brands. Sellers list products and buyers reach out directly to arrange quantities, pricing, and delivery — no transaction fees involved.",
+        q: "How does wholesale work on AFARMER™?",
+        a: "AFARMER™ connects farms and producers with wholesale buyers such as retailers, restaurants, and food brands. Sellers list products and buyers reach out directly to arrange quantities, pricing, and delivery — no transaction fees involved.",
       },
       {
         q: "Are there fees for farms to list wholesale products?",
@@ -127,7 +127,7 @@ const CATEGORIES = [
       },
       {
         q: "What products can be sold wholesale?",
-        a: "AFARMER supports a wide range of locally produced goods — fresh produce, meat, dairy, honey, baked goods, and specialty food items. The platform is designed to accommodate both small-scale farmers and larger commercial growers.",
+        a: "AFARMER™ supports a wide range of locally produced goods — fresh produce, meat, dairy, honey, baked goods, and specialty food items. The platform is designed to accommodate both small-scale farmers and larger commercial growers.",
       },
     ],
   },
@@ -191,7 +191,7 @@ function FAQ() {
           <HeroTitle>Frequently Asked Questions</HeroTitle>
           <HeroSub>
             Everything you need to know about buying, selling, and using
-            AFARMER. Can't find an answer?{"  "}
+            AFARMER™. Can't find an answer?{"  "}
             <HeroLink href="/contactus">Contact us.</HeroLink>
           </HeroSub>
           <SearchRow>

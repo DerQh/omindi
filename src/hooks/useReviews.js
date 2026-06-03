@@ -107,7 +107,69 @@ export function useAddReview() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["reviews", data.listing_id] });
       queryClient.invalidateQueries({ queryKey: ["sellerRating", data.seller_id] });
+      queryClient.invalidateQueries({ queryKey: ["sellerReviews", data.seller_id] });
       queryClient.invalidateQueries({ queryKey: ["hasReviewed"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] });
+    },
+  });
+}
+
+// Fetches reviews for a shop item stored in the reviews table via shop_item_id.
+export function useShopItemReviews(shop_item_id) {
+  const key = shop_item_id != null ? String(shop_item_id) : null;
+  return useQuery({
+    queryKey: ["shopReviews", key],
+    enabled: !!key,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*, profiles!reviewer_id(full_name, avatar_url)")
+        .eq("shop_item_id", key)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// Checks if the current user has already reviewed a specific shop item.
+export function useHasReviewedShopItem(user_id, shop_item_id) {
+  const key = shop_item_id != null ? String(shop_item_id) : null;
+  return useQuery({
+    queryKey: ["hasReviewedShop", user_id, key],
+    enabled: !!user_id && !!key,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("reviews")
+        .select("id")
+        .eq("reviewer_id", user_id)
+        .eq("shop_item_id", key)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+}
+
+// Inserts a review for a shop item.
+// Requires: ALTER TABLE reviews ADD COLUMN IF NOT EXISTS shop_item_id bigint REFERENCES shop_items(id);
+export function useAddShopItemReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ shop_item_id, rating, comment, reviewer_name }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      const { data, error } = await supabase
+        .from("reviews")
+        .insert({ shop_item_id: String(shop_item_id), reviewer_id: user.id, rating, comment })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["shopReviews", String(data.shop_item_id)] });
+      queryClient.invalidateQueries({ queryKey: ["hasReviewedShop"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] });
     },
   });
 }
@@ -123,7 +185,9 @@ export function useDeleteReview(listing_id, seller_id) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reviews", listing_id] });
       queryClient.invalidateQueries({ queryKey: ["sellerRating", seller_id] });
+      queryClient.invalidateQueries({ queryKey: ["sellerReviews", seller_id] });
       queryClient.invalidateQueries({ queryKey: ["hasReviewed"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] });
     },
   });
 }

@@ -584,21 +584,21 @@ const SuccessMsg = styled.div`
 const TESTIMONIALS = [
   {
     quote:
-      "Afarmer has resulted in both professional and personal relationships with incredible customers in my community. I joined when I was the only producer within 50km — now there are over 30 in my village alone.",
+      "Afarmer™ has resulted in both professional and personal relationships with incredible customers in my community. I joined when I was the only producer within 50km — now there are over 30 in my village alone.",
     name: "Jeff Ondoro",
     role: "Local Farmer, Kisumu",
     initial: "J",
   },
   {
     quote:
-      "Before Afarmer I used to drive 40km to sell at the market and come back with half my produce unsold. Now buyers come to me. My income has tripled in eight months.",
+      "Before Afarmer™ I used to drive 40km to sell at the market and come back with half my produce unsold. Now buyers come to me. My income has tripled in eight months.",
     name: "Benard Onyango",
     role: "Vegetable Farmer, Migingo",
     initial: "A",
   },
   {
     quote:
-      "We source fresh dairy for our school feeding programme every week through Afarmer. The quality is consistent and the farmers are just a message away. It's transformed how we operate.",
+      "We source fresh dairy for our school feeding programme every week through Afarmer™. The quality is consistent and the farmers are just a message away. It's transformed how we operate.",
     name: "Wilberforce Mulamba",
     role: "Procurement Officer, Kakamega",
     initial: "D",
@@ -612,7 +612,7 @@ const TESTIMONIALS = [
   },
   {
     quote:
-      "As a restaurant owner I need reliable supply. Afarmer gave me direct access to farmers I can trust. No middlemen, fresher produce, better prices — it's a win on every level.",
+      "As a restaurant owner I need reliable supply. Afarmer™ gave me direct access to farmers I can trust. No middlemen, fresher produce, better prices — it's a win on every level.",
     name: "Samuel Kariuki",
     role: "Restaurant Owner, Nairobi",
     initial: "S",
@@ -857,7 +857,7 @@ function Body() {
             <AppMockup
               loading="lazy"
               src="/app screenshot.png"
-              alt="Afarmer app screenshot"
+              alt="Afarmer™ app screenshot"
             />
           </HeroRight>
         </HeroInner>
@@ -891,7 +891,7 @@ function Body() {
         <SectionTitle $center>Three steps to fresh food</SectionTitle>
         <SectionSub $center>
           Whether you're a farmer looking to sell or a buyer looking for fresh
-          produce, Afarmer makes the connection simple.
+          produce, Afarmer™ makes the connection simple.
         </SectionSub>
         <HowItWorksGrid>
           {HOW_ITEMS.map((item, i) => (

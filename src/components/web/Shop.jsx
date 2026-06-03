@@ -796,7 +796,7 @@ function Shop() {
           Gear Up for <HeroGreen>Local Farming</HeroGreen>
         </HeroTitle>
         <HeroSub>
-          Premium Afarmer™ merchandise. Every item you wear or carry supports
+          Premium Afarmer™__TM__ merchandise. Every item you wear or carry supports
           farmers and buyers connecting across Kenya.
         </HeroSub>
         <HeroCtas>
@@ -819,7 +819,7 @@ function Shop() {
             <StatIconBox>🌿</StatIconBox>
             <StatText>
               <StatVal>100% Authentic</StatVal>
-              <StatDesc>Official Afarmer™ products only</StatDesc>
+              <StatDesc>Official Afarmer™__TM__ products only</StatDesc>
             </StatText>
           </StatItem>
           <StatItem>
@@ -934,7 +934,12 @@ function Shop() {
                   </RatingRow>
                   <CardFooter>
                     <Price>Kes {product.price.toLocaleString()}</Price>
-                    <ShopBtn to={`/shop/item/${product.id}`} state={{ product }}>Buy Now</ShopBtn>
+                    <ShopBtn
+                      to={`/shop/item/${product.id}`}
+                      state={{ product }}
+                    >
+                      Buy Now
+                    </ShopBtn>
                   </CardFooter>
                 </CardBody>
               </Card>
@@ -1008,7 +1013,9 @@ function Shop() {
                 </RatingRow>
                 <CardFooter>
                   <Price>Kes {product.price.toLocaleString()}</Price>
-                  <ShopBtn to={`/shop/item/${product.id}`} state={{ product }}>Shop Now</ShopBtn>
+                  <ShopBtn to={`/shop/item/${product.id}`} state={{ product }}>
+                    Shop Now
+                  </ShopBtn>
                 </CardFooter>
               </CardBody>
             </Card>
@@ -1022,7 +1029,7 @@ function Shop() {
           <NewsletterText>
             <NewsletterTitle>New drops & exclusive deals</NewsletterTitle>
             <NewsletterSub>
-              Join 2,000+ Afarmer™ fans. Get notified when new merch lands and
+              Join 2,000+ Afarmer™__TM__ fans. Get notified when new merch lands and
               unlock member-only discounts.
             </NewsletterSub>
           </NewsletterText>

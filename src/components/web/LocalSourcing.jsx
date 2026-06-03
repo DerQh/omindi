@@ -213,7 +213,7 @@ function LocalSourcing() {
       <MainContainer>
         <h1>STREAMLINE LOCAL PROCUREMENT</h1>
         <p>
-          Afarmer connects healthcare and community partners to our nationwide
+          Afarmer™ connects healthcare and community partners to our nationwide
           network of 28,000+ farms, making it simple to source, redeem, and
           track local produce through one streamlined platform
         </p>

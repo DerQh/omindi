@@ -79,7 +79,7 @@ const NewsLabel = styled.p`
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
 `;
 
 const InputRow = styled.form`
@@ -92,18 +92,22 @@ const EmailInput = styled.input`
   min-width: 0;
   padding: 10px 14px;
   border-radius: 9px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   color: white;
   font-size: 16px;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 
-  &::placeholder { color: rgba(255,255,255,0.35); }
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+  }
   &:focus {
-    border-color: rgba(255,255,255,0.35);
-    background: rgba(255,255,255,0.12);
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.12);
   }
 `;
 
@@ -119,7 +123,9 @@ const SubBtn = styled.button`
   white-space: nowrap;
   transition: background 0.15s;
 
-  &:hover { background: #2f5a2a; }
+  &:hover {
+    background: #2f5a2a;
+  }
 `;
 
 const SubSuccess = styled.p`
@@ -140,18 +146,20 @@ const SocialBtn = styled.a`
   width: 36px;
   height: 36px;
   border-radius: 9px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   font-size: 0.9rem;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 
   &:hover {
-    background: rgba(255,255,255,0.16);
+    background: rgba(255, 255, 255, 0.16);
     color: white;
   }
 `;
@@ -182,26 +190,30 @@ const NavItem = styled.li``;
 
 const NavLink = styled(Link)`
   font-size: 0.88rem;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   text-decoration: none;
   transition: color 0.12s;
 
-  &:hover { color: white; }
+  &:hover {
+    color: white;
+  }
 `;
 
 const ExternalLink = styled.a`
   font-size: 0.88rem;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   text-decoration: none;
   transition: color 0.12s;
 
-  &:hover { color: white; }
+  &:hover {
+    color: white;
+  }
 `;
 
 // ─── Bottom bar ───────────────────────────────────────────────────────────────
 
 const BottomBar = styled.div`
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 20px 32px;
   max-width: 1200px;
   margin: 0 auto;
@@ -211,13 +223,15 @@ const BottomBar = styled.div`
   flex-wrap: wrap;
   gap: 12px;
 
-  @media (max-width: 560px) { padding: 20px; }
+  @media (max-width: 560px) {
+    padding: 20px;
+  }
 `;
 
 const Copyright = styled.p`
   margin: 0;
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
 `;
 
 const LegalLinks = styled.div`
@@ -228,12 +242,14 @@ const LegalLinks = styled.div`
 
 const LegalLink = styled.a`
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   text-decoration: none;
   cursor: pointer;
   transition: color 0.12s;
 
-  &:hover { color: rgba(255,255,255,0.75); }
+  &:hover {
+    color: rgba(255, 255, 255, 0.75);
+  }
 `;
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -258,12 +274,11 @@ export default function FooterContainer() {
   return (
     <FooterWrap aria-label="Site footer">
       <Main>
-
         {/* ── Brand + newsletter ── */}
         <BrandCol>
           <LogoRow to="/">
-            <img src="/logo1.jpg" alt="Afarmer logo" loading="lazy" />
-            <LogoText>AFARMER</LogoText>
+            <img src="/afarmer.jpg" alt="Afarmer™ logo" loading="lazy" />
+            <LogoText>AFARMER™</LogoText>
           </LogoRow>
           <BrandDesc>
             The marketplace connecting local farmers and buyers across Kenya.
@@ -288,10 +303,38 @@ export default function FooterContainer() {
 
           {/* Social icons — replace href values with real profile URLs */}
           <SocialRow>
-            <SocialBtn href="https://twitter.com" target="_blank" rel="noreferrer" aria-label="Twitter">𝕏</SocialBtn>
-            <SocialBtn href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook">f</SocialBtn>
-            <SocialBtn href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram">◎</SocialBtn>
-            <SocialBtn href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn">in</SocialBtn>
+            <SocialBtn
+              href="https://twitter.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Twitter"
+            >
+              𝕏
+            </SocialBtn>
+            <SocialBtn
+              href="https://facebook.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Facebook"
+            >
+              f
+            </SocialBtn>
+            <SocialBtn
+              href="https://instagram.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram"
+            >
+              ◎
+            </SocialBtn>
+            <SocialBtn
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="LinkedIn"
+            >
+              in
+            </SocialBtn>
           </SocialRow>
         </BrandCol>
 
@@ -299,11 +342,21 @@ export default function FooterContainer() {
         <NavCol>
           <ColTitle>Product</ColTitle>
           <NavList>
-            <NavItem><NavLink to="/forfarms">For Farmers</NavLink></NavItem>
-            <NavItem><NavLink to="/for farmersmarket">For Buyers</NavLink></NavItem>
-            <NavItem><NavLink to="/pricing">Pricing</NavLink></NavItem>
-            <NavItem><NavLink to="/wholesale">Wholesale</NavLink></NavItem>
-            <NavItem><NavLink to="/shop">Merch Shop</NavLink></NavItem>
+            <NavItem>
+              <NavLink to="/forfarms">For Farmers</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/for farmersmarket">For Buyers</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/pricing">Pricing</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/wholesale">Wholesale</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/shop">Merch Shop</NavLink>
+            </NavItem>
           </NavList>
         </NavCol>
 
@@ -311,11 +364,23 @@ export default function FooterContainer() {
         <NavCol>
           <ColTitle>Company</ColTitle>
           <NavList>
-            <NavItem><NavLink to="/aboutus">Our Story</NavLink></NavItem>
-            <NavItem><NavLink to="/news">News</NavLink></NavItem>
-            <NavItem><NavLink to="/agritourism">Agritourism</NavLink></NavItem>
-            <NavItem><NavLink to="/contactus">Contact Us</NavLink></NavItem>
-            <NavItem><ExternalLink href="mailto:hello@afarmer.co.ke">hello@afarmer.co.ke</ExternalLink></NavItem>
+            <NavItem>
+              <NavLink to="/aboutus">Our Story</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/news">News</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/agritourism">Agritourism</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/contactus">Contact Us</NavLink>
+            </NavItem>
+            <NavItem>
+              <ExternalLink href="mailto:hello@afarmer.co.ke">
+                hello@afarmer.co.ke
+              </ExternalLink>
+            </NavItem>
           </NavList>
         </NavCol>
 
@@ -323,19 +388,39 @@ export default function FooterContainer() {
         <NavCol>
           <ColTitle>Support</ColTitle>
           <NavList>
-            <NavItem><NavLink to="/faq">FAQ</NavLink></NavItem>
-            <NavItem><NavLink to="/sellers-guide">Seller's Guide</NavLink></NavItem>
-            <NavItem><NavLink to="/sign-up">Create Account</NavLink></NavItem>
-            <NavItem><NavLink to="/mobile">Open App</NavLink></NavItem>
+            <NavItem>
+              <NavLink to="/faq">FAQ</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/sellers-guide">Seller's Guide</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/sign-up">Create Account</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/mobile">Open App</NavLink>
+            </NavItem>
           </NavList>
         </NavCol>
-
       </Main>
 
       {/* ── Bottom legal bar ── */}
       <BottomBar>
         <Copyright>
-          © {new Date().getFullYear()} Afarmer™. Built By Sana Fred.
+          © {new Date().getFullYear()} Afarmer™. Built By{" "}
+          <a
+            href="https://www.linkedin.com/in/fredricksana?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: "inherit",
+              fontWeight: 700,
+              textDecoration: "underline",
+            }}
+          >
+            Sana Fred
+          </a>
+          .
         </Copyright>
         <LegalLinks>
           <LegalLink href="#">Terms of Service</LegalLink>

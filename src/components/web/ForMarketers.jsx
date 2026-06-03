@@ -35,19 +35,19 @@ const BENEFITS = [
 
 const FAQS = [
   {
-    q: "How do I list my products on AFARMER™?",
-    a: "AFARMER™ helps buyers and sellers connect. Create a free profile, add your listings, and buyers can find you through search. Transactions happen in person — no fees involved.",
+    q: "How do I list my products on AFARMER™__TM__?",
+    a: "AFARMER™__TM__ helps buyers and sellers connect. Create a free profile, add your listings, and buyers can find you through search. Transactions happen in person — no fees involved.",
   },
   {
-    q: "I'm a Market Manager — can I use AFARMER?",
-    a: "Absolutely. Create a profile for your market and use it to connect with vendors and customers on and off the app. We encourage market managers to use AFARMER to promote their market, events, and highlight their vendors.",
+    q: "I'm a Market Manager — can I use AFARMER™?",
+    a: "Absolutely. Create a profile for your market and use it to connect with vendors and customers on and off the app. We encourage market managers to use AFARMER™ to promote their market, events, and highlight their vendors.",
   },
   {
     q: "What kinds of products can I list?",
-    a: "AFARMER supports a wide range of locally sourced goods — fresh produce, meat, dairy, honey, baked goods, specialty food items, and more. Whether you're a small-scale farmer or artisanal producer, there's a place for your products.",
+    a: "AFARMER™ supports a wide range of locally sourced goods — fresh produce, meat, dairy, honey, baked goods, specialty food items, and more. Whether you're a small-scale farmer or artisanal producer, there's a place for your products.",
   },
   {
-    q: "Can I use AFARMER for wholesale buying and selling?",
+    q: "Can I use AFARMER™ for wholesale buying and selling?",
     a: "Yes. Our platform is flexible enough to accommodate wholesale arrangements. Buyers can contact sellers directly to discuss quantities, pricing, and delivery terms.",
   },
   {
@@ -98,7 +98,7 @@ const ForMarketers = () => {
       {/* ── Benefits ── */}
       <Section>
         <Inner>
-          <SectionLabel>Why AFARMER™</SectionLabel>
+          <SectionLabel>Why AFARMER™__TM__</SectionLabel>
           <SectionTitle>Everything Your Market Community Needs</SectionTitle>
           <SectionDivider />
           <BenefitsGrid>
@@ -156,11 +156,11 @@ const ForMarketers = () => {
         <TestimonialInner>
           <QuoteMark>"</QuoteMark>
           <TestimonialText>
-            I began using AFARMER™ about a month ago when we struggled to
+            I began using AFARMER™__TM__ about a month ago when we struggled to
             attract new customers in our area. Already, several people have
-            contacted us, mentioning they discovered us on AFARMER™ and
+            contacted us, mentioning they discovered us on AFARMER™__TM__ and
             inquiring about our animal raising practices and produce care. I
-            will keep using AFARMER™ to help promote our new small homestead.
+            will keep using AFARMER™__TM__ to help promote our new small homestead.
           </TestimonialText>
           <TestimonialAuthor>— Benard Onyango, Local Farmer</TestimonialAuthor>
         </TestimonialInner>
@@ -170,7 +170,7 @@ const ForMarketers = () => {
       <CtaBanner>
         <CtaTitle>Ready to Grow Your Market Community?</CtaTitle>
         <CtaSub>
-          Join farmers and market managers already connecting on AFARMER™.
+          Join farmers and market managers already connecting on AFARMER™__TM__.
         </CtaSub>
         <PrimaryBtn onClick={() => navigate("/sign-up")}>
           Start for Free

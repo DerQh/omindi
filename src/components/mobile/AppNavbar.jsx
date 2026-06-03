@@ -386,8 +386,8 @@ export default function AppNavbar() {
         <NavInner>
           {/* Logo */}
           <Logo onClick={() => navigate("/mobile")}>
-            <img loading="lazy" src="/afarmer.jpg" alt="Afarmer logo" />
-            <span>AFARMER</span>
+            <img loading="lazy" src="/afarmer.jpg" alt="Afarmer™ logo" />
+            <span>AFARMER™</span>
           </Logo>
 
           {/* Desktop inline links — badges shown on Messages and Notifications when there are unreads */}

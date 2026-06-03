@@ -704,8 +704,8 @@ function SignupLogin() {
       <Page>
         <LeftPanel>
           <LeftLogo to="/">
-            <img src="/logo1.jpg" alt="Afarmer logo" loading="lazy" />
-            <LeftLogoText>AFARMER</LeftLogoText>
+            <img src="/afarmer.jpg" alt="Afarmer™ logo" loading="lazy" />
+            <LeftLogoText>AFARMER™</LeftLogoText>
           </LeftLogo>
         </LeftPanel>
         <RightPanel>
@@ -787,8 +787,8 @@ function SignupLogin() {
       {/* ── Left panel — brand + trust signals ── */}
       <LeftPanel>
         <LeftLogo to="/">
-          <img src="/logo1.jpg" alt="Afarmer logo" loading="lazy" />
-          <LeftLogoText>AFARMER</LeftLogoText>
+          <img src="/afarmer.jpg" alt="Afarmer™ logo" loading="lazy" />
+          <LeftLogoText>AFARMER™</LeftLogoText>
         </LeftLogo>
 
         <LeftBody>
@@ -825,8 +825,8 @@ function SignupLogin() {
       <RightPanel>
         {/* Logo shown only on mobile (left panel is hidden) */}
         <MobileLogo to="/">
-          <img src="/logo1.jpg" alt="Afarmer logo" loading="lazy" />
-          <span>AFARMER</span>
+          <img src="/afarmer.jpg" alt="Afarmer™ logo" loading="lazy" />
+          <span>AFARMER™</span>
         </MobileLogo>
 
         <FormCard>
@@ -856,8 +856,8 @@ function SignupLogin() {
                 </FormTitle>
                 <FormSub>
                   {isLogin
-                    ? "Sign in to your Afarmer account"
-                    : "Join the Afarmer community today — it's free"}
+                    ? "Sign in to your Afarmer™ account"
+                    : "Join the Afarmer™ community today — it's free"}
                 </FormSub>
               </FormHeader>
 

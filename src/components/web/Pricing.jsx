@@ -100,7 +100,7 @@ const Pricing = () => {
           <Eyebrow>Simple Pricing</Eyebrow>
           <HeroTitle>Sell Local. Start Free.</HeroTitle>
           <HeroSub>
-            AFARMER is free to join, list, and sell. Upgrade when you're ready
+            AFARMER™ is free to join, list, and sell. Upgrade when you're ready
             to grow without limits.
           </HeroSub>
 
@@ -257,7 +257,7 @@ const Pricing = () => {
       <CtaBanner>
         <CtaTitle>Ready to Reach More Buyers?</CtaTitle>
         <CtaSub>
-          Join thousands of local farmers already growing with AFARMER.
+          Join thousands of local farmers already growing with AFARMER™.
         </CtaSub>
         <CtaButtons>
           <CtaPrimary onClick={() => navigate("/sign-up")}>

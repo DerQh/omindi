@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import styled, { keyframes } from "styled-components";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
@@ -19,9 +19,9 @@ const CONTACT_CARDS = [
   {
     icon: "📧",
     title: "Email Us",
-    value: "hello@afarmer.co.ke",
+    value: "washingtonomindi@gmail.com",
     note: "We reply within 1–2 business days",
-    action: "mailto:hello@afarmer.co.ke",
+    action: "mailto:washingtonomindi@gmail.com",
     actionLabel: "Send email",
   },
   {
@@ -61,6 +61,9 @@ const TOPICS = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+// ← Paste your Formspree form ID here after creating a form at formspree.io
+const FORMSPREE_ID = "xkoawdop";
+
 function ContactUs() {
   const [form, setForm] = useState({
     firstName: "",
@@ -71,6 +74,7 @@ function ContactUs() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -78,13 +82,43 @@ function ContactUs() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.firstName.trim() || !form.email.trim() || !form.message.trim()) {
       setError("Please fill in all required fields.");
       return;
     }
-    setSubmitted(true);
+
+    const topicLabel =
+      TOPICS.find((t) => t.value === form.subject)?.label || "General Enquiry";
+
+    setSending(true);
+    setError("");
+    try {
+      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name: `${form.firstName} ${form.lastName}`.trim(),
+          _replyto: form.email,
+          email: form.email,
+          phone: form.phone || "N/A",
+          topic: topicLabel,
+          message: form.message,
+        }),
+      });
+      if (!res.ok) throw new Error("Submission failed");
+      setSubmitted(true);
+    } catch {
+      setError(
+        "Could not send your message. Please try emailing washingtonomindi@gmail.com directly.",
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -341,7 +375,9 @@ function ContactUs() {
 
                     {error && <ErrorMsg>{error}</ErrorMsg>}
 
-                    <SubmitBtn type="submit">Send Message</SubmitBtn>
+                    <SubmitBtn type="submit" disabled={sending}>
+                      {sending ? "Sending…" : "Send Message"}
+                    </SubmitBtn>
                     <ReplyNote>
                       🔒 &nbsp;Your information is never shared with third
                       parties.
@@ -806,9 +842,13 @@ const SubmitBtn = styled.button`
   transition:
     opacity 0.2s,
     transform 0.2s;
-  &:hover {
+  &:hover:not(:disabled) {
     opacity: 0.9;
     transform: translateY(-1px);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 const ReplyNote = styled.p`

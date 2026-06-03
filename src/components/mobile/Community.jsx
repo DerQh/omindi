@@ -158,7 +158,7 @@ const Community = () => {
       <Hero>
         <HeroBlob />
         <HeroInner>
-          <HeroEyebrow>AFARMER Community</HeroEyebrow>
+          <HeroEyebrow>AFARMER™ Community</HeroEyebrow>
           <HeroTitle>Community Feed</HeroTitle>
           <HeroSub>Updates, news, and events from farmers near you.</HeroSub>
           <ShareBtn onClick={() => navigate("/update")}>

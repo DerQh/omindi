@@ -468,7 +468,7 @@ const AboutUs = () => {
           <HeroEyebrow>Our Story</HeroEyebrow>
           <HeroTitle>Connecting Farmers to<br />the Communities They Feed</HeroTitle>
           <HeroSub>
-            AFARMER is a mission-driven marketplace building a stronger,
+            AFARMER™ is a mission-driven marketplace building a stronger,
             more resilient local food economy — one farm at a time.
           </HeroSub>
         </HeroInner>
@@ -533,7 +533,7 @@ const AboutUs = () => {
                 prices for produce that had traveled hundreds of kilometers.
               </StoryText>
               <StoryText>
-                AFARMER was born from a simple question: what if technology could
+                AFARMER™ was born from a simple question: what if technology could
                 close that gap? Not just as a sales tool, but as a community —
                 a place where farmers are valued, buyers are informed, and food
                 has a story behind it.

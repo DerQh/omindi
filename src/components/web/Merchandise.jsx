@@ -5,6 +5,8 @@ import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 import { shopProducts } from "../../data/shopProducts";
 import { useShopItem } from "../../hooks/useShopAdmin";
+import { useShopItemReviews, useHasReviewedShopItem, useAddShopItemReview } from "../../hooks/useReviews";
+import { useUser } from "../../hooks/useUser";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -749,6 +751,70 @@ const SectionTitle = styled.h2`
   letter-spacing: -0.03em;
 `;
 
+// ─── Shop review list items ───────────────────────────────────────────────────
+
+const ShopReviewItem = styled.div`
+  display: flex;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f7ee;
+  &:last-child { border-bottom: none; }
+`;
+
+const ShopReviewAvatar = styled.div`
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #d7edd9;
+  img { width: 100%; height: 100%; object-fit: cover; }
+`;
+
+const ShopReviewInitial = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #2f5a2a;
+`;
+
+const ShopReviewBody = styled.div`flex: 1; min-width: 0;`;
+
+const ShopReviewHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+`;
+
+const ShopReviewName = styled.span`
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1a2e1a;
+`;
+
+const ShopReviewStars = styled.span`
+  color: #f0b33d;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+`;
+
+const ShopReviewText = styled.p`
+  margin: 0 0 4px;
+  font-size: 0.88rem;
+  color: #556652;
+  line-height: 1.6;
+`;
+
+const ShopReviewDate = styled.span`
+  font-size: 0.75rem;
+  color: #aac4aa;
+`;
+
 // ─── Not-found state ──────────────────────────────────────────────────────────
 
 const NotFoundWrap = styled.div`
@@ -805,13 +871,14 @@ function Merchandise() {
 
   // Interactive star rating for the review form
   const [hoverStar, setHoverStar] = useState(0);
-  const [review, setReview] = useState({
-    name: "",
-    email: "",
-    rating: 0,
-    comment: "",
-  });
+  const [review, setReview] = useState({ rating: 0, comment: "" });
   const [reviewMsg, setReviewMsg] = useState({ text: "", error: false });
+
+  const { data: user } = useUser();
+  const shopItemId = product?.id ?? null;
+  const { data: shopReviews = [] } = useShopItemReviews(shopItemId);
+  const { data: hasReviewedShop } = useHasReviewedShopItem(user?.id, shopItemId);
+  const { mutate: addShopReview, isPending: submittingShopReview } = useAddShopItemReview();
 
   if (isLoadingDb) return null;
 
@@ -871,19 +938,27 @@ function Merchandise() {
 
   const handleReviewSubmit = (e) => {
     e.preventDefault();
-    if (!review.rating || !review.comment.trim()) {
-      setReviewMsg({
-        text: "Please provide a star rating and a written review.",
-        error: true,
-      });
+    if (!user) {
+      setReviewMsg({ text: "Please log in to leave a review.", error: true });
       return;
     }
-    setReviewMsg({
-      text: "Thank you! Your review has been submitted successfully.",
-      error: false,
-    });
-    setReview({ name: "", email: "", rating: 0, comment: "" });
-    setHoverStar(0);
+    if (!review.rating || !review.comment.trim()) {
+      setReviewMsg({ text: "Please provide a star rating and a written review.", error: true });
+      return;
+    }
+    addShopReview(
+      { shop_item_id: shopItemId, rating: review.rating, comment: review.comment },
+      {
+        onSuccess: () => {
+          setReviewMsg({ text: "Thank you! Your review has been submitted.", error: false });
+          setReview({ rating: 0, comment: "" });
+          setHoverStar(0);
+        },
+        onError: (err) => {
+          setReviewMsg({ text: err.message ?? "Could not save review. Please try again.", error: true });
+        },
+      },
+    );
   };
 
   return (
@@ -1048,7 +1123,7 @@ function Merchandise() {
                   onClick={() => setActiveTab(tab)}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  {tab === "reviews" && ` (${product.reviews})`}
+                  {tab === "reviews" && ` (${shopReviews.length})`}
                 </TabBtn>
               ))}
             </TabBar>
@@ -1087,94 +1162,89 @@ function Merchandise() {
 
                 {activeTab === "reviews" && (
                   <>
-                    <ReviewIntro>
-                      Be the first to leave a review for "{product.name}". Your
-                      email address will not be published. Required fields are
-                      marked *.
-                    </ReviewIntro>
+                    {/* Existing reviews list */}
+                    {shopReviews.length > 0 && (
+                      <div style={{ marginBottom: 32 }}>
+                        {shopReviews.map((r) => (
+                          <ShopReviewItem key={r.id}>
+                            <ShopReviewAvatar>
+                              {r.profiles?.avatar_url
+                                ? <img src={r.profiles.avatar_url} alt="" />
+                                : <ShopReviewInitial>
+                                    {(r.profiles?.full_name || "?")[0].toUpperCase()}
+                                  </ShopReviewInitial>
+                              }
+                            </ShopReviewAvatar>
+                            <ShopReviewBody>
+                              <ShopReviewHeader>
+                                <ShopReviewName>
+                                  {r.profiles?.full_name || "Customer"}
+                                </ShopReviewName>
+                                <ShopReviewStars>
+                                  {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
+                                </ShopReviewStars>
+                              </ShopReviewHeader>
+                              {r.comment && <ShopReviewText>{r.comment}</ShopReviewText>}
+                              <ShopReviewDate>
+                                {new Date(r.created_at).toLocaleDateString("en-KE", {
+                                  month: "short", day: "numeric", year: "numeric",
+                                })}
+                              </ShopReviewDate>
+                            </ShopReviewBody>
+                          </ShopReviewItem>
+                        ))}
+                      </div>
+                    )}
 
-                    <form onSubmit={handleReviewSubmit}>
-                      <FormGrid>
-                        {/* Star rating */}
-                        <FieldWrap className="full">
-                          <FieldLabel>Your rating *</FieldLabel>
-                          <StarRatingRow>
-                            {renderStars(
-                              review.rating,
-                              true,
-                              hoverStar,
-                              handleStarInteraction,
+                    {/* Already reviewed */}
+                    {hasReviewedShop && (
+                      <StatusMsg style={{ marginBottom: 16 }}>
+                        ✓ You've already reviewed this product.
+                      </StatusMsg>
+                    )}
+
+                    {/* Write a review form */}
+                    {!hasReviewedShop && (
+                      <>
+                        <ReviewIntro>
+                          {shopReviews.length === 0
+                            ? `Be the first to review "${product.name}".`
+                            : `Share your experience with "${product.name}".`}
+                        </ReviewIntro>
+
+                        <form onSubmit={handleReviewSubmit}>
+                          <FormGrid>
+                            <FieldWrap className="full">
+                              <FieldLabel>Your rating *</FieldLabel>
+                              <StarRatingRow>
+                                {renderStars(review.rating, true, hoverStar, handleStarInteraction)}
+                              </StarRatingRow>
+                            </FieldWrap>
+
+                            <FieldWrap className="full">
+                              <FieldLabel>Your review *</FieldLabel>
+                              <Textarea
+                                name="comment"
+                                value={review.comment}
+                                onChange={(e) => setReview((p) => ({ ...p, comment: e.target.value }))}
+                                placeholder="Share your experience with this product…"
+                                required
+                              />
+                            </FieldWrap>
+
+                            {reviewMsg.text && (
+                              <StatusMsg $error={reviewMsg.error} className="full">
+                                {reviewMsg.text}
+                              </StatusMsg>
                             )}
-                          </StarRatingRow>
-                        </FieldWrap>
 
-                        {/* Review text */}
-                        <FieldWrap className="full">
-                          <FieldLabel>Your review *</FieldLabel>
-                          <Textarea
-                            name="comment"
-                            value={review.comment}
-                            onChange={(e) =>
-                              setReview((p) => ({
-                                ...p,
-                                comment: e.target.value,
-                              }))
-                            }
-                            placeholder="Share your experience with this product…"
-                            required
-                          />
-                        </FieldWrap>
-
-                        {/* Name & Email */}
-                        <FieldWrap>
-                          <FieldLabel>Name *</FieldLabel>
-                          <Input
-                            type="text"
-                            name="name"
-                            value={review.name}
-                            onChange={(e) =>
-                              setReview((p) => ({ ...p, name: e.target.value }))
-                            }
-                            placeholder="Your name"
-                            required
-                          />
-                        </FieldWrap>
-                        <FieldWrap>
-                          <FieldLabel>Email *</FieldLabel>
-                          <Input
-                            type="email"
-                            name="email"
-                            value={review.email}
-                            onChange={(e) =>
-                              setReview((p) => ({
-                                ...p,
-                                email: e.target.value,
-                              }))
-                            }
-                            placeholder="your@email.com"
-                            required
-                          />
-                        </FieldWrap>
-
-                        <CheckRow>
-                          <input type="checkbox" id="save-info" />
-                          <label
-                            htmlFor="save-info"
-                            style={{ cursor: "pointer" }}
-                          >
-                            Save my name and email for next time.
-                          </label>
-                        </CheckRow>
-
-                        {reviewMsg.text && (
-                          <StatusMsg $error={reviewMsg.error}>
-                            {reviewMsg.text}
-                          </StatusMsg>
-                        )}
-
-                        <SubmitBtn type="submit">Submit Review</SubmitBtn>
-                      </FormGrid>
-                    </form>
+                            <SubmitBtn type="submit" disabled={submittingShopReview}>
+                              {submittingShopReview ? "Submitting…" : "Submit Review"}
+                            </SubmitBtn>
+                          </FormGrid>
+                        </form>
+                      </>
+                    )}
                   </>
                 )}
               </TabCard>
@@ -1187,7 +1257,7 @@ function Merchandise() {
             <SectionTitle>Related Products</SectionTitle>
             <RelatedGrid>
               {related.map((item) => (
-                <RelatedCard key={item.id} to={`/shop/item/${item.id}`}>
+                <RelatedCard key={item.id} to={`/shop/item/${item.id}`} state={{ product: item }}>
                   <img loading="lazy" src={item.image} alt={item.name} />
                   <RelatedBody>
                     <RelatedName>{item.name}</RelatedName>

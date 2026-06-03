@@ -46,15 +46,15 @@ const EVENT_TYPES = [
 const FAQS = [
   {
     q: "How can I find local agritourism events near me?",
-    a: "Search the AFARMER app to discover local events like farm tours, U-pick days, and seasonal festivals. You can also follow farms to stay updated on their latest activities.",
+    a: "Search the AFARMER™ app to discover local events like farm tours, U-pick days, and seasonal festivals. You can also follow farms to stay updated on their latest activities.",
   },
   {
-    q: "What types of events can I list on AFARMER?",
+    q: "What types of events can I list on AFARMER™?",
     a: "You can create listings for any event that connects the community to local agriculture — U-pick days, farm tours, seasonal festivals, workshops, educational experiences, farmers markets, and pop-up events.",
   },
   {
     q: "Can I charge admission for my event?",
-    a: "Yes. AFARMER helps you promote your event, but you handle payments offline or through your preferred method. We never take a fee.",
+    a: "Yes. AFARMER™ helps you promote your event, but you handle payments offline or through your preferred method. We never take a fee.",
   },
   {
     q: "What details should I include in my event listing?",
@@ -126,7 +126,7 @@ const Agritourism = () => {
           <SectionLabel>How It Works</SectionLabel>
           <SectionTitle>Share, Discover & Connect</SectionTitle>
           <SectionSub>
-            AFARMER™ makes it effortless to share local agritourism events and
+            AFARMER™__TM__ makes it effortless to share local agritourism events and
             find experiences happening right in your neighbourhood.
           </SectionSub>
           <SectionDivider />

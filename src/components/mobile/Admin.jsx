@@ -178,7 +178,8 @@ const Admin = () => {
   const { mutate: deleteUser } = useAdminDeleteUser();
   const { mutate: deleteListing } = useAdminDeleteListing();
   const { mutate: updateStatus } = useAdminUpdateOrderStatus();
-  const { mutate: bulkUpdateStatus, isPending: bulkUpdating } = useAdminBulkUpdateStatus();
+  const { mutate: bulkUpdateStatus, isPending: bulkUpdating } =
+    useAdminBulkUpdateStatus();
   const { mutate: updateOrderNote } = useAdminUpdateOrderNote();
   const { mutate: banUser } = useAdminBanUser();
   const { data: reviews, isLoading: loadingReviews } = useAdminReviews();
@@ -349,7 +350,7 @@ const Admin = () => {
           <SidebarTop>
             <SideBrand>
               <div>
-                <SideBrandName>AFARMER</SideBrandName>
+                <SideBrandName>AFARMER™</SideBrandName>
                 <SideBrandSub>Admin Panel</SideBrandSub>
               </div>
             </SideBrand>
@@ -869,9 +870,14 @@ const Admin = () => {
                                   <BanBtn
                                     $banned={u.is_banned}
                                     onClick={() =>
-                                      banUser({ id: u.id, is_banned: !u.is_banned })
+                                      banUser({
+                                        id: u.id,
+                                        is_banned: !u.is_banned,
+                                      })
                                     }
-                                    title={u.is_banned ? "Unban user" : "Ban user"}
+                                    title={
+                                      u.is_banned ? "Unban user" : "Ban user"
+                                    }
                                   >
                                     {u.is_banned ? "Unban" : "Ban"}
                                   </BanBtn>
@@ -1108,7 +1114,9 @@ const Admin = () => {
                       onChange={(e) => setBulkStatus(e.target.value)}
                     >
                       {ORDER_STATUSES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
                       ))}
                     </BulkStatusSelect>
                     <BulkApplyBtn
@@ -1141,11 +1149,15 @@ const Admin = () => {
                                 type="checkbox"
                                 checked={
                                   filteredOrders.length > 0 &&
-                                  filteredOrders.every((o) => selectedOrders.has(o.id))
+                                  filteredOrders.every((o) =>
+                                    selectedOrders.has(o.id),
+                                  )
                                 }
                                 onChange={(e) => {
                                   if (e.target.checked) {
-                                    setSelectedOrders(new Set(filteredOrders.map((o) => o.id)));
+                                    setSelectedOrders(
+                                      new Set(filteredOrders.map((o) => o.id)),
+                                    );
                                   } else {
                                     setSelectedOrders(new Set());
                                   }
@@ -1365,7 +1377,9 @@ const Admin = () => {
                   <EmptyCard>
                     <EmptyIcon>⭐</EmptyIcon>
                     <EmptyTitle>No reviews yet</EmptyTitle>
-                    <EmptySub>Reviews left by buyers on listings appear here.</EmptySub>
+                    <EmptySub>
+                      Reviews left by buyers on listings appear here.
+                    </EmptySub>
                   </EmptyCard>
                 ) : (
                   <DataCard>
@@ -1391,7 +1405,10 @@ const Admin = () => {
                               <TD>
                                 <StarRow>
                                   {[1, 2, 3, 4, 5].map((n) => (
-                                    <Star key={n} $filled={n <= (r.rating ?? 0)}>
+                                    <Star
+                                      key={n}
+                                      $filled={n <= (r.rating ?? 0)}
+                                    >
                                       ★
                                     </Star>
                                   ))}
@@ -1441,7 +1458,9 @@ const Admin = () => {
                   <EmptyCard>
                     <EmptyIcon>✅</EmptyIcon>
                     <EmptyTitle>Notification sent!</EmptyTitle>
-                    <EmptySub>Your message was delivered to all users.</EmptySub>
+                    <EmptySub>
+                      Your message was delivered to all users.
+                    </EmptySub>
                     <AccessBtn
                       style={{ marginTop: 16 }}
                       onClick={() => {
@@ -1462,7 +1481,9 @@ const Admin = () => {
                       onChange={(e) => setBroadcastTitle(e.target.value)}
                       maxLength={80}
                     />
-                    <BroadcastLabel style={{ marginTop: 16 }}>Message</BroadcastLabel>
+                    <BroadcastLabel style={{ marginTop: 16 }}>
+                      Message
+                    </BroadcastLabel>
                     <BroadcastTextarea
                       placeholder="Write your message to all users…"
                       value={broadcastBody}
@@ -1472,13 +1493,21 @@ const Admin = () => {
                     />
                     <BroadcastFooter>
                       <BroadcastHint>
-                        This will send a notification to every user on the platform.
+                        This will send a notification to every user on the
+                        platform.
                       </BroadcastHint>
                       <BroadcastSendBtn
-                        disabled={!broadcastTitle.trim() || !broadcastBody.trim() || broadcasting}
+                        disabled={
+                          !broadcastTitle.trim() ||
+                          !broadcastBody.trim() ||
+                          broadcasting
+                        }
                         onClick={() =>
                           broadcast(
-                            { title: broadcastTitle.trim(), body: broadcastBody.trim() },
+                            {
+                              title: broadcastTitle.trim(),
+                              body: broadcastBody.trim(),
+                            },
                             { onSuccess: () => setBroadcastDone(true) },
                           )
                         }
@@ -1490,7 +1519,6 @@ const Admin = () => {
                 )}
               </Fade>
             )}
-
           </MainInner>
         </Main>
       </Shell>
@@ -1689,7 +1717,7 @@ const MainInner = styled.div`
 
 const PageHeading = styled.h1`
   margin: 0 0 24px;
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: #111827;
   letter-spacing: -0.3px;
@@ -1976,7 +2004,7 @@ const StatusSummaryChip = styled.button`
   gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   border: 1.5px solid ${({ $active }) => ($active ? "#2f5a2a" : "#e5e7eb")};
   background: ${({ $active }) => ($active ? "#f0fdf4" : "white")};
@@ -2021,7 +2049,7 @@ const DataScroll = styled.div`
 const DataTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.855rem;
+  font-size: 16px;
 `;
 
 const TH = styled.th`
@@ -2264,7 +2292,7 @@ const StatusPill = styled.span`
 const StatusSelect = styled.select`
   padding: 5px 10px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   outline: none;

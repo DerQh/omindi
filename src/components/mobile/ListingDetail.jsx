@@ -14,7 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useStartConversation } from "../../hooks/useMessages";
 import { useProfile } from "../../hooks/useProfile";
 import { supabase } from "../../../supabase";
-import { useListingReviews, useAddReview, useHasReviewed, useCanReview, useSellerRating } from "../../hooks/useReviews";
+import { useListingReviews, useAddReview, useHasReviewed, useSellerRating } from "../../hooks/useReviews";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -71,6 +71,7 @@ const ListingDetail = () => {
   const [showConfirm, setShowConfirm]     = useState(false);
   const [reviewRating, setReviewRating]   = useState(0);
   const [reviewComment, setReviewComment] = useState("");
+  const [reviewError, setReviewError]     = useState("");
   const [quantity, setQuantity]           = useState(1);
   const [activeTab, setActiveTab]         = useState("description");
   const [activeThumb, setActiveThumb]     = useState(0);
@@ -95,7 +96,6 @@ const ListingDetail = () => {
   const { data: reviews = [] } = useListingReviews(listing?.id);
   const { data: sellerRating }  = useSellerRating(listing?.seller_id);
   const { data: hasReviewed }   = useHasReviewed(user?.id, listing?.id);
-  const { data: canReview }     = useCanReview(user?.id, listing?.id);
   const { mutate: addReview, isPending: submittingReview } = useAddReview();
 
   useEffect(() => {
@@ -240,8 +240,12 @@ const ListingDetail = () => {
                   <NoImage>🌱</NoImage>
                 )}
                 {!isSeller && (
-                  <FloatHeart $saved={isFavourited} onClick={handleFav}>
-                    {isFavourited ? "❤️" : "🤍"}
+                  <FloatHeart $saved={isFavourited} onClick={handleFav} aria-label={isFavourited ? "Remove bookmark" : "Bookmark listing"}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                      fill={isFavourited ? "currentColor" : "none"}
+                      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
                   </FloatHeart>
                 )}
               </MainImage>
@@ -490,7 +494,7 @@ const ListingDetail = () => {
                       <AlreadyReviewed>✓ You've reviewed this listing</AlreadyReviewed>
                     )}
 
-                    {!isSeller && canReview && !hasReviewed && (
+                    {!isSeller && user && !hasReviewed && (
                       <ReviewForm>
                         <ReviewLabel>Rate this listing</ReviewLabel>
                         <StarBtnRow>
@@ -512,9 +516,13 @@ const ListingDetail = () => {
                           onChange={(e) => setReviewComment(e.target.value)}
                           rows={3}
                         />
+                        {reviewError && (
+                          <ReviewErrorMsg>{reviewError}</ReviewErrorMsg>
+                        )}
                         <SubmitReviewBtn
                           disabled={reviewRating === 0 || submittingReview}
-                          onClick={() =>
+                          onClick={() => {
+                            setReviewError("");
                             addReview(
                               {
                                 listing_id: listing.id,
@@ -528,9 +536,12 @@ const ListingDetail = () => {
                                   setReviewComment("");
                                   setHoverStar(0);
                                 },
+                                onError: (err) => {
+                                  setReviewError(err.message ?? "Could not submit review. Please try again.");
+                                },
                               },
-                            )
-                          }
+                            );
+                          }}
                         >
                           {submittingReview ? "Submitting…" : "Submit Review"}
                         </SubmitReviewBtn>
@@ -713,18 +724,19 @@ const FloatHeart = styled.button`
   border: none;
   background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(6px);
-  font-size: 1.1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
-  transition: background 0.15s, transform 0.15s;
+  color: ${({ $saved }) => ($saved ? "#f59e0b" : "#7b9b7b")};
+  transition: background 0.15s, transform 0.15s, color 0.15s;
   z-index: 2;
 
   &:hover {
     background: white;
     transform: scale(1.1);
+    color: #f59e0b;
   }
 `;
 
@@ -1341,6 +1353,17 @@ const SubmitReviewBtn = styled.button`
   cursor: pointer;
   &:disabled { opacity: 0.5; cursor: not-allowed; }
   &:hover:not(:disabled) { background: #245026; }
+`;
+
+const ReviewErrorMsg = styled.p`
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #a32d2d;
+  background: #fdf0f0;
+  border: 1px solid #f5c2c2;
+  border-radius: 8px;
+  padding: 8px 12px;
 `;
 
 const ReviewItem = styled.div`

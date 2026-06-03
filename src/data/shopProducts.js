@@ -4,7 +4,7 @@
 export const shopProducts = [
   {
     id: 1,
-    name: "Afarmer Combo Mug",
+    name: "Afarmer™ Combo Mug",
     price: 200,
     category: "Accessories",
     badge: "Bestseller",
@@ -15,7 +15,7 @@ export const shopProducts = [
     image: "/shop/mugs.jpg",
     alt: "Mugs",
     description:
-      "Start your morning with a reminder of where good food comes from. This double-walled ceramic mug keeps your drink hot longer and features the Afarmer logo on both sides. Holds 350 ml.",
+      "Start your morning with a reminder of where good food comes from. This double-walled ceramic mug keeps your drink hot longer and features the Afarmer™ logo on both sides. Holds 350 ml.",
     details: [
       { label: "Capacity",   value: "350 ml" },
       { label: "Material",   value: "Double-walled ceramic" },
@@ -38,7 +38,7 @@ export const shopProducts = [
     image: "/shop/t-shirt.png",
     alt: "T-Shirt",
     description:
-      "Premium 100% pre-shrunk cotton tee. Unisex fit with a clean silhouette and the Afarmer logo printed on the chest. Perfect for everyday wear. Available in S–XL.",
+      "Premium 100% pre-shrunk cotton tee. Unisex fit with a clean silhouette and the Afarmer™ logo printed on the chest. Perfect for everyday wear. Available in S–XL.",
     details: [
       { label: "Material",   value: "100% pre-shrunk cotton" },
       { label: "Fit",        value: "Unisex regular fit" },
@@ -50,7 +50,7 @@ export const shopProducts = [
   },
   {
     id: 3,
-    name: "Afarmer Black Mug",
+    name: "Afarmer™ Black Mug",
     price: 1250,
     category: "Accessories",
     badge: null,
@@ -61,7 +61,7 @@ export const shopProducts = [
     image: "/shop/mug.jpg",
     alt: "Mug",
     description:
-      "Sleek matte-black ceramic mug with the Afarmer logo subtly embossed on the side. A bold statement piece for your desk or kitchen. 400 ml capacity.",
+      "Sleek matte-black ceramic mug with the Afarmer™ logo subtly embossed on the side. A bold statement piece for your desk or kitchen. 400 ml capacity.",
     details: [
       { label: "Capacity",   value: "400 ml" },
       { label: "Finish",     value: "Matte black ceramic" },
@@ -84,7 +84,7 @@ export const shopProducts = [
     image: "/shop/tote.jpg",
     alt: "Tote Bag",
     description:
-      "Heavy-duty canvas tote with the Afarmer branding. Perfect for the farmers market — holds up to 15 kg and folds flat when not in use. Long handles fit comfortably over the shoulder.",
+      "Heavy-duty canvas tote with the Afarmer™ branding. Perfect for the farmers market — holds up to 15 kg and folds flat when not in use. Long handles fit comfortably over the shoulder.",
     details: [
       { label: "Capacity",   value: "Up to 15 kg" },
       { label: "Material",   value: "Heavy-duty canvas" },
@@ -96,7 +96,7 @@ export const shopProducts = [
   },
   {
     id: 5,
-    name: "Afarmer Structured Hat",
+    name: "Afarmer™ Structured Hat",
     price: 599,
     category: "Apparel",
     badge: null,
@@ -107,7 +107,7 @@ export const shopProducts = [
     image: "/shop/hat.jpg",
     alt: "Hat",
     description:
-      "This premium Afarmer Structured Hat is crafted from soft cotton and designed for a comfortable fit with a bold, modern silhouette. Six-panel structured cap with embroidered logo. One size fits all with adjustable strap.",
+      "This premium Afarmer™ Structured Hat is crafted from soft cotton and designed for a comfortable fit with a bold, modern silhouette. Six-panel structured cap with embroidered logo. One size fits all with adjustable strap.",
     details: [
       { label: "Material",   value: "100% Cotton" },
       { label: "Fit",        value: "One size, adjustable strap" },
@@ -119,7 +119,7 @@ export const shopProducts = [
   },
   {
     id: 6,
-    name: "Afarmer Hoodie",
+    name: "Afarmer™ Hoodie",
     price: 2499,
     category: "Apparel",
     badge: "Bestseller",
@@ -130,7 +130,7 @@ export const shopProducts = [
     image: "/shop/hoodies.jpg",
     alt: "Hoodie",
     description:
-      "Heavyweight 320 gsm fleece hoodie. Kangaroo pocket, ribbed cuffs and hem, and the Afarmer logo embroidered on the chest. Stays warm through cold Kenyan mornings. Unisex sizing S–XXL.",
+      "Heavyweight 320 gsm fleece hoodie. Kangaroo pocket, ribbed cuffs and hem, and the Afarmer™ logo embroidered on the chest. Stays warm through cold Kenyan mornings. Unisex sizing S–XXL.",
     details: [
       { label: "Material",   value: "320 gsm cotton-fleece blend" },
       { label: "Fit",        value: "Unisex regular fit" },

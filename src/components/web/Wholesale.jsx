@@ -19,7 +19,7 @@ const FEATURES = [
   {
     icon: "📋",
     title: "One Profile, Two Markets",
-    text: "Your single AFARMER profile works for both retail and wholesale buyers. Manage everything from one dashboard.",
+    text: "Your single AFARMER™ profile works for both retail and wholesale buyers. Manage everything from one dashboard.",
   },
   {
     icon: "💬",
@@ -35,24 +35,24 @@ const FEATURES = [
 
 const FAQS = [
   {
-    q: "How does the wholesale process work on AFARMER?",
-    a: "AFARMER connects farms with wholesale buyers such as retailers, restaurants, and food brands. Sellers create a free profile and listings. Buyers browse, message sellers directly, and arrange wholesale purchases — all without transaction fees.",
+    q: "How does the wholesale process work on AFARMER™?",
+    a: "AFARMER™ connects farms with wholesale buyers such as retailers, restaurants, and food brands. Sellers create a free profile and listings. Buyers browse, message sellers directly, and arrange wholesale purchases — all without transaction fees.",
   },
   {
-    q: "Are there any fees to join AFARMER and list products?",
-    a: "AFARMER is free for farms to join. You can create a profile and list products without any upfront cost. Our platform is designed to make it easy for producers and buyers to connect and build relationships that support local food systems.",
+    q: "Are there any fees to join AFARMER™ and list products?",
+    a: "AFARMER™ is free for farms to join. You can create a profile and list products without any upfront cost. Our platform is designed to make it easy for producers and buyers to connect and build relationships that support local food systems.",
   },
   {
-    q: "What types of products can be bought and sold on AFARMER?",
-    a: "AFARMER supports a wide range of locally sourced and produced goods, including fresh produce, meat, dairy, honey, baked goods, and specialty food items. Whether you're a small-scale farmer, artisanal producer, or commercial grower, there's space for your products.",
+    q: "What types of products can be bought and sold on AFARMER™?",
+    a: "AFARMER™ supports a wide range of locally sourced and produced goods, including fresh produce, meat, dairy, honey, baked goods, and specialty food items. Whether you're a small-scale farmer, artisanal producer, or commercial grower, there's space for your products.",
   },
   {
-    q: "Can I use AFARMER for both retail and wholesale sales?",
+    q: "Can I use AFARMER™ for both retail and wholesale sales?",
     a: "Yes. Your profile works for both. Local consumers and wholesale buyers both discover listings through the same platform — you manage all inquiries from one place.",
   },
   {
     q: "How do I arrange payment and delivery for wholesale orders?",
-    a: "Payments and logistics are handled directly between you and the buyer — AFARMER facilitates the connection but doesn't process payments. This keeps things flexible and fee-free.",
+    a: "Payments and logistics are handled directly between you and the buyer — AFARMER™ facilitates the connection but doesn't process payments. This keeps things flexible and fee-free.",
   },
 ];
 
@@ -124,7 +124,7 @@ function Wholesale() {
       {/* ── Features ── */}
       <Section id="how-it-works">
         <Inner>
-          <SectionLabel>Why AFARMER Wholesale</SectionLabel>
+          <SectionLabel>Why AFARMER™ Wholesale</SectionLabel>
           <SectionTitle>Everything You Need to Sell at Scale</SectionTitle>
           <SectionDivider />
           <FeaturesGrid>
@@ -152,7 +152,7 @@ function Wholesale() {
               Two Ways to Grow.
             </ProfileTitle>
             <ProfileSub>
-              Grow your farm business on AFARMER. Download the free app and
+              Grow your farm business on AFARMER™. Download the free app and
               start connecting with both retail customers and wholesale buyers
               from a single dashboard.
             </ProfileSub>
@@ -166,7 +166,7 @@ function Wholesale() {
             </AppLinks>
           </ProfileText>
           <ProfileImgWrap>
-            <img src="/app screenshot.png" alt="AFARMER app" />
+            <img src="/app screenshot.png" alt="AFARMER™ app" />
           </ProfileImgWrap>
         </ProfileInner>
       </ProfileStrip>
@@ -175,11 +175,11 @@ function Wholesale() {
       <Section $alt>
         <Inner>
           <SectionLabel>Step by Step</SectionLabel>
-          <SectionTitle>How to Use AFARMER</SectionTitle>
+          <SectionTitle>How to Use AFARMER™</SectionTitle>
           <SectionDivider />
           <HowImgStack>
-            <HowImg src="/howtouse1.png" alt="How to use AFARMER — step 1" />
-            <HowImg src="/howtouse2.png" alt="How to use AFARMER — step 2" />
+            <HowImg src="/howtouse1.png" alt="How to use AFARMER™ — step 1" />
+            <HowImg src="/howtouse2.png" alt="How to use AFARMER™ — step 2" />
           </HowImgStack>
         </Inner>
       </Section>
@@ -346,7 +346,7 @@ function Wholesale() {
         <TestimonialInner>
           <QuoteMark>"</QuoteMark>
           <TestimonialText>
-            AFARMER has resulted in both professional and personal relationships
+            AFARMER™ has resulted in both professional and personal relationships
             with incredible customers in my local community. Not only have I
             been able to network and make sales, but I have never eaten better
             or cleaner in my life. I downloaded it when I was the only producer

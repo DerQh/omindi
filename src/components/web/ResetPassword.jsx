@@ -135,7 +135,7 @@ function ResetPassword() {
     return (
       <Page>
         <Card>
-          <Logo>AFARMER</Logo>
+          <Logo>AFARMER™</Logo>
           <Title>Verifying link…</Title>
           <Sub>Please wait while we verify your reset link.</Sub>
         </Card>
@@ -147,7 +147,7 @@ function ResetPassword() {
     return (
       <Page>
         <Card>
-          <Logo>AFARMER</Logo>
+          <Logo>AFARMER™</Logo>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: "3rem", marginBottom: 12 }}>✅</div>
             <Title>Password updated!</Title>
@@ -161,7 +161,7 @@ function ResetPassword() {
   return (
     <Page>
       <Card>
-        <Logo>AFARMER</Logo>
+        <Logo>AFARMER™</Logo>
         <Title>Set new password</Title>
         <Sub>Choose a strong password for your account.</Sub>
 
