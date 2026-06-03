@@ -623,6 +623,7 @@
           <li><a href="#todos">Known TODOs &amp; Limitations</a></li>
           <li><a href="#sql">SQL Commands — Click to Copy</a></li>
           <li><a href="#suggestions">Suggestions &amp; Next Steps</a></li>
+      <li><a href="#beta">Beta Tester Checklist &amp; Rating</a></li>
         </ol>
       </div>
 
@@ -3474,6 +3475,281 @@ CREATE POLICY "shop_products_upload" ON storage.objects FOR INSERT TO authentica
           <td>High</td>
         </tr>
       </table>
+
+
+      <!-- ── Beta Tester Checklist ── -->
+      <h2 id="beta">Beta Tester Checklist &amp; Rating</h2>
+      <p>Share this page with testers. They tick each item as they verify it works. When everything is checked, a rating form appears.</p>
+
+      <div class="tester-section">
+        <button class="reset-btn" onclick="resetChecklist()">Reset all</button>
+
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>Progress</span>
+            <span id="prog-text">0 / 0 done</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="prog-bar" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Auth -->
+        <div class="tester-group">
+          <div class="tester-group-title">🔐 Authentication</div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t1"><label for="t1">Sign up with a new email address
+              <span class="sub">Go to /sign-up, create an account, confirm email if required</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t2"><label for="t2">Log in with existing account
+              <span class="sub">Go to /login, sign in, confirm you land on the app home</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t3"><label for="t3">Log out and back in
+              <span class="sub">Use the logout option, then log back in</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t4"><label for="t4">Edit your profile
+              <span class="sub">Go to /edit-profile, update name, bio, and avatar photo</span></label>
+          </div>
+        </div>
+
+        <!-- Listings -->
+        <div class="tester-group">
+          <div class="tester-group-title">🌾 Listings</div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t5"><label for="t5">Browse the listings page
+              <span class="sub">Go to /list, scroll through available produce listings</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t6"><label for="t6">Search for a listing
+              <span class="sub">Type in the search bar and confirm results update</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t7"><label for="t7">Filter by category
+              <span class="sub">Tap a category chip and confirm only that category shows</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t8"><label for="t8">Open a listing detail page
+              <span class="sub">Tap any listing card and confirm the full detail page loads</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t9"><label for="t9">Create a new listing
+              <span class="sub">Go to /newlist, fill all fields, upload an image, and submit</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t10"><label for="t10">Edit an existing listing
+              <span class="sub">Go to your listing detail, tap Edit Listing, change a field and save</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t11"><label for="t11">Bookmark a listing
+              <span class="sub">Tap the bookmark icon on any listing — confirm it turns amber</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t12"><label for="t12">View your bookmarked listings
+              <span class="sub">Go to your profile and check the bookmarks tab</span></label>
+          </div>
+        </div>
+
+        <!-- Cart & Orders -->
+        <div class="tester-group">
+          <div class="tester-group-title">🛒 Cart &amp; Orders</div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t13"><label for="t13">Add a listing to cart
+              <span class="sub">On a listing detail page, tap "Add to Cart"</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t14"><label for="t14">View and manage the cart
+              <span class="sub">Go to /cart, adjust quantity, remove an item</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t15"><label for="t15">Complete checkout
+              <span class="sub">Go to /checkout, fill delivery address and M-Pesa number, place order</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t16"><label for="t16">View order history
+              <span class="sub">Go to /my-orders and confirm the placed order appears</span></label>
+          </div>
+        </div>
+
+        <!-- Messaging -->
+        <div class="tester-group">
+          <div class="tester-group-title">💬 Messaging</div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t17"><label for="t17">Send an inquiry to a seller
+              <span class="sub">On a listing detail page, tap "Inquiry" — confirm conversation opens</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t18"><label for="t18">Send and receive messages
+              <span class="sub">Go to /messages, open a conversation, send a message</span></label>
+          </div>
+        </div>
+
+        <!-- Community -->
+        <div class="tester-group">
+          <div class="tester-group-title">🌱 Community</div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t19"><label for="t19">Create a community post
+              <span class="sub">Go to /community, tap post, write something and submit</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t20"><label for="t20">Like and comment on a post
+              <span class="sub">Tap the like button and leave a comment on any post</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t21"><label for="t21">Follow another user
+              <span class="sub">Visit another user's profile (/follower/:id) and tap Follow</span></label>
+          </div>
+        </div>
+
+        <!-- Reviews -->
+        <div class="tester-group">
+          <div class="tester-group-title">⭐ Reviews</div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t22"><label for="t22">Leave a review on a listing
+              <span class="sub">Open a listing, go to the Reviews tab, select stars and submit</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t23"><label for="t23">Leave a review on a shop item
+              <span class="sub">Go to /shop, open a product, go to Reviews tab and submit</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t24"><label for="t24">Confirm review appears after submitting
+              <span class="sub">After submitting, the review should show immediately without a page refresh</span></label>
+          </div>
+        </div>
+
+        <!-- Shop -->
+        <div class="tester-group">
+          <div class="tester-group-title">🛍️ Shop</div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t25"><label for="t25">Browse the merchandise shop
+              <span class="sub">Go to /shop, browse products, filter by category</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t26"><label for="t26">Open a product detail page
+              <span class="sub">Click a product, check images, description, and related products</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t27"><label for="t27">Click a related product and verify correct item loads
+              <span class="sub">Scroll to Related Products section, click one, confirm it's the right product</span></label>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="tester-group">
+          <div class="tester-group-title">🔔 Notifications &amp; Newsletter</div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t28"><label for="t28">Check notifications page
+              <span class="sub">Go to /notifications — confirm actions (orders, follows) appear here</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t29"><label for="t29">Subscribe to the newsletter
+              <span class="sub">Go to the footer on any web page, enter an email and tap Subscribe</span></label>
+          </div>
+          <div class="tester-item" onclick="toggle(this)">
+            <input type="checkbox" id="t30"><label for="t30">Submit the contact form
+              <span class="sub">Go to /contactus, fill in the form and hit Send Message</span></label>
+          </div>
+        </div>
+
+        <!-- Rating -->
+        <div class="rating-section" id="rating-section">
+          <div class="rating-title">🎉 All checks complete — thank you!</div>
+          <p class="rating-sub">How would you rate AFARMER™ overall?</p>
+          <div class="star-row" id="star-row">
+            <button onclick="setRating(1)" id="s1">★</button>
+            <button onclick="setRating(2)" id="s2">★</button>
+            <button onclick="setRating(3)" id="s3">★</button>
+            <button onclick="setRating(4)" id="s4">★</button>
+            <button onclick="setRating(5)" id="s5">★</button>
+          </div>
+          <textarea class="feedback-input" id="feedback-text" rows="3" placeholder="What worked well? What needs improvement? (optional)"></textarea>
+          <br>
+          <button class="submit-feedback-btn" id="submit-fb" onclick="submitFeedback()" disabled>Submit Rating</button>
+          <div class="thanks-msg" id="thanks-msg">✓ Thank you for your feedback! Your rating has been saved.</div>
+        </div>
+      </div>
+
+      <script>
+        const TOTAL = 30;
+        let selectedRating = 0;
+
+        function getChecked() {
+          return JSON.parse(localStorage.getItem('afarmer_checks') || '{}');
+        }
+        function saveChecked(obj) {
+          localStorage.setItem('afarmer_checks', JSON.stringify(obj));
+        }
+
+        function toggle(row) {
+          const cb = row.querySelector('input[type="checkbox"]');
+          cb.checked = !cb.checked;
+          row.classList.toggle('done', cb.checked);
+          const checks = getChecked();
+          checks[cb.id] = cb.checked;
+          saveChecked(checks);
+          updateProgress();
+        }
+
+        function updateProgress() {
+          const checks = getChecked();
+          const done = Object.values(checks).filter(Boolean).length;
+          document.getElementById('prog-text').textContent = done + ' / ' + TOTAL + ' done';
+          document.getElementById('prog-bar').style.width = Math.round((done / TOTAL) * 100) + '%';
+          if (done >= TOTAL) {
+            document.getElementById('rating-section').classList.add('visible');
+          }
+        }
+
+        function resetChecklist() {
+          if (!confirm('Reset all checkboxes?')) return;
+          localStorage.removeItem('afarmer_checks');
+          document.querySelectorAll('.tester-item input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+            cb.closest('.tester-item').classList.remove('done');
+          });
+          document.getElementById('rating-section').classList.remove('visible');
+          updateProgress();
+        }
+
+        function setRating(n) {
+          selectedRating = n;
+          for (let i = 1; i <= 5; i++) {
+            document.getElementById('s' + i).classList.toggle('lit', i <= n);
+          }
+          document.getElementById('submit-fb').disabled = false;
+        }
+
+        function submitFeedback() {
+          const comment = document.getElementById('feedback-text').value.trim();
+          const payload = { rating: selectedRating, comment, date: new Date().toISOString() };
+          localStorage.setItem('afarmer_feedback', JSON.stringify(payload));
+          document.getElementById('submit-fb').disabled = true;
+          document.getElementById('thanks-msg').classList.add('visible');
+        }
+
+        // Restore state on load
+        (function restore() {
+          const checks = getChecked();
+          for (const [id, val] of Object.entries(checks)) {
+            const cb = document.getElementById(id);
+            if (cb) {
+              cb.checked = val;
+              if (val) cb.closest('.tester-item').classList.add('done');
+            }
+          }
+          updateProgress();
+          // Restore submitted feedback
+          const fb = JSON.parse(localStorage.getItem('afarmer_feedback') || 'null');
+          if (fb) {
+            setRating(fb.rating);
+            document.getElementById('feedback-text').value = fb.comment || '';
+            document.getElementById('thanks-msg').classList.add('visible');
+          }
+        })();
+      </script>
 
       <div class="footer-note">
         AFARMER™ — Project Schema Document &nbsp;·&nbsp; Built by
