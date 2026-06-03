@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
@@ -55,7 +56,8 @@ const Cart = () => {
 
   return (
     <>
-      <AppNavbar />
+      <Helmet><title>My Cart — AFARMER™</title></Helmet>
+            <AppNavbar />
       <Page>
         {/* ── Header ── */}
         <Header>

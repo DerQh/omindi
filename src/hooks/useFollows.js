@@ -6,6 +6,7 @@ export function useFollowerCount(userId) {
   return useQuery({
     queryKey: ["followerCount", userId],
     enabled: !!userId,
+    staleTime: 120000,
     queryFn: async () => {
       const { count, error } = await supabase
         .from("follows")
@@ -22,6 +23,7 @@ export function useIsFollowing(followerId, followingId) {
   return useQuery({
     queryKey: ["isFollowing", followerId, followingId],
     enabled: !!followerId && !!followingId,
+    staleTime: 120000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("follows")
@@ -40,6 +42,7 @@ export function useFollowedSellers(userId) {
   return useQuery({
     queryKey: ["followedSellers", userId],
     enabled: !!userId,
+    staleTime: 120000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("follows")

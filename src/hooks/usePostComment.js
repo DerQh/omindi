@@ -6,6 +6,7 @@ import { supabase } from "../../supabase";
 export function useFetchPostComments(post_id) {
   return useQuery({
     queryKey: ["post_comments", post_id],
+    staleTime: 60000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("post_comments")

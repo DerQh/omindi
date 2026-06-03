@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes, css } from "styled-components";
 import AppNavbar from "./AppNavbar";
@@ -318,7 +319,8 @@ const Admin = () => {
 
   return (
     <>
-      {confirmAction && (
+      <Helmet><title>Admin Panel — AFARMER™</title></Helmet>
+            {confirmAction && (
         <ConfirmModule
           text={confirmAction.label}
           onConfirm={handleConfirm}

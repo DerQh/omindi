@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
@@ -67,7 +68,8 @@ const ForFarms = () => {
   const navigate = useNavigate();
   return (
     <>
-      <Navbar />
+      <Helmet><title>For Farms — AFARMER™</title></Helmet>
+            <Navbar />
 
       {/* ── Hero ── */}
       <Hero>

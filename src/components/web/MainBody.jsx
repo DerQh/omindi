@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "../../../supabase";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";

@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
@@ -63,7 +64,8 @@ const ForMarketers = () => {
   const [openFaq, setOpenFaq] = React.useState(null);
   return (
     <>
-      <Navbar />
+      <Helmet><title>For Market Managers — AFARMER™</title></Helmet>
+            <Navbar />
 
       {/* ── Hero ── */}
       <Hero>

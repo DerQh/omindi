@@ -81,6 +81,7 @@ export function useFavoriteCheck({ user_id, listing_id }) {
   return useQuery({
     queryKey: ["userFavorites", user_id, listing_id],
     enabled: !!user_id && !!listing_id,
+    staleTime: 60000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("listing_favorites")
@@ -123,6 +124,7 @@ export function useFavoriteListings(user_id) {
   return useQuery({
     queryKey: ["favoriteListings", user_id],
     enabled: !!user_id,
+    staleTime: 60000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("listing_favorites")

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import styled, { keyframes, css } from "styled-components";
 import { Link } from "react-router-dom";
 import Navbar from "./Navbar";

@@ -5,6 +5,7 @@ import { supabase } from "../../supabase";
 export function useUser() {
   return useQuery({
     queryKey: ["user"],
+    staleTime: 300000,
     queryFn: async () => {
       const {
         data: { user },

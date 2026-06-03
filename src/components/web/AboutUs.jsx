@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import { Helmet } from "react-helmet-async";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 
@@ -460,7 +461,8 @@ const VALUES = [
 const AboutUs = () => {
   return (
     <>
-      <Navbar />
+      <Helmet><title>About Us — AFARMER™</title></Helmet>
+            <Navbar />
 
       {/* ── Hero ── */}
       <Hero>

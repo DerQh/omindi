@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
 import styled, { keyframes, css } from "styled-components";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
@@ -151,7 +152,8 @@ function News() {
 
   return (
     <>
-      <Navbar />
+      <Helmet><title>News & Updates — AFARMER™</title></Helmet>
+            <Navbar />
 
       {/* ── Hero ── */}
       <Hero>

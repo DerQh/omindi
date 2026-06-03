@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
@@ -152,7 +153,8 @@ const Community = () => {
 
   return (
     <>
-      <AppNavbar />
+      <Helmet><title>Community — AFARMER™</title></Helmet>
+            <AppNavbar />
 
       {/* ── Hero ── */}
       <Hero>

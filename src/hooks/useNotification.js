@@ -1,8 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "../../supabase";
 
-// Fetches all notifications for a user, sorted by most recently updated first.
+// Fetches all notifications for a user and subscribes to realtime inserts/updates.
 export function useNotifications(user_id) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!user_id) return;
+    const channel = supabase
+      .channel(`notifications:${user_id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user_id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["notifications", user_id] });
+          queryClient.invalidateQueries({ queryKey: ["notificationsUnread", user_id] });
+        }
+      )
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [user_id, queryClient]);
+
   return useQuery({
     queryKey: ["notifications", user_id],
     enabled: !!user_id,

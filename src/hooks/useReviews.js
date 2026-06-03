@@ -6,6 +6,7 @@ export function useListingReviews(listing_id) {
   return useQuery({
     queryKey: ["reviews", listing_id],
     enabled: !!listing_id,
+    staleTime: 120000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reviews")
@@ -24,6 +25,7 @@ export function useSellerReviews(seller_id) {
   return useQuery({
     queryKey: ["sellerReviews", seller_id],
     enabled: !!seller_id,
+    staleTime: 120000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reviews")
@@ -41,6 +43,7 @@ export function useSellerRating(seller_id) {
   return useQuery({
     queryKey: ["sellerRating", seller_id],
     enabled: !!seller_id,
+    staleTime: 120000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reviews")
@@ -59,6 +62,7 @@ export function useHasReviewed(user_id, listing_id) {
   return useQuery({
     queryKey: ["hasReviewed", user_id, listing_id],
     enabled: !!user_id && !!listing_id,
+    staleTime: 120000,
     queryFn: async () => {
       const { data } = await supabase
         .from("reviews")
@@ -76,6 +80,7 @@ export function useCanReview(user_id, listing_id) {
   return useQuery({
     queryKey: ["canReview", user_id, listing_id],
     enabled: !!user_id && !!listing_id,
+    staleTime: 120000,
     queryFn: async () => {
       const { data } = await supabase
         .from("order_items")
@@ -120,6 +125,7 @@ export function useShopItemReviews(shop_item_id) {
   return useQuery({
     queryKey: ["shopReviews", key],
     enabled: !!key,
+    staleTime: 120000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reviews")
@@ -138,6 +144,7 @@ export function useHasReviewedShopItem(user_id, shop_item_id) {
   return useQuery({
     queryKey: ["hasReviewedShop", user_id, key],
     enabled: !!user_id && !!key,
+    staleTime: 120000,
     queryFn: async () => {
       const { data } = await supabase
         .from("reviews")

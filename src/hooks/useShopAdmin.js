@@ -34,6 +34,7 @@ export function useIsAdmin(userId) {
   return useQuery({
     queryKey: ["is_admin", userId],
     enabled: !!userId,
+    staleTime: 300000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -52,6 +53,7 @@ export function useShopItem(id) {
   return useQuery({
     queryKey: ["shop_product", id],
     enabled: !!id,
+    staleTime: 300000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shop_products")
@@ -68,6 +70,7 @@ export function useShopItem(id) {
 export function useShopItems() {
   return useQuery({
     queryKey: ["shop_products"],
+    staleTime: 300000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shop_products")

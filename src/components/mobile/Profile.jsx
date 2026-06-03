@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
@@ -545,7 +546,8 @@ const Profile = () => {
 
   return (
     <>
-      <AppNavbar />
+      <Helmet><title>My Profile — AFARMER™</title></Helmet>
+            <AppNavbar />
       <Container>
         {/* ── Cover ── */}
         <Cover />

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
+import { supabase } from "../../../supabase";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -262,11 +263,19 @@ export default function FooterContainer() {
   // Newsletter subscription — swap setSubscribed for a real API call when ready
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [subError, setSubError] = useState("");
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e) => {
     e.preventDefault();
     if (!email.trim()) return;
-    // TODO: send email to a mailing list (e.g. Mailchimp, Supabase edge function)
+    setSubError("");
+    const { error } = await supabase
+      .from("newsletter_subscribers")
+      .upsert({ email: email.trim().toLowerCase() }, { onConflict: "email" });
+    if (error) {
+      setSubError("Could not subscribe. Please try again.");
+      return;
+    }
     setSubscribed(true);
     setEmail("");
   };
@@ -300,6 +309,7 @@ export default function FooterContainer() {
               <SubBtn type="submit">Subscribe</SubBtn>
             </InputRow>
           )}
+          {subError && <SubSuccess style={{ color: "#f87171" }}>{subError}</SubSuccess>}
 
           {/* Social icons — replace href values with real profile URLs */}
           <SocialRow>

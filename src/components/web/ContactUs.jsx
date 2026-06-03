@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
@@ -123,7 +124,8 @@ function ContactUs() {
 
   return (
     <>
-      <Navbar />
+      <Helmet><title>Contact Us — AFARMER™</title></Helmet>
+            <Navbar />
 
       {/* ── Hero ── */}
       <Hero>

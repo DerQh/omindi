@@ -39,6 +39,7 @@ import UpcomingEvents from "./components/mobile/UpcomingEvent";
 import EventDetail from "./components/mobile/EventDetail";
 import Followers from "./components/mobile/Followers";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HelmetProvider } from "react-helmet-async";
 import EditProfile from "./components/mobile/EditProfile";
 import { TestHooks } from "./components/mobile/TestHooks";
 import OrderConfirmation from "./components/mobile/OrderConfirmation";
@@ -57,6 +58,7 @@ function App() {
   // Create a client
   const queryClient = new QueryClient();
   return (
+    <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <>
         <BrowserRouter>
@@ -81,7 +83,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/order/:order_id" element={<ViewOrder />} />
               <Route path="/notifications" element={<Notifications />} />
-              <Route path="/test" element={<TestHooks />} />
+              {import.meta.env.DEV && <Route path="/test" element={<TestHooks />} />}
               <Route path="/mobile" element={<AppHome />} />
               <Route path="/following" element={<Following />} />
               <Route path="/list" element={<List />} />
@@ -108,7 +110,7 @@ function App() {
             {/* WEB ROUTES */}
             <Route path="/" element={<MainBody />} />
             <Route path="/forfarms" element={<ForFarms />} />
-            <Route path="/for farmersmarket" element={<ForMarketers />} />
+            <Route path="/for-farmersmarket" element={<ForMarketers />} />
             <Route path="/agritourism" element={<Agritourism />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/wholesale" element={<Wholesale />} />
@@ -129,6 +131,7 @@ function App() {
         </BrowserRouter>
       </>
     </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 

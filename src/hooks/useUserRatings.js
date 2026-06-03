@@ -4,6 +4,7 @@ import { supabase } from "../../supabase";
 export function useUserRating(userId) {
   return useQuery({
     queryKey: ["user_rating", userId],
+    staleTime: 300000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_ratings")
@@ -21,6 +22,7 @@ export function useUserRating(userId) {
 export function useMyRating(raterId, ratedUserId) {
   return useQuery({
     queryKey: ["my_rating", raterId, ratedUserId],
+    staleTime: 300000,
     queryFn: async () => {
       const { data } = await supabase
         .from("user_ratings")

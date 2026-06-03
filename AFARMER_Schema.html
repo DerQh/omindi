@@ -2498,7 +2498,236 @@ src/
         </tr>
       </table>
 
+
+      <!-- ── Dependencies ── -->
+      <h2 id="deps">14. Dependencies</h2>
+      <h3>Production</h3>
+      <table>
+        <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+        <tr><td>react</td><td>^19.2.5</td><td>UI framework</td></tr>
+        <tr><td>react-dom</td><td>^19.2.5</td><td>React DOM renderer</td></tr>
+        <tr><td>react-router-dom</td><td>^7.15.0</td><td>Client-side routing (BrowserRouter, Routes, Link, useParams, useNavigate)</td></tr>
+        <tr><td>@supabase/supabase-js</td><td>^2.105.4</td><td>Database, Auth, Storage — entire backend</td></tr>
+        <tr><td>@tanstack/react-query</td><td>^5.100.10</td><td>Server state management — all data fetching, caching, mutations</td></tr>
+        <tr><td>styled-components</td><td>^6.4.1</td><td>CSS-in-JS styling for all components</td></tr>
+        <tr><td>chart.js</td><td>^4.5.1</td><td>Chart library (admin/sales dashboards)</td></tr>
+        <tr><td>react-chartjs-2</td><td>^5.3.1</td><td>React wrapper for Chart.js</td></tr>
+        <tr><td>recharts</td><td>^2.15.4</td><td>Alternative chart library (some dashboard views)</td></tr>
+      </table>
+      <h3>Development</h3>
+      <table>
+        <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+        <tr><td>vite</td><td>^8.0.10</td><td>Build tool and dev server</td></tr>
+        <tr><td>@vitejs/plugin-react</td><td>^6.0.1</td><td>Vite plugin — JSX transform, Fast Refresh</td></tr>
+        <tr><td>eslint</td><td>^10.2.1</td><td>Code linting</td></tr>
+        <tr><td>eslint-plugin-react-hooks</td><td>^7.1.1</td><td>Lint rules for React hooks</td></tr>
+        <tr><td>eslint-plugin-react-refresh</td><td>^0.5.2</td><td>Fast Refresh compatibility lint</td></tr>
+        <tr><td>@types/react</td><td>^19.2.14</td><td>TypeScript types for React (IDE autocomplete)</td></tr>
+        <tr><td>globals</td><td>^17.5.0</td><td>ESLint global variable definitions</td></tr>
+      </table>
+      <p class="section-note"><strong>npm install</strong> — install all &nbsp;|&nbsp; <strong>npm run dev</strong> — start dev server &nbsp;|&nbsp; <strong>npm run build</strong> — production build</p>
+
+      <!-- ── ERD ── -->
+      <h2 id="erd">15. Entity Relationship Diagram (ERD)</h2>
+      <p>How all database tables relate to each other. <strong>→</strong> means "references (FK)".</p>
+      <div class="sql-block" id="erd-diagram">
+        <div class="sql-header">
+          <span class="sql-title">-- Entity Relationships</span>
+          <button class="copy-btn" onclick="copySql('erd-diagram')">Copy</button>
+        </div>
+        <div class="sql-body"><pre>auth.users
+  └──→ profiles (id)               ← one profile per user
+         ├──→ listings (seller_id)
+         │      ├──→ order_items (listing_id)
+         │      ├──→ listing_favorites (listing_id)
+         │      ├──→ reviews (listing_id)
+         │      └──→ conversations (listing_id)
+         │
+         ├──→ orders (user_id)
+         │      ├──→ order_items (order_id)
+         │      └──→ transactions (order_id)
+         │
+         ├──→ cart (user_id)
+         │      └──→ listings (listing_id)
+         │
+         ├──→ reviews (reviewer_id / seller_id)
+         ├──→ conversations (buyer_id / seller_id)
+         │      └──→ messages (conversation_id)
+         │
+         ├──→ follows (follower_id / following_id)
+         ├──→ notifications (user_id)
+         ├──→ listing_favorites (user_id)
+         ├──→ posts (user_id)
+         │      ├──→ post_likes (post_id)
+         │      └──→ post_comments (post_id)
+         │
+         ├──→ user_ratings (rater_id / rated_user_id)
+         └──→ transactions (user_id)
+
+shop_products                       ← standalone table, admin-managed
+reviews.shop_item_id (text)         ← loose ref to shop product ID (no FK)</pre></div>
+      </div>
+
+      <!-- ── App vs Web ── -->
+      <h2 id="split">16. App vs Web — Two Halves of the Project</h2>
+      <table>
+        <tr><th></th><th>Public Website (web/)</th><th>Farmer App (mobile/)</th></tr>
+        <tr><td><strong>Audience</strong></td><td>Anyone — farmers, buyers, investors, press</td><td>Registered users only</td></tr>
+        <tr><td><strong>Auth required</strong></td><td>No</td><td>Yes — ProtectedRoutes.jsx guards all routes</td></tr>
+        <tr><td><strong>Entry point</strong></td><td>/ → MainBody.jsx</td><td>/mobile → AppHome.jsx</td></tr>
+        <tr><td><strong>Navigation</strong></td><td>Navbar.jsx (top bar, desktop)</td><td>AppNavbar.jsx (bottom tabs, mobile)</td></tr>
+        <tr><td><strong>Purpose</strong></td><td>Marketing, SEO, shop, contact, pricing, about</td><td>Listings, cart, orders, messages, community, profile, admin</td></tr>
+        <tr><td><strong>Folder</strong></td><td>src/components/web/</td><td>src/components/mobile/</td></tr>
+        <tr><td><strong>Layout</strong></td><td>Wide desktop layouts, max-width 1100–1200px</td><td>Mobile-first, narrow, bottom nav pattern</td></tr>
+        <tr><td><strong>Data usage</strong></td><td>Minimal — mostly static + shop hooks</td><td>Heavy — nearly all hooks used here</td></tr>
+      </table>
+
+      <!-- ── Component Hook Map ── -->
+      <h2 id="comp-hooks">17. Component → Hook Map</h2>
+      <p>If a hook changes, every component in its row is affected.</p>
+      <table>
+        <tr><th>Component</th><th>Hooks Used</th></tr>
+        <tr><td>Admin.jsx</td><td>useUser, useIsAdmin, useAdminStats, useAdminUsers, useAdminListings, useAdminOrders, useAdminReviews, useAdminDeleteReview, useAdminBroadcast, useShopAdmin, formatSmartDate</td></tr>
+        <tr><td>AppNavbar.jsx</td><td>useUser, useAllCartItems, useIsAdmin, useUnreadConversationsCount, useUnreadCount</td></tr>
+        <tr><td>Cart.jsx</td><td>useUser, useCartItems</td></tr>
+        <tr><td>Checkout.jsx</td><td>useAddOrder, useAddOrderItems, useCartItemsAllDelete, useCreateTransaction, useApproveTransaction, useFailTransaction, useNotifyOrder</td></tr>
+        <tr><td>Community.jsx</td><td>usePosts, useToggleLike, useLikeStatus, formatSmartDate</td></tr>
+        <tr><td>Dashboard.jsx</td><td>useUser, useDashboard, formatSmartDate</td></tr>
+        <tr><td>EditListing.jsx</td><td>useListing, useEditListing</td></tr>
+        <tr><td>EditProfile.jsx</td><td>useEditProfile, useProfile</td></tr>
+        <tr><td>Follower.jsx</td><td>useProfile, useUserListings, useIsFollowing, useFollowToggle, useStartConversation, useUserRating, useMyRating, useRateUser</td></tr>
+        <tr><td>Following.jsx</td><td>useFollowedSellers, useUnfollow, useFavoriteListings, useFavoriteDelete</td></tr>
+        <tr><td>List.jsx</td><td>useListings, useUser</td></tr>
+        <tr><td>ListingCard.jsx</td><td>useCreateFavorite, useFavoriteCheck, useFavoriteDelete, formatSmartDate</td></tr>
+        <tr><td>ListingDetail.jsx</td><td>useListing, useListings, useUser, useDeleteListing, useAddItem, useCartItemCheck, useStartConversation, useProfile, useCreateFavorite, useFavoriteCheck, useFavoriteDelete, useListingReviews, useAddReview, useHasReviewed, useSellerRating</td></tr>
+        <tr><td>ListingNew.jsx</td><td>useCreateListing</td></tr>
+        <tr><td>Messages.jsx</td><td>useConversations, useMessages, useSendMessage, useMarkRead, useUser, formatSmartDate</td></tr>
+        <tr><td>MyOrders.jsx</td><td>useOrder, formatSmartDate</td></tr>
+        <tr><td>Notifications.jsx</td><td>useNotifications, useMarkAllRead, formatSmartDate</td></tr>
+        <tr><td>Post.jsx</td><td>usePost, useToggleLike, useLikeStatus, useFetchPostComments, useCreateComment, formatSmartDate</td></tr>
+        <tr><td>Profile.jsx</td><td>useProfile, useUser, useUserListings, useDeleteListing, useFavoriteListings, useFavoriteDelete, useSellerReviews, useFollowerCount, useUserRating</td></tr>
+        <tr><td>SalesDashboard.jsx</td><td>useUser, useDashboard, formatSmartDate</td></tr>
+        <tr><td>Update.jsx</td><td>useCreatePost</td></tr>
+        <tr><td>ViewOrder.jsx</td><td>useOrderId</td></tr>
+        <tr><td>Merchandise.jsx (web)</td><td>useShopItem, useShopItemReviews, useHasReviewedShopItem, useAddShopItemReview, useUser</td></tr>
+        <tr><td>AddShopItem.jsx (web)</td><td>useAddShopItem</td></tr>
+      </table>
+
+      <!-- ── Business Rules ── -->
+      <h2 id="biz-rules">18. Business Rules</h2>
+      <p>The platform laws — enforced in code and/or RLS. These must never be accidentally broken.</p>
+      <table>
+        <tr><th>Rule</th><th>Where enforced</th></tr>
+        <tr><td>Only the seller who created a listing can edit or delete it</td><td>RLS policy on listings + UI check (isSeller)</td></tr>
+        <tr><td>A user cannot review their own listing</td><td>UI: !isSeller hides review form</td></tr>
+        <tr><td>One review per user per listing (and per shop item)</td><td>Unique partial index on reviews + useHasReviewed check</td></tr>
+        <tr><td>Cart is per-user — you cannot see another user's cart</td><td>RLS: auth.uid() = user_id</td></tr>
+        <tr><td>Messages only visible to buyer and seller in that conversation</td><td>RLS: buyer_id = auth.uid() OR seller_id = auth.uid()</td></tr>
+        <tr><td>A user can only follow each person once</td><td>UNIQUE constraint on (follower_id, following_id)</td></tr>
+        <tr><td>A user can only bookmark each listing once</td><td>UNIQUE constraint on (user_id, listing_id)</td></tr>
+        <tr><td>Favourites counter never goes below 0</td><td>RPC: GREATEST(favourites - 1, 0)</td></tr>
+        <tr><td>Ratings must be between 1 and 5</td><td>CHECK constraint on reviews.rating and user_ratings.rating</td></tr>
+        <tr><td>Admin can delete any listing, order, or review</td><td>RLS admin policy: is_admin = true in profiles</td></tr>
+        <tr><td>Price at purchase is frozen in order_items</td><td>price_at_purchase column — copied at order creation, never linked back to listings.price</td></tr>
+        <tr><td>Protected routes require an active Supabase session</td><td>ProtectedRoutes.jsx redirects to /login if no session</td></tr>
+        <tr><td>Peer ratings upserted — one rating per user pair</td><td>UNIQUE (rater_id, rated_user_id) + upsert with onConflict</td></tr>
+      </table>
+
+      <!-- ── Deployment ── -->
+      <h2 id="deploy">19. Deployment Pipeline</h2>
+      <table>
+        <tr><th>Step</th><th>What happens</th><th>Time</th></tr>
+        <tr><td>1. Write code</td><td>Edit files in VS Code in /Users/sana/Desktop/FARM/omindi</td><td>—</td></tr>
+        <tr><td>2. Commit</td><td>git add . &amp;&amp; git commit -m "message" — saves a local snapshot</td><td>Instant</td></tr>
+        <tr><td>3. Push</td><td>git push — uploads to github.com/DerQh/omindi</td><td>~5s</td></tr>
+        <tr><td>4. Vercel detects push</td><td>Webhook fires automatically on every push to main</td><td>~5s</td></tr>
+        <tr><td>5. Build</td><td>Vercel runs npm run build (Vite) — outputs static files to dist/</td><td>~30–60s</td></tr>
+        <tr><td>6. Deploy</td><td>Vercel serves dist/ from their global CDN</td><td>~10s</td></tr>
+        <tr><td>7. Live</td><td>All users see the new version instantly</td><td>~1–2 min total</td></tr>
+      </table>
+      <p class="section-note"><strong>Rollback:</strong> Vercel Dashboard → your project → Deployments → any previous deployment → Promote to Production. Instant, no code needed.</p>
+      <table>
+        <tr><th>Repo</th><th>GitHub URL</th><th>Auto-deploy</th></tr>
+        <tr><td>Main app</td><td>github.com/DerQh/omindi</td><td>Yes — on push to main</td></tr>
+        <tr><td>Schema doc</td><td>github.com/DerQh/afarmer-schema</td><td>Yes — on push to main</td></tr>
+      </table>
+
+      <!-- ── Realtime ── -->
+      <h2 id="realtime">20. Supabase Realtime</h2>
+      <p>Currently <strong>not enabled</strong> on any table — all data fetches on mount and invalidates via React Query. No live updates without a page refresh.</p>
+      <table>
+        <tr><th>Table</th><th>Status</th><th>Impact</th><th>Priority</th></tr>
+        <tr><td>messages</td><td>❌ Off</td><td>New messages don't appear until refresh</td><td>High</td></tr>
+        <tr><td>notifications</td><td>❌ Off</td><td>New notifications need refresh</td><td>High</td></tr>
+        <tr><td>orders</td><td>❌ Off</td><td>Status changes need manual refresh</td><td>Medium</td></tr>
+        <tr><td>listings</td><td>❌ Off</td><td>New listings need refresh on list page</td><td>Low</td></tr>
+        <tr><td>posts</td><td>❌ Off</td><td>New posts need refresh in community</td><td>Low</td></tr>
+      </table>
+      <div class="sql-block" id="sql-realtime">
+        <div class="sql-header">
+          <span class="sql-title">-- Enable Realtime on priority tables</span>
+          <button class="copy-btn" onclick="copySql('sql-realtime')">Copy</button>
+        </div>
+        <div class="sql-body"><pre>ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+
+-- React subscription example (add inside useMessages hook):
+-- supabase
+--   .channel('new-messages')
+--   .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages',
+--       filter: 'conversation_id=eq.' + conversationId },
+--     () => queryClient.invalidateQueries(['messages', conversationId]))
+--   .subscribe();</pre></div>
+      </div>
+
+      <!-- ── Page Reference ── -->
+      <h2 id="pages">21. Page Reference — What Each Screen Does</h2>
+      <h3>Public Website</h3>
+      <table>
+        <tr><th>Page</th><th>Route</th><th>What it shows</th></tr>
+        <tr><td>Landing</td><td>/</td><td>Hero, features, testimonials, app download CTA, bestseller showcase</td></tr>
+        <tr><td>Sign Up / Login</td><td>/sign-up, /login</td><td>Email + password auth. Same component toggled by route</td></tr>
+        <tr><td>Reset Password</td><td>/reset-password</td><td>Handles Supabase password reset email link</td></tr>
+        <tr><td>Shop</td><td>/shop</td><td>Merchandise grid — filter by category, admin can add/remove products</td></tr>
+        <tr><td>Product Detail</td><td>/shop/item/:id</td><td>Full product page — images, sizing, reviews, related products</td></tr>
+        <tr><td>About Us</td><td>/aboutus</td><td>Mission, team, story behind AFARMER™</td></tr>
+        <tr><td>Contact Us</td><td>/contactus</td><td>Formspree form → sanafredrick@gmail.com, email card, phone</td></tr>
+        <tr><td>FAQ</td><td>/faq</td><td>Accordion of common questions by category</td></tr>
+        <tr><td>News</td><td>/news</td><td>Blog-style articles and platform updates</td></tr>
+        <tr><td>Pricing</td><td>/pricing</td><td>Free vs paid plan comparison</td></tr>
+        <tr><td>For Farms</td><td>/forfarms</td><td>Marketing page targeting farmers/sellers</td></tr>
+        <tr><td>For Marketers</td><td>/for farmersmarket</td><td>Marketing page targeting market managers</td></tr>
+        <tr><td>Wholesale</td><td>/wholesale</td><td>B2B wholesale buying/selling explanation</td></tr>
+        <tr><td>Agritourism</td><td>/agritourism</td><td>Farm tourism event listings info</td></tr>
+        <tr><td>Local Sourcing</td><td>/localsourcing</td><td>Info for healthcare/institutional buyers</td></tr>
+      </table>
+      <h3>Farmer App (requires login)</h3>
+      <table>
+        <tr><th>Page</th><th>Route</th><th>What it shows</th></tr>
+        <tr><td>Home</td><td>/mobile</td><td>Dashboard overview — quick stats, recent activity</td></tr>
+        <tr><td>Listings</td><td>/list</td><td>Browse all listings with filters and bookmark toggle</td></tr>
+        <tr><td>Listing Detail</td><td>/listing/:id</td><td>Full product — images, price, seller info, reviews, add to cart</td></tr>
+        <tr><td>Create Listing</td><td>/newlist</td><td>Form to post a new produce listing with image upload</td></tr>
+        <tr><td>Edit Listing</td><td>/edit-listing/:id</td><td>Pre-filled edit form for an existing listing</td></tr>
+        <tr><td>Cart</td><td>/cart</td><td>Cart items — adjust quantities, remove, go to checkout</td></tr>
+        <tr><td>Checkout</td><td>/checkout</td><td>Delivery address + M-Pesa payment initiation</td></tr>
+        <tr><td>Order Confirmation</td><td>/order-confirmation</td><td>Post-purchase success screen</td></tr>
+        <tr><td>My Orders</td><td>/my-orders</td><td>Buyer's order history with status badges</td></tr>
+        <tr><td>View Order</td><td>/order/:id</td><td>Single order — items, total, status, payment info</td></tr>
+        <tr><td>Messages</td><td>/messages</td><td>Buyer/seller conversation inbox</td></tr>
+        <tr><td>Community</td><td>/community</td><td>Social feed — posts, likes, comments</td></tr>
+        <tr><td>Profile</td><td>/profile</td><td>My listings, bookmarks, reviews received, follower stats</td></tr>
+        <tr><td>Edit Profile</td><td>/edit-profile</td><td>Edit name, farm name, bio, avatar, location</td></tr>
+        <tr><td>View User</td><td>/follower/:id</td><td>Another user's public profile — listings, follow, rate</td></tr>
+        <tr><td>Events</td><td>/events</td><td>Upcoming agritourism events</td></tr>
+        <tr><td>Dashboard</td><td>/dashboard</td><td>Seller stats — views, inquiries, bookmarks per listing</td></tr>
+        <tr><td>Sales Dashboard</td><td>/sales</td><td>Revenue charts, order counts, sales analytics</td></tr>
+        <tr><td>Notifications</td><td>/notifications</td><td>All notifications — orders, follows, favorites, broadcasts</td></tr>
+        <tr><td>Admin</td><td>/admin</td><td>Admin panel — users, listings, orders, reviews moderation, broadcast</td></tr>
+      </table>
+
       <!-- ── SQL Commands ── -->
+
       <h2 id="sql">
         9. SQL Commands — Click to Copy &amp; Paste into Supabase
       </h2>

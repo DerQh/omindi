@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
@@ -612,7 +613,8 @@ const Messages = () => {
 
   return (
     <>
-      <AppNavbar />
+      <Helmet><title>Messages — AFARMER™</title></Helmet>
+            <AppNavbar />
       <Container>
         {/* ── Hero ── */}
         <Hero></Hero>

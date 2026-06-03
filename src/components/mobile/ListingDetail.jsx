@@ -117,7 +117,7 @@ const ListingDetail = () => {
 
   const handleGreenBtn = () => {
     if (isSeller) {
-      alert("Edit functionality coming soon!");
+      navigate(`/edit-listing/${listing.id}`);
     } else {
       if (isItemInCart) {
         navigate("/cart");

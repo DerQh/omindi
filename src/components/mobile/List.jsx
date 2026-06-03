@@ -1,8 +1,9 @@
 import AppNavbar from "./AppNavbar";
+import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useListings } from "../../hooks/useListings";
+import { useListings, useSearchListings } from "../../hooks/useListings";
 import LoadingComponent from "./Loading";
 import { ListingCardTest } from "./ListingCard";
 import { useUser } from "../../hooks/useUser";
@@ -30,7 +31,11 @@ const List = () => {
   const { data: user } = useUser();
   const user_id = user?.id;
 
-  const { data, isLoading, error } = useListings();
+  const { data: allData, isLoading, error } = useListings();
+  const { data: searchData, isFetching: isSearching } = useSearchListings(searchTerm);
+
+  // Use server-side search results when query is active, otherwise use all listings
+  const data = searchTerm.trim().length > 1 ? searchData : allData;
   const dataMain = data?.filter((item) => item.seller_id !== user?.id);
 
   const categories = useMemo(() => {
@@ -105,7 +110,8 @@ const List = () => {
 
   return (
     <>
-      <AppNavbar />
+      <Helmet><title>Browse Listings — AFARMER™</title></Helmet>
+            <AppNavbar />
 
       {/* ── Filter bar — sibling of AppNavbar so sticky chains correctly ── */}
       <FilterBar>
@@ -159,7 +165,8 @@ const List = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              {searchTerm && (
+              {isSearching && <SearchSpinner>⟳</SearchSpinner>}
+              {searchTerm && !isSearching && (
                 <ClearBtn onClick={() => setSearchTerm("")}>✕</ClearBtn>
               )}
             </SearchWrap>
@@ -292,6 +299,16 @@ const SearchInput = styled.input`
     outline: none;
     background: rgba(255, 255, 255, 0.25);
   }
+`;
+
+const spin = keyframes`from { transform: rotate(0deg); } to { transform: rotate(360deg); }`;
+const SearchSpinner = styled.span`
+  position: absolute;
+  right: 14px;
+  color: rgba(255,255,255,0.7);
+  font-size: 1rem;
+  animation: ${spin} 0.8s linear infinite;
+  display: flex; align-items: center; justify-content: center;
 `;
 
 const ClearBtn = styled.button`

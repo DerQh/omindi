@@ -1,4 +1,5 @@
 import React from "react";
+import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
@@ -94,7 +95,8 @@ const Agritourism = () => {
 
   return (
     <>
-      <Navbar />
+      <Helmet><title>Agritourism — AFARMER™</title></Helmet>
+            <Navbar />
 
       {/* ── Hero ── */}
       <Hero>
