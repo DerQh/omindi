@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "../../../supabase";
 import styled, { keyframes } from "styled-components";

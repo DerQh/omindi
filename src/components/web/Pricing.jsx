@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
 import Navbar from "./Navbar";
@@ -93,7 +94,7 @@ const Pricing = () => {
 
   return (
     <>
-      <Helmet><title>Pricing — AFARMER™</title></Helmet>
+      <SEO title="Pricing" description="AFARMER™ is free to join, list, and sell. See our plans and what you get on each tier." path="/pricing" />
             <Navbar />
 
       {/* ── Hero ── */}

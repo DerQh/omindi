@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
@@ -64,7 +65,7 @@ const ForMarketers = () => {
   const [openFaq, setOpenFaq] = React.useState(null);
   return (
     <>
-      <Helmet><title>For Market Managers — AFARMER™</title></Helmet>
+      <SEO title="For Market Managers" description="Use AFARMER™ to manage your farmers market, connect with vendors, promote events, and grow your market community." path="/for-farmersmarket" />
             <Navbar />
 
       {/* ── Hero ── */}

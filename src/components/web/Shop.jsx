@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import styled, { keyframes, css } from "styled-components";
 import { Link } from "react-router-dom";
@@ -797,7 +798,7 @@ function Shop() {
           Gear Up for <HeroGreen>Local Farming</HeroGreen>
         </HeroTitle>
         <HeroSub>
-          Premium Afarmer™__TM__ merchandise. Every item you wear or carry supports
+          Premium Afarmer™ merchandise. Every item you wear or carry supports
           farmers and buyers connecting across Kenya.
         </HeroSub>
         <HeroCtas>
@@ -1030,8 +1031,8 @@ function Shop() {
           <NewsletterText>
             <NewsletterTitle>New drops & exclusive deals</NewsletterTitle>
             <NewsletterSub>
-              Join 2,000+ Afarmer™__TM__ fans. Get notified when new merch lands and
-              unlock member-only discounts.
+              Join 2,000+ Afarmer™__TM__ fans. Get notified when new merch lands
+              and unlock member-only discounts.
             </NewsletterSub>
           </NewsletterText>
           <NewsletterForm

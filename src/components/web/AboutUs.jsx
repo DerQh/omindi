@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
@@ -461,7 +462,7 @@ const VALUES = [
 const AboutUs = () => {
   return (
     <>
-      <Helmet><title>About Us — AFARMER™</title></Helmet>
+      <SEO title="About Us" description="Learn about AFARMER™ — our mission to connect farmers and buyers across Kenya, build stronger food systems, and support local agriculture." path="/aboutus" />
             <Navbar />
 
       {/* ── Hero ── */}

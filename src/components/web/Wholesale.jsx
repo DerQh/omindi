@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
 import Navbar from "./Navbar";
@@ -94,7 +95,7 @@ function Wholesale() {
 
   return (
     <>
-      <Helmet><title>Wholesale — AFARMER™</title></Helmet>
+      <SEO title="Wholesale" description="Connect your farm with wholesale buyers — retailers, restaurants, and food brands — directly on AFARMER™. No transaction fees." path="/wholesale" />
             <Navbar />
 
       {/* ── Hero ── */}

@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import SEO from "./SEO";
 import React, { useState } from "react";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
@@ -208,7 +209,8 @@ function LocalSourcing() {
   const navigate = useNavigate();
   return (
     <>
-      {/* // This is where the nested routes will be rendered */}
+      <SEO title="Local Sourcing" description="AFARMER™ connects healthcare institutions, schools, and food businesses to local farmers for reliable, fresh produce sourcing." path="/localsourcing" />
+            {/* // This is where the nested routes will be rendered */}
       <Navbar></Navbar>
       <MainContainer>
         <h1>STREAMLINE LOCAL PROCUREMENT</h1>

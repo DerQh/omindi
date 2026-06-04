@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
 import Navbar from "./Navbar";
@@ -124,7 +125,7 @@ function ContactUs() {
 
   return (
     <>
-      <Helmet><title>Contact Us — AFARMER™</title></Helmet>
+      <SEO title="Contact Us" description="Get in touch with the AFARMER™ team. We reply within 1–2 business days. Email, call, or use our contact form." path="/contactus" />
             <Navbar />
 
       {/* ── Hero ── */}

@@ -1,0 +1,33 @@
+User-agent: *
+Allow: /
+
+# Block protected app routes — require login, no SEO value
+Disallow: /mobile
+Disallow: /list
+Disallow: /listing/
+Disallow: /profile
+Disallow: /edit-profile
+Disallow: /cart
+Disallow: /checkout
+Disallow: /buy-now
+Disallow: /order-confirmation
+Disallow: /my-orders
+Disallow: /order/
+Disallow: /messages
+Disallow: /community
+Disallow: /newlist
+Disallow: /edit-listing/
+Disallow: /follower/
+Disallow: /followers
+Disallow: /following
+Disallow: /events
+Disallow: /dashboard
+Disallow: /sales
+Disallow: /notifications
+Disallow: /admin
+Disallow: /post/
+Disallow: /update
+Disallow: /inquire
+Disallow: /test
+
+Sitemap: https://omindi.vercel.app/sitemap.xml

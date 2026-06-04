@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import styled, { keyframes, css } from "styled-components";
 import Navbar from "./Navbar";
@@ -152,7 +153,7 @@ function News() {
 
   return (
     <>
-      <Helmet><title>News & Updates — AFARMER™</title></Helmet>
+      <SEO title="News & Updates" description="The latest news, platform updates, and stories from the AFARMER™ community of farmers and buyers across Kenya." path="/news" />
             <Navbar />
 
       {/* ── Hero ── */}

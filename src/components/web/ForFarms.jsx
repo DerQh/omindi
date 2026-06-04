@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
@@ -68,7 +69,7 @@ const ForFarms = () => {
   const navigate = useNavigate();
   return (
     <>
-      <Helmet><title>For Farms — AFARMER™</title></Helmet>
+      <SEO title="For Farms" description="Sell your farm produce directly to buyers on AFARMER™. Free to list. No middlemen. Reach hundreds of buyers across Kenya." path="/forfarms" />
             <Navbar />
 
       {/* ── Hero ── */}

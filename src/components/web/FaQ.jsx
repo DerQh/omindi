@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import styled, { keyframes, css } from "styled-components";
 import Navbar from "./Navbar";
@@ -182,7 +183,7 @@ function FAQ() {
 
   return (
     <>
-      <Helmet><title>FAQ — AFARMER™</title></Helmet>
+      <SEO title="Frequently Asked Questions" description="Answers to common questions about buying, selling, listing produce, wholesale, and more on the AFARMER™ platform." path="/faq" />
             <Navbar />
 
       {/* ── Hero ── */}

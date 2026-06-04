@@ -1,4 +1,5 @@
 import React from "react";
+import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -95,7 +96,7 @@ const Agritourism = () => {
 
   return (
     <>
-      <Helmet><title>Agritourism — AFARMER™</title></Helmet>
+      <SEO title="Agritourism" description="Discover farm tours, U-pick days, and agritourism events near you. List your farm events on AFARMER™ for free." path="/agritourism" />
             <Navbar />
 
       {/* ── Hero ── */}
