@@ -95,8 +95,12 @@ function Wholesale() {
 
   return (
     <>
-      <SEO title="Wholesale" description="Connect your farm with wholesale buyers — retailers, restaurants, and food brands — directly on AFARMER™. No transaction fees." path="/wholesale" />
-            <Navbar />
+      <SEO
+        title="Wholesale"
+        description="Connect your farm with wholesale buyers — retailers, restaurants, and food brands — directly on AFARMER™. No transaction fees."
+        path="/wholesale"
+      />
+      <Navbar />
 
       {/* ── Hero ── */}
       <Hero>
@@ -181,8 +185,14 @@ function Wholesale() {
           <SectionTitle>How to Use AFARMER™</SectionTitle>
           <SectionDivider />
           <HowImgStack>
-            <HowImg src="/howtouse1.png" alt="How to use AFARMER™ — step 1" />
-            <HowImg src="/howtouse2.png" alt="How to use AFARMER™ — step 2" />
+            <HowImg
+              src="/AFARMER_Mockup.png"
+              alt="How to use AFARMER™ — step 1"
+            />
+            <HowImg
+              src="/usermanagement.png"
+              alt="How to use AFARMER™ — step 2"
+            />
           </HowImgStack>
         </Inner>
       </Section>
@@ -349,11 +359,12 @@ function Wholesale() {
         <TestimonialInner>
           <QuoteMark>"</QuoteMark>
           <TestimonialText>
-            AFARMER™ has resulted in both professional and personal relationships
-            with incredible customers in my local community. Not only have I
-            been able to network and make sales, but I have never eaten better
-            or cleaner in my life. I downloaded it when I was the only producer
-            within 50 miles — now there are over 40 in my town alone!
+            AFARMER™ has resulted in both professional and personal
+            relationships with incredible customers in my local community. Not
+            only have I been able to network and make sales, but I have never
+            eaten better or cleaner in my life. I downloaded it when I was the
+            only producer within 50 miles — now there are over 40 in my town
+            alone!
           </TestimonialText>
           <TestimonialAuthor>— Lazy C Cattle Co.</TestimonialAuthor>
         </TestimonialInner>
