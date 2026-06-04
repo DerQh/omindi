@@ -30,4 +30,4 @@ Disallow: /update
 Disallow: /inquire
 Disallow: /test
 
-Sitemap: https://omindi.vercel.app/sitemap.xml
+Sitemap: https://omindifarm.vercel.app/sitemap.xml

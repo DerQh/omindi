@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 
-const BASE_URL = "https://omindi.vercel.app";
+const BASE_URL = "https://omindifarm.vercel.app";
 const DEFAULT_IMAGE = `${BASE_URL}/afarmer.jpg`;
 const SITE_NAME = "AFARMER™";
 
