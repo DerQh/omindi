@@ -1461,23 +1461,18 @@ const Admin = () => {
             ══════════════════════════════════════════════════════════════ */}
             {tab === "posts" && (
               <Fade key="posts">
-                <SectionHeader>
-                  <SectionTitle>Pending Posts</SectionTitle>
-                  <SectionSub>
-                    {pendingPosts.length} post{pendingPosts.length !== 1 ? "s" : ""} awaiting approval
-                  </SectionSub>
-                </SectionHeader>
+                <SectionHeading>Pending Posts</SectionHeading>
 
                 {loadingPosts ? (
                   <LoadMsg>Loading posts…</LoadMsg>
                 ) : pendingPosts.length === 0 ? (
-                  <EmptyState>
+                  <EmptyCard>
                     <EmptyIcon>📝</EmptyIcon>
                     <EmptyTitle>No pending posts</EmptyTitle>
-                    <EmptyMsg>All community posts have been reviewed.</EmptyMsg>
-                  </EmptyState>
+                    <EmptySub>All community posts have been reviewed.</EmptySub>
+                  </EmptyCard>
                 ) : (
-                  <TableWrap>
+                  <>
                     {pendingPosts.map((post) => (
                       <PostModerationCard key={post.id}>
                         <PostModerationMeta>
@@ -1514,7 +1509,7 @@ const Admin = () => {
                         </PostModerationActions>
                       </PostModerationCard>
                     ))}
-                  </TableWrap>
+                  </>
                 )}
               </Fade>
             )}
@@ -1797,7 +1792,7 @@ const PageHeading = styled.h1`
 
 const SectionHeading = styled.h2`
   margin: 28px 0 12px;
-  font-size: 16px;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #9ca3af;
   text-transform: uppercase;
@@ -1901,18 +1896,16 @@ const PeriodGroup = styled.div`
   gap: 4px;
 `;
 const PeriodBtn = styled.button`
-  padding: 5px 12px;
+  padding: 4px 11px;
   border-radius: 999px;
-  font-size: 16px;
+  font-size: 0.75rem;
   font-weight: 600;
   border: 1.5px solid ${({ $active }) => ($active ? "#2f5a2a" : "#e5e7eb")};
   background: ${({ $active }) => ($active ? "#2f5a2a" : "white")};
   color: ${({ $active }) => ($active ? "white" : "#6b7280")};
   cursor: pointer;
   transition: all 0.15s;
-  &:hover {
-    border-color: #2f5a2a;
-  }
+  &:hover { border-color: #2f5a2a; color: ${({ $active }) => ($active ? "white" : "#2f5a2a")}; }
 `;
 
 const TwoColGrid = styled.div`
@@ -1990,7 +1983,7 @@ const CatFill = styled.div`
   transition: width 0.3s ease;
 `;
 const CatCount = styled.span`
-  font-size: 16px;
+  font-size: 0.72rem;
   color: #9ca3af;
   font-weight: 600;
   width: 28px;
@@ -2054,7 +2047,7 @@ const ClearBtn = styled.button`
 const CountPill = styled.span`
   background: #f0fdf4;
   color: #166534;
-  font-size: 16px;
+  font-size: 0.75rem;
   font-weight: 700;
   padding: 6px 12px;
   border-radius: 999px;
@@ -2121,7 +2114,7 @@ const DataScroll = styled.div`
 const DataTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-  font-size: 16px;
+  font-size: 0.82rem;
 `;
 
 const TH = styled.th`
@@ -2155,7 +2148,7 @@ const TD = styled.td`
 `;
 const TableFooter = styled.div`
   padding: 10px 16px;
-  font-size: 16px;
+  font-size: 0.82rem;
   color: #9ca3af;
   background: #f9fafb;
   border-top: 1px solid #f3f4f6;
@@ -2164,7 +2157,7 @@ const TableFooter = styled.div`
 
 const Mono = styled.span`
   font-family: monospace;
-  font-size: 16px;
+  font-size: 0.82rem;
   color: #9ca3af;
 `;
 const Muted = styled.span`
@@ -2223,7 +2216,7 @@ const ListingCountBadge = styled.span`
   display: inline-block;
   padding: 2px 10px;
   border-radius: 999px;
-  font-size: 16px;
+  font-size: 0.82rem;
   font-weight: 700;
   background: ${({ $zero }) => ($zero ? "#f3f4f6" : "#f0fdf4")};
   color: ${({ $zero }) => ($zero ? "#9ca3af" : "#166534")};
@@ -2237,7 +2230,7 @@ const RoleGroup = styled.div`
 const RoleBadge = styled.span`
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 16px;
+  font-size: 0.7rem;
   font-weight: 700;
   background: ${({ $admin, $seller }) =>
     $admin ? "#fef2f2" : $seller ? "#eff6ff" : "#f3f4f6"};
@@ -2284,7 +2277,7 @@ const HeadingRow = styled.div`
 const AdminCapBadge = styled.span`
   padding: 5px 14px;
   border-radius: 999px;
-  font-size: 16px;
+  font-size: 0.82rem;
   font-weight: 700;
   background: ${({ $atCap }) => ($atCap ? "#fff7ed" : "#f0fdf4")};
   color: ${({ $atCap }) => ($atCap ? "#b45309" : "#166534")};
@@ -2328,7 +2321,7 @@ const ListingTitle = styled.span`
 const CatTag = styled.span`
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 16px;
+  font-size: 0.82rem;
   font-weight: 700;
   white-space: nowrap;
 `;
@@ -2345,7 +2338,7 @@ const StatusPill = styled.span`
   gap: 5px;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 16px;
+  font-size: 0.82rem;
   font-weight: 700;
   text-transform: capitalize;
   white-space: nowrap;
@@ -2379,7 +2372,7 @@ const StatusSelect = styled.select`
 const PayBadge = styled.span`
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 16px;
+  font-size: 0.82rem;
   font-weight: 600;
   background: #f3f4f6;
   color: #374151;
@@ -2395,20 +2388,17 @@ const AddressTrunc = styled.span`
 // ── Action buttons ──
 
 const DangerBtn = styled.button`
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   background: #fef2f2;
   color: #991b1b;
   border: 1px solid #fecaca;
+  white-space: nowrap;
   transition: all 0.15s;
-  &:hover {
-    background: #991b1b;
-    color: white;
-    border-color: #991b1b;
-  }
+  &:hover { background: #991b1b; color: white; border-color: #991b1b; }
 `;
 
 // ── Disputes ──
@@ -2470,9 +2460,9 @@ const EmptySub = styled.p`
 // ── Ban button ──
 
 const BanBtn = styled.button`
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   border: 1px solid ${({ $banned }) => ($banned ? "#fed7aa" : "#e5e7eb")};
@@ -2501,7 +2491,7 @@ const BulkBar = styled.div`
   flex-wrap: wrap;
 `;
 const BulkCount = styled.span`
-  font-size: 16px;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #1d4ed8;
 `;
@@ -2519,7 +2509,7 @@ const BulkStatusSelect = styled.select`
 const BulkApplyBtn = styled.button`
   padding: 6px 16px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 0.82rem;
   font-weight: 700;
   border: none;
   background: #1d4ed8;
@@ -2537,7 +2527,7 @@ const BulkApplyBtn = styled.button`
 const BulkClearBtn = styled.button`
   padding: 6px 12px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 0.82rem;
   font-weight: 600;
   border: 1.5px solid #bfdbfe;
   background: white;
@@ -2660,7 +2650,7 @@ const BroadcastHint = styled.p`
 const BroadcastSendBtn = styled.button`
   padding: 10px 24px;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 0.82rem;
   font-weight: 700;
   border: none;
   background: #2f5a2a;
