@@ -217,6 +217,54 @@ export function useAdminDeleteReview() {
   });
 }
 
+// ─── Posts moderation ─────────────────────────────────────────────────────────
+
+// Fetches all posts pending admin approval.
+export function useAdminPendingPosts() {
+  return useQuery({
+    queryKey: ["admin", "pendingPosts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*, profiles!user_id(full_name, avatar_url)")
+        .eq("approved", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// Approves a post by setting approved = true.
+export function useAdminApprovePost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const { error } = await supabase.from("posts").update({ approved: true }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "pendingPosts"] });
+      qc.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+}
+
+// Rejects (deletes) a post.
+export function useAdminRejectPost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const { error } = await supabase.from("posts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "pendingPosts"] });
+      qc.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+}
+
 // ─── Broadcast notification ───────────────────────────────────────────────────
 
 // Sends a notification to every user on the platform in a single batch insert.

@@ -34,6 +34,9 @@ import {
   useAdminReviews,
   useAdminDeleteReview,
   useAdminBroadcast,
+  useAdminPendingPosts,
+  useAdminApprovePost,
+  useAdminRejectPost,
 } from "../../hooks/useAdmin";
 import { formatSmartDate } from "../../hooks/dateFormat";
 
@@ -46,6 +49,7 @@ const NAV = [
   { id: "orders", label: "Orders", icon: "📦" },
   { id: "disputes", label: "Disputes", icon: "⚠️" },
   { id: "reviews", label: "Reviews", icon: "⭐" },
+  { id: "posts", label: "Posts", icon: "📝" },
   { id: "broadcast", label: "Broadcast", icon: "📢" },
 ];
 
@@ -186,6 +190,9 @@ const Admin = () => {
   const { data: reviews, isLoading: loadingReviews } = useAdminReviews();
   const { mutate: deleteReview } = useAdminDeleteReview();
   const { mutate: broadcast, isPending: broadcasting } = useAdminBroadcast();
+  const { data: pendingPosts = [], isLoading: loadingPosts } = useAdminPendingPosts();
+  const { mutate: approvePost } = useAdminApprovePost();
+  const { mutate: rejectPost } = useAdminRejectPost();
 
   // ── Computed ──────────────────────────────────────────────────────────────
 
@@ -315,7 +322,7 @@ const Admin = () => {
 
   // ── Active tab badge counts ───────────────────────────────────────────────
 
-  const badges = { disputes: disputedOrders.length };
+  const badges = { disputes: disputedOrders.length, posts: pendingPosts.length };
 
   return (
     <>
@@ -1445,6 +1452,69 @@ const Admin = () => {
                     </DataScroll>
                     <TableFooter>{(reviews ?? []).length} reviews</TableFooter>
                   </DataCard>
+                )}
+              </Fade>
+            )}
+
+            {/* ══════════════════════════════════════════════════════════════
+                POSTS MODERATION
+            ══════════════════════════════════════════════════════════════ */}
+            {tab === "posts" && (
+              <Fade key="posts">
+                <SectionHeader>
+                  <SectionTitle>Pending Posts</SectionTitle>
+                  <SectionSub>
+                    {pendingPosts.length} post{pendingPosts.length !== 1 ? "s" : ""} awaiting approval
+                  </SectionSub>
+                </SectionHeader>
+
+                {loadingPosts ? (
+                  <LoadMsg>Loading posts…</LoadMsg>
+                ) : pendingPosts.length === 0 ? (
+                  <EmptyState>
+                    <EmptyIcon>📝</EmptyIcon>
+                    <EmptyTitle>No pending posts</EmptyTitle>
+                    <EmptyMsg>All community posts have been reviewed.</EmptyMsg>
+                  </EmptyState>
+                ) : (
+                  <TableWrap>
+                    {pendingPosts.map((post) => (
+                      <PostModerationCard key={post.id}>
+                        <PostModerationMeta>
+                          <PostModerationAvatar
+                            src={post.profiles?.avatar_url || "/user.jpg"}
+                            alt={post.profiles?.full_name}
+                            onError={(e) => { e.target.src = "/user.jpg"; }}
+                          />
+                          <div>
+                            <PostModerationAuthor>
+                              {post.profiles?.full_name || post.author || "User"}
+                            </PostModerationAuthor>
+                            <PostModerationDate>
+                              {new Date(post.created_at).toLocaleDateString("en-KE", {
+                                month: "short", day: "numeric", year: "numeric",
+                              })}
+                            </PostModerationDate>
+                          </div>
+                        </PostModerationMeta>
+
+                        {post.title && <PostModerationTitle>{post.title}</PostModerationTitle>}
+                        {post.content && <PostModerationContent>{post.content}</PostModerationContent>}
+                        {post.image_url && (
+                          <PostModerationImage src={post.image_url} alt="post" />
+                        )}
+
+                        <PostModerationActions>
+                          <ApproveBtn onClick={() => approvePost(post.id)}>
+                            ✓ Approve
+                          </ApproveBtn>
+                          <RejectBtn onClick={() => rejectPost(post.id)}>
+                            ✕ Reject
+                          </RejectBtn>
+                        </PostModerationActions>
+                      </PostModerationCard>
+                    ))}
+                  </TableWrap>
                 )}
               </Fade>
             )}
@@ -2614,6 +2684,105 @@ const LoadMsg = styled.div`
   text-align: center;
   color: #9ca3af;
   font-size: 0.88rem;
+`;
+
+// ── Post moderation cards ──
+
+const PostModerationCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  border: 1.5px solid #e8f0e8;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(20,57,32,0.05);
+`;
+
+const PostModerationMeta = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+`;
+
+const PostModerationAvatar = styled.img`
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e8f0e8;
+  flex-shrink: 0;
+`;
+
+const PostModerationAuthor = styled.p`
+  margin: 0 0 2px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const PostModerationDate = styled.p`
+  margin: 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+`;
+
+const PostModerationTitle = styled.p`
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a2e1a;
+`;
+
+const PostModerationContent = styled.p`
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  color: #556652;
+  line-height: 1.65;
+  white-space: pre-wrap;
+`;
+
+const PostModerationImage = styled.img`
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  display: block;
+`;
+
+const PostModerationActions = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f7ee;
+`;
+
+const ApproveBtn = styled.button`
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #2f5a2a;
+  color: white;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover { background: #1e3d1a; }
+`;
+
+const RejectBtn = styled.button`
+  flex: 1;
+  padding: 10px;
+  border: 1.5px solid #f5c2c2;
+  border-radius: 10px;
+  background: #fdf0f0;
+  color: #a32d2d;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:hover { background: #a32d2d; color: white; border-color: #a32d2d; }
 `;
 
 // ── Access denied ──

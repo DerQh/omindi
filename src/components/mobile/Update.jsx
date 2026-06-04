@@ -350,6 +350,7 @@ const Update = () => {
   const [content, setContent] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
 
   // Handles file selection and creates a local preview URL.
   const handleImageChange = (e) => {
@@ -367,12 +368,11 @@ const Update = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Submits the post to Supabase and navigates back to community on success.
   const handleSubmit = (e) => {
     e.preventDefault();
     mutate(
       { title, content, type, image },
-      { onSuccess: () => navigate("/community") },
+      { onSuccess: () => setSubmitted(true) },
     );
   };
 
@@ -383,6 +383,19 @@ const Update = () => {
     <>
       <AppNavbar />
       <Container>
+        {submitted ? (
+          <PendingWrap>
+            <PendingCard>
+              <PendingIcon>🌱</PendingIcon>
+              <PendingTitle>Post submitted!</PendingTitle>
+              <PendingMsg>
+                Your post is pending admin approval and will appear in the community feed once reviewed.
+              </PendingMsg>
+              <PendingBtn onClick={() => navigate("/community")}>Back to Community</PendingBtn>
+            </PendingCard>
+          </PendingWrap>
+        ) : (
+        <>
         <CoverWrap>
           <Cover>
             <BackBtn onClick={() => navigate(-1)}>←</BackBtn>
@@ -469,9 +482,58 @@ const Update = () => {
             {isPending ? "Posting…" : "Post to Community"}
           </SubmitBtn>
         </Content>
+      </> /* end else */
+      )}
       </Container>
     </>
   );
 };
 
 export default Update;
+
+const PendingWrap = styled.div`
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+`;
+
+const PendingCard = styled.div`
+  background: white;
+  border-radius: 20px;
+  padding: 48px 32px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(20,57,32,0.08);
+  border: 1.5px solid #d1fae5;
+  max-width: 380px;
+  width: 100%;
+`;
+
+const PendingIcon = styled.div`font-size: 3.5rem; margin-bottom: 16px;`;
+
+const PendingTitle = styled.h2`
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #1a3318;
+  margin: 0 0 10px;
+`;
+
+const PendingMsg = styled.p`
+  font-size: 0.9rem;
+  color: #7b8f7f;
+  line-height: 1.7;
+  margin: 0 0 28px;
+`;
+
+const PendingBtn = styled.button`
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  padding: 13px 28px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover { background: #1e3d1a; }
+`;

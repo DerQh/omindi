@@ -59,6 +59,7 @@ export function useCreatePost() {
           user_image_url,
           likes: Math.floor(Math.random() * 14) + 1,
           shares: Math.floor(Math.random() * 14) + 1,
+          approved: false,
         })
         .select()
         .single();
@@ -78,7 +79,7 @@ export function useCreatePost() {
    ✅ GET ALL POSTS
 ========================= */
 
-// Fetches all posts ordered by most recently created.
+// Fetches only approved posts for the community feed.
 export function usePosts() {
   return useQuery({
     queryKey: ["posts"],
@@ -86,6 +87,7 @@ export function usePosts() {
       const { data, error } = await supabase
         .from("posts")
         .select("*")
+        .eq("approved", true)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
