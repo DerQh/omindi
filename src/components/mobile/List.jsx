@@ -1,10 +1,10 @@
 import AppNavbar from "./AppNavbar";
 import { Helmet } from "react-helmet-async";
-import styled, { keyframes } from "styled-components";
-import { useState, useMemo, useEffect } from "react";
+import styled, { keyframes, css } from "styled-components";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useListings, useSearchListings } from "../../hooks/useListings";
-import LoadingComponent from "./Loading";
+import { useQueryClient } from "@tanstack/react-query";
 import { ListingCardTest } from "./ListingCard";
 import { useUser } from "../../hooks/useUser";
 
@@ -26,12 +26,17 @@ const List = () => {
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
   const [activeCategory, setActiveCategory] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
-  const [page, setPage] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const sentinelRef = useRef(null);
+  const searchRef = useRef(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: user } = useUser();
   const user_id = user?.id;
 
-  const { data: allData, isLoading, error } = useListings();
+  const { data: allData, isLoading, error, refetch } = useListings();
   const { data: searchData, isFetching: isSearching } = useSearchListings(searchTerm);
 
   // Use server-side search results when query is active, otherwise use all listings
@@ -69,29 +74,65 @@ const List = () => {
     return result;
   }, [dataMain, searchTerm, activeCategory, sortBy]);
 
-  // Reset to page 0 whenever search, category, or sort changes.
+  // Reset visible count when filters change
   useEffect(() => {
-    setPage(0);
+    setVisibleCount(PAGE_SIZE);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [searchTerm, activeCategory, sortBy]);
 
-  const totalPages = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
+  // Infinite scroll — load more when sentinel enters viewport
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && visibleCount < filteredAndSorted.length) {
+          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredAndSorted.length));
+        }
+      },
+      { rootMargin: "300px" }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [filteredAndSorted.length, visibleCount]);
 
-  // Slice the full filtered list down to the current page's batch.
-  const paginated = filteredAndSorted.slice(
-    page * PAGE_SIZE,
-    (page + 1) * PAGE_SIZE,
-  );
+  // Close autocomplete when clicking outside search box
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-  // Scrolls back to the top of the listing grid when the user pages forward or back.
-  const goToPage = (next) => {
-    setPage(next);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  // Pull-to-refresh via touch
+  const touchStartY = useRef(0);
+  const onTouchStart = useCallback((e) => { touchStartY.current = e.touches[0].clientY; }, []);
+  const onTouchEnd = useCallback(async (e) => {
+    const delta = e.changedTouches[0].clientY - touchStartY.current;
+    if (window.scrollY === 0 && delta > 80) {
+      setRefreshing(true);
+      await refetch();
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
+  const visibleItems = filteredAndSorted.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredAndSorted.length;
+
+  // Autocomplete suggestions — top 5 matching titles
+  const suggestions = useMemo(() => {
+    if (!searchTerm || searchTerm.length < 2) return [];
+    const q = searchTerm.toLowerCase();
+    return (allData ?? [])
+      .filter((l) => l.title?.toLowerCase().includes(q) || l.category?.toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [searchTerm, allData]);
 
   const handleCardClick = (item) =>
     navigate(`/listing/${item.id}`, { state: { listing: item } });
-
-  if (isLoading) return <LoadingComponent />;
 
   if (error)
     return (
@@ -154,20 +195,47 @@ const List = () => {
         </FilterInner>
       </FilterBar>
 
-      <Page>
+      <Page onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {refreshing && <PullIndicator>↻ Refreshing…</PullIndicator>}
+
         {/* ── Hero ── */}
         <Hero>
           <HeroInner>
-            <SearchWrap>
+            <SearchWrap ref={searchRef}>
               <SearchInput
                 type="text"
                 placeholder="Search by name, category, or location…"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setSearchTerm(e.target.value); setShowSuggestions(true); }}
+                onFocus={() => setShowSuggestions(true)}
               />
               {isSearching && <SearchSpinner>⟳</SearchSpinner>}
               {searchTerm && !isSearching && (
-                <ClearBtn onClick={() => setSearchTerm("")}>✕</ClearBtn>
+                <ClearBtn onClick={() => { setSearchTerm(""); setShowSuggestions(false); }}>✕</ClearBtn>
+              )}
+              {showSuggestions && suggestions.length > 0 && (
+                <AutocompleteList>
+                  {suggestions.map((s) => (
+                    <AutocompleteItem
+                      key={s.id}
+                      onMouseDown={() => {
+                        setSearchTerm(s.title);
+                        setShowSuggestions(false);
+                        handleCardClick(s);
+                      }}
+                    >
+                      <AutocompleteThumb
+                        src={s.image_url || "/afarmer.jpg"}
+                        alt=""
+                        onError={(e) => { e.target.src = "/afarmer.jpg"; }}
+                      />
+                      <div>
+                        <AutocompleteTitle>{s.title}</AutocompleteTitle>
+                        <AutocompleteMeta>{s.category} · Kes {s.price}</AutocompleteMeta>
+                      </div>
+                    </AutocompleteItem>
+                  ))}
+                </AutocompleteList>
               )}
             </SearchWrap>
           </HeroInner>
@@ -188,44 +256,34 @@ const List = () => {
               </AddListingBtn>
             </ResultsMeta>
 
-            {filteredAndSorted.length > 0 ? (
+            {isLoading ? (
+              <Grid>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <SkeletonCard key={i}>
+                    <SkeletonImg />
+                    <SkeletonBody>
+                      <SkeletonLine $w="60%" $h="18px" />
+                      <SkeletonLine $w="40%" $h="14px" />
+                      <SkeletonLine $w="80%" $h="12px" />
+                    </SkeletonBody>
+                  </SkeletonCard>
+                ))}
+              </Grid>
+            ) : filteredAndSorted.length > 0 ? (
               <>
                 <Grid>
-                  {paginated.map((item) => (
+                  {visibleItems.map((item, i) => (
                     <ListingCardTest
                       key={item.id}
                       listingItem={item}
                       handleCardClick={handleCardClick}
                       user_id={user_id}
+                      index={i}
                     />
                   ))}
                 </Grid>
-
-                {/* Only render pagination when there are more items than one page */}
-                {totalPages > 1 && (
-                  <PaginationRow>
-                    <PageBtn
-                      onClick={() => goToPage(page - 1)}
-                      disabled={page === 0}
-                    >
-                      ← Previous
-                    </PageBtn>
-                    <PageInfo>
-                      {page * PAGE_SIZE + 1}–
-                      {Math.min(
-                        (page + 1) * PAGE_SIZE,
-                        filteredAndSorted.length,
-                      )}{" "}
-                      of {filteredAndSorted.length}
-                    </PageInfo>
-                    <PageBtn
-                      onClick={() => goToPage(page + 1)}
-                      disabled={page >= totalPages - 1}
-                    >
-                      Next →
-                    </PageBtn>
-                  </PaginationRow>
-                )}
+                <div ref={sentinelRef} style={{ height: 1 }} />
+                {hasMore && <LoadMoreIndicator>Loading more…</LoadMoreIndicator>}
               </>
             ) : (
               <EmptyState>
@@ -258,6 +316,109 @@ const List = () => {
 export default List;
 
 // ─── Styled components ────────────────────────────────────────────────────────
+
+const shimmer = keyframes`
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+`;
+
+const SkeletonBase = css`
+  background: linear-gradient(90deg, #e8f0e8 25%, #f3f7f3 50%, #e8f0e8 75%);
+  background-size: 800px 100%;
+  animation: ${shimmer} 1.4s infinite;
+  border-radius: 8px;
+`;
+
+const SkeletonCard = styled.div`
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(20,57,32,0.06);
+`;
+
+const SkeletonImg = styled.div`
+  height: 200px;
+  ${SkeletonBase}
+  border-radius: 0;
+`;
+
+const SkeletonBody = styled.div`
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const SkeletonLine = styled.div`
+  height: ${({ $h }) => $h || "14px"};
+  width: ${({ $w }) => $w || "100%"};
+  ${SkeletonBase}
+`;
+
+const PullIndicator = styled.div`
+  text-align: center;
+  padding: 10px;
+  font-size: 0.82rem;
+  color: #2f5a2a;
+  font-weight: 600;
+  background: #f0fdf4;
+  border-bottom: 1px solid #d1fae5;
+`;
+
+const AutocompleteList = styled.ul`
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(20,57,32,0.14);
+  z-index: 100;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow: hidden;
+`;
+
+const AutocompleteItem = styled.li`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover { background: #f0fdf4; }
+`;
+
+const AutocompleteThumb = styled.img`
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+`;
+
+const AutocompleteTitle = styled.p`
+  margin: 0 0 2px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const AutocompleteMeta = styled.p`
+  margin: 0;
+  font-size: 0.76rem;
+  color: #7b8f7f;
+`;
+
+const LoadMoreIndicator = styled.p`
+  text-align: center;
+  padding: 20px;
+  font-size: 0.85rem;
+  color: #7b8f7f;
+  font-weight: 600;
+`;
 
 const Page = styled.div`
   min-height: 100vh;
@@ -451,6 +612,11 @@ const ResultsMeta = styled.div`
   gap: 12px;
 `;
 
+const btnPulse = keyframes`
+  0%, 100% { box-shadow: 0 2px 8px rgba(47,90,42,0.35); }
+  50%       { box-shadow: 0 4px 20px rgba(47,90,42,0.6); }
+`;
+
 const AddListingBtn = styled.button`
   display: inline-flex;
   align-items: center;
@@ -465,19 +631,16 @@ const AddListingBtn = styled.button`
   letter-spacing: 0.3px;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(47, 90, 42, 0.35);
-  transition:
-    box-shadow 0.15s,
-    transform 0.15s,
-    background 0.15s;
+  animation: ${btnPulse} 2.4s ease-in-out infinite;
+  transition: transform 0.15s, background 0.15s;
   &:hover {
     background: linear-gradient(135deg, #2f5a2a, #245026);
-    box-shadow: 0 4px 14px rgba(47, 90, 42, 0.45);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    animation: none;
+    box-shadow: 0 6px 18px rgba(47, 90, 42, 0.5);
   }
   &:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 4px rgba(47, 90, 42, 0.3);
+    transform: scale(0.96);
   }
 `;
 

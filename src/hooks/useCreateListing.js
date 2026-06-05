@@ -72,6 +72,7 @@ export function useCreateListing() {
           unit,
           phone: phone || null,
           available,
+          approved: false,
           seller_image_url,
           seller_name:
             user?.user_metadata?.full_name || user?.user_metadata?.username,

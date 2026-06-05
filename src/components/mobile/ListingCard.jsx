@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { formatSmartDate } from "../../hooks/dateFormat";
 import {
   useCreateFavorite,
@@ -6,37 +6,31 @@ import {
   useFavoriteDelete,
 } from "../../hooks/useFavListings";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 // Renders a single listing card with image, price, details, and a favourite toggle button.
-export function ListingCardTest({ listingItem, handleCardClick, user_id }) {
+export function ListingCardTest({ listingItem, handleCardClick, user_id, index }) {
   const queryClient = useQueryClient();
   const listing_id = listingItem?.id;
+  const [popHeart, setPopHeart] = useState(false);
 
-  const { mutate: deleteFavMutate, isPending: isPendinDelete } =
-    useFavoriteDelete();
-  const { mutate: addFavMutate, isPending: isPendingfav } = useCreateFavorite();
-  const { data: isFavorited, isLoading } = useFavoriteCheck({
-    user_id,
-    listing_id,
-  });
+  const { mutate: deleteFavMutate } = useFavoriteDelete();
+  const { mutate: addFavMutate } = useCreateFavorite();
+  const { data: isFavorited } = useFavoriteCheck({ user_id, listing_id });
 
   const handleFavourite = () => {
+    setPopHeart(true);
+    setTimeout(() => setPopHeart(false), 420);
     const key = { queryKey: ["userFavorites", user_id, listing_id] };
     if (isFavorited) {
-      deleteFavMutate(
-        { user_id, listing_id },
-        { onSuccess: () => queryClient.invalidateQueries(key) },
-      );
+      deleteFavMutate({ user_id, listing_id }, { onSuccess: () => queryClient.invalidateQueries(key) });
     } else {
-      addFavMutate(
-        { user_id, listing_id },
-        { onSuccess: () => queryClient.invalidateQueries(key) },
-      );
+      addFavMutate({ user_id, listing_id }, { onSuccess: () => queryClient.invalidateQueries(key) });
     }
   };
 
   return (
-    <Card onClick={() => handleCardClick(listingItem)}>
+    <Card $index={index} onClick={() => handleCardClick(listingItem)}>
       {/* ── Image ── */}
       <ImageWrap>
         {listingItem.image_url ? (
@@ -55,8 +49,8 @@ export function ListingCardTest({ listingItem, handleCardClick, user_id }) {
         )}
 
         <FavBtn
-          disabled={isLoading || isPendingfav || isPendinDelete}
           $active={isFavorited}
+          $pop={popHeart}
           onClick={(e) => {
             e.stopPropagation();
             handleFavourite();
@@ -120,6 +114,19 @@ export function ListingCardTest({ listingItem, handleCardClick, user_id }) {
 
 // ─── Styled components ────────────────────────────────────────────────────────
 
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+const heartPop = keyframes`
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.45); }
+  50%  { transform: scale(0.88); }
+  75%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+`;
+
 const Card = styled.div`
   background: white;
   border-radius: 18px;
@@ -127,13 +134,19 @@ const Card = styled.div`
   box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
   cursor: pointer;
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
   text-align: left;
+  animation: ${fadeUp} 0.4s ease both;
+  animation-delay: ${({ $index }) => ($index ?? 0) * 0.07}s;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(20, 57, 32, 0.13);
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(20, 57, 32, 0.14);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 `;
 
@@ -148,11 +161,11 @@ const ImageWrap = styled.div`
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.35s ease;
+    transition: transform 0.4s ease;
   }
 
   ${Card}:hover img {
-    transform: scale(1.05);
+    transform: scale(1.09);
   }
 `;
 
@@ -201,15 +214,17 @@ const FavBtn = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${({ $active }) => ($active ? "#f59e0b" : "#7b9b7b")};
-  transition: transform 0.18s, color 0.15s;
+  color: ${({ $active }) => ($active ? "#ef4444" : "#7b9b7b")};
+  transition: color 0.15s;
 
   &:hover {
-    transform: scale(1.15);
-    color: #f59e0b;
+    color: #ef4444;
   }
+
+  ${({ $pop }) => $pop && `animation: ${heartPop} 0.4s ease;`}
+
   &:active {
-    transform: scale(0.9);
+    transform: scale(0.88);
   }
   &:disabled {
     opacity: 0.55;

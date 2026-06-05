@@ -1,15 +1,22 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import { usePosts, useToggleLike, useLikeStatus } from "../../hooks/usePosts";
 import { formatSmartDate } from "../../hooks/dateFormat";
-import LoadingComponent from "./Loading";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
+`;
+
+const heartPop = keyframes`
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.5); }
+  50%  { transform: scale(0.88); }
+  75%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
 `;
 
 const TAG_STYLES = {
@@ -29,14 +36,22 @@ const TYPE_LABELS = {
 
 // ─── Post card (self-contained so each can call hooks) ─────────────────────
 
-function PostCard({ post, onClick }) {
+function PostCard({ post, onClick, index }) {
   const { data: liked } = useLikeStatus(post.id);
   const toggleLike = useToggleLike(post.id);
+  const [popHeart, setPopHeart] = useState(false);
+
+  const handleLike = (e) => {
+    e.stopPropagation();
+    setPopHeart(true);
+    setTimeout(() => setPopHeart(false), 420);
+    toggleLike.mutate();
+  };
 
   const tagStyle = TAG_STYLES[post.type] ?? { bg: "#f3f4f6", color: "#6b7280" };
 
   return (
-    <Card onClick={() => onClick(post.id)}>
+    <Card $index={index} onClick={() => onClick(post.id)}>
       <CardHeader>
         <Avatar src={post.user_image_url || "/user.jpg"} alt={post.author} />
         <CardMeta>
@@ -64,10 +79,8 @@ function PostCard({ post, onClick }) {
       <CardFooter>
         <FooterBtn
           $liked={liked}
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleLike.mutate();
-          }}
+          $pop={popHeart}
+          onClick={handleLike}
           disabled={toggleLike.isPending}
         >
           <svg
@@ -139,9 +152,11 @@ function PostCard({ post, onClick }) {
 // ─── Community page ────────────────────────────────────────────────────────
 
 const Community = () => {
-  const { data: posts, isLoading } = usePosts();
+  const { data: posts, isLoading, refetch } = usePosts();
   const navigate = useNavigate();
   const [activeType, setActiveType] = useState("All");
+  const [refreshing, setRefreshing] = useState(false);
+  const touchStartY = useRef(0);
 
   const filtered = useMemo(() => {
     if (!posts) return [];
@@ -149,7 +164,15 @@ const Community = () => {
     return posts.filter((p) => p.type === activeType);
   }, [posts, activeType]);
 
-  if (isLoading) return <LoadingComponent />;
+  const onTouchStart = useCallback((e) => { touchStartY.current = e.touches[0].clientY; }, []);
+  const onTouchEnd = useCallback(async (e) => {
+    const delta = e.changedTouches[0].clientY - touchStartY.current;
+    if (window.scrollY === 0 && delta > 80) {
+      setRefreshing(true);
+      await refetch();
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   return (
     <>
@@ -201,9 +224,26 @@ const Community = () => {
       </FilterBar>
 
       {/* ── Feed ── */}
-      <Feed>
+      <Feed onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {refreshing && <CommPullIndicator>↻ Refreshing…</CommPullIndicator>}
         <FeedInner>
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <CommSkeletonCard key={i}>
+                <CommSkeletonHeader>
+                  <CommSkeletonCircle />
+                  <div style={{ flex: 1 }}>
+                    <CommSkeletonLine $w="40%" $h="14px" />
+                    <CommSkeletonLine $w="25%" $h="11px" style={{ marginTop: 6 }} />
+                  </div>
+                </CommSkeletonHeader>
+                <CommSkeletonLine $w="70%" $h="18px" style={{ marginBottom: 10 }} />
+                <CommSkeletonLine $w="100%" $h="12px" />
+                <CommSkeletonLine $w="90%" $h="12px" style={{ marginTop: 6 }} />
+                <CommSkeletonImg />
+              </CommSkeletonCard>
+            ))
+          ) : filtered.length === 0 ? (
             <EmptyState>
               <EmptyIcon>🌿</EmptyIcon>
               <EmptyTitle>No posts yet</EmptyTitle>
@@ -218,12 +258,12 @@ const Community = () => {
             </EmptyState>
           ) : (
             filtered.map((post, i) => (
-              <div key={post.id} style={{ animationDelay: `${i * 0.04}s` }}>
-                <PostCard
-                  post={post}
-                  onClick={(id) => navigate(`/post/${id}`)}
-                />
-              </div>
+              <PostCard
+                key={post.id}
+                post={post}
+                index={i}
+                onClick={(id) => navigate(`/post/${id}`)}
+              />
             ))
           )}
         </FeedInner>
@@ -362,6 +402,64 @@ const ChipCount = styled.span`
   border-radius: 999px;
 `;
 
+const commShimmer = keyframes`
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+`;
+
+const commSkeleton = css`
+  background: linear-gradient(90deg, #e8f0e8 25%, #f3f7f3 50%, #e8f0e8 75%);
+  background-size: 800px 100%;
+  animation: ${commShimmer} 1.4s infinite;
+  border-radius: 8px;
+`;
+
+const CommPullIndicator = styled.div`
+  text-align: center;
+  padding: 10px;
+  font-size: 0.82rem;
+  color: #2f5a2a;
+  font-weight: 600;
+  background: #f0fdf4;
+`;
+
+const CommSkeletonCard = styled.div`
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid #e8f5e9;
+  box-shadow: 0 2px 12px rgba(20,57,32,0.05);
+`;
+
+const CommSkeletonHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+`;
+
+const CommSkeletonCircle = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  ${commSkeleton}
+`;
+
+const CommSkeletonLine = styled.div`
+  height: ${({ $h }) => $h || "14px"};
+  width: ${({ $w }) => $w || "100%"};
+  ${commSkeleton}
+`;
+
+const CommSkeletonImg = styled.div`
+  height: 180px;
+  margin-top: 14px;
+  border-radius: 12px;
+  ${commSkeleton}
+`;
+
 const Feed = styled.div`
   background: white;
   min-height: 60vh;
@@ -381,13 +479,15 @@ const Card = styled.div`
   margin-bottom: 16px;
   box-shadow: 0 2px 12px rgba(20, 57, 32, 0.06);
   cursor: pointer;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-  animation: ${fadeUp} 0.35s ease both;
+  transition: transform 0.22s, box-shadow 0.22s;
+  animation: ${fadeUp} 0.38s ease both;
+  animation-delay: ${({ $index }) => ($index ?? 0) * 0.06}s;
   &:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 28px rgba(20, 57, 32, 0.1);
+    box-shadow: 0 10px 28px rgba(20, 57, 32, 0.11);
+  }
+  &:active {
+    transform: scale(0.99);
   }
 `;
 const CardHeader = styled.div`
@@ -492,6 +592,8 @@ const FooterBtn = styled.button`
     background 0.15s,
     color 0.15s;
   color: ${({ $liked }) => ($liked ? "#ef4444" : "#6b7280")};
+  ${({ $pop }) => $pop && `animation: ${heartPop} 0.42s ease;`}
+  &:active { transform: scale(0.92); }
   &:hover {
     background: #f0fdf4;
     color: ${({ $liked }) => ($liked ? "#dc2626" : "#2f5a2a")};

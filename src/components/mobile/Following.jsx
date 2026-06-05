@@ -176,116 +176,165 @@ const Grid = styled.div`
 
 // ─── Seller Cards ─────────────────────────────────────────────────────────────
 
+const COVER_GRADIENTS = [
+  "linear-gradient(135deg, #1a3318 0%, #2f5a2a 60%, #4e9643 100%)",
+  "linear-gradient(135deg, #1a3350 0%, #2a4f8a 60%, #3d7abf 100%)",
+  "linear-gradient(135deg, #3a1a18 0%, #7a2a2a 60%, #b85c3a 100%)",
+  "linear-gradient(135deg, #2a1a3a 0%, #5a2a7a 60%, #9643c0 100%)",
+  "linear-gradient(135deg, #1a3330 0%, #2a6a5a 60%, #43b09a 100%)",
+];
+
 const SellerCard = styled.div`
   background: white;
   border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.07);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  overflow: visible;
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 36px rgba(20, 57, 32, 0.13);
+    box-shadow: 0 14px 40px rgba(20, 57, 32, 0.14);
   }
 `;
 
 const SellerCover = styled.div`
+  height: 96px;
+  border-radius: 20px 20px 0 0;
+  background: ${({ $gradient }) => $gradient};
   position: relative;
-  height: 130px;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    top: -60px;
+    right: -40px;
+  }
+`;
+
+const SellerAvatarWrap = styled.div`
+  position: absolute;
+  top: 68px;
+  left: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid white;
   background: #d7edd9;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 3;
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
-
-  /* Gradient to make the bottom of the image readable */
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to bottom,
-      transparent 40%,
-      rgba(0, 0, 0, 0.35)
-    );
-  }
 `;
 
-// Category chip overlaid on the cover image (top-left)
-const CategoryChip = styled.span`
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 2;
-  background: rgba(255, 255, 255, 0.92);
+const SellerAvatarInitial = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 800;
   color: #2f5a2a;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 999px;
+  background: #d7edd9;
 `;
 
 const SellerBody = styled.div`
-  padding: 16px 18px 18px;
+  padding: 36px 18px 18px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0 0 20px 20px;
+  overflow: hidden;
 `;
 
 const SellerName = styled.h3`
-  margin: 0 0 4px;
-  font-size: 1.05rem;
+  margin: 0 0 2px;
+  font-size: 1rem;
   color: #1a3318;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
-const SellerMeta = styled.p`
-  margin: 0 0 12px;
-  color: #7b8f7f;
-  font-size: 0.88rem;
-  display: flex;
+const SellerFullName = styled.p`
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-weight: 500;
+`;
+
+const SellerLocationPill = styled.span`
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  background: #f0f7ee;
+  color: #2f5a2a;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+  align-self: flex-start;
 `;
 
-const RatingRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-`;
-
-const Stars = styled.span`
-  color: #f0b33d;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
-`;
-
-const RatingText = styled.span`
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #1a3318;
-`;
-
-const ReviewText = styled.span`
+const SellerDesc = styled.p`
+  margin: 0 0 14px;
   font-size: 0.82rem;
-  color: #7b8f7f;
+  color: #6b7280;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
 `;
 
-const UnfollowBtn = styled.button`
-  width: 100%;
-  padding: 10px;
+const SellerActions = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+`;
+
+const ViewFarmBtn = styled.button`
+  flex: 1;
+  padding: 9px 0;
   border-radius: 10px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: #eef7ee;
-  color: #2f5a2a;
-  border: 2px solid #cde5cf;
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  &:hover { background: #245026; }
+`;
+
+const UnfollowBtn = styled.button`
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #f5f8f5;
+  color: #6b7280;
+  border: 1.5px solid #e5e7eb;
 
   &:hover {
     background: #fff0f0;
@@ -710,26 +759,38 @@ const Following = () => {
               </EmptyState>
             ) : (
               <Grid>
-                {followedSellers.map((seller) => (
-                  <SellerCard
-                    key={seller.id}
-                    onClick={() => navigate(`/follower/${seller.id}`)}
-                  >
-                    <SellerCover>
+                {followedSellers.map((seller, idx) => (
+                  <SellerCard key={seller.id}>
+                    <SellerCover $gradient={COVER_GRADIENTS[idx % COVER_GRADIENTS.length]} />
+                    <SellerAvatarWrap>
                       {seller.avatar_url ? (
-                        <img src={seller.avatar_url} alt={seller.farm_name} />
-                      ) : null}
-                    </SellerCover>
-                    <SellerBody>
-                      <SellerName>{seller.farm_name || "Unknown Farm"}</SellerName>
-                      {seller.location && (
-                        <SellerMeta>{seller.location}</SellerMeta>
+                        <img src={seller.avatar_url} alt={seller.farm_name} onError={(e) => { e.target.style.display = "none"; }} />
+                      ) : (
+                        <SellerAvatarInitial>
+                          {(seller.farm_name || seller.full_name || "?")[0].toUpperCase()}
+                        </SellerAvatarInitial>
                       )}
-                      <UnfollowBtn
-                        onClick={(e) => handleUnfollow(e, seller.id)}
-                      >
-                        Unfollow
-                      </UnfollowBtn>
+                    </SellerAvatarWrap>
+
+                    <SellerBody>
+                      <SellerName>{seller.farm_name || seller.full_name || "Unknown Farm"}</SellerName>
+                      {seller.full_name && seller.farm_name && (
+                        <SellerFullName>{seller.full_name}</SellerFullName>
+                      )}
+                      {seller.location && (
+                        <SellerLocationPill>📍 {seller.location}</SellerLocationPill>
+                      )}
+                      <SellerDesc>
+                        {seller.description || "No bio yet."}
+                      </SellerDesc>
+                      <SellerActions>
+                        <ViewFarmBtn onClick={() => navigate(`/follower/${seller.id}`)}>
+                          View Farm
+                        </ViewFarmBtn>
+                        <UnfollowBtn onClick={(e) => handleUnfollow(e, seller.id)}>
+                          Unfollow
+                        </UnfollowBtn>
+                      </SellerActions>
                     </SellerBody>
                   </SellerCard>
                 ))}

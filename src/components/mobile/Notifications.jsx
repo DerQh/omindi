@@ -425,6 +425,22 @@ const SkeletonLine = styled(SkeletonBase)`
   width: ${({ $w }) => $w || "100%"};
 `;
 
+const NotifListingImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+`;
+
+const NotifListingBanner = styled.img`
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+`;
+
 const LoadingSkeleton = () => (
   <NotifCard>
     {Array.from({ length: 5 }).map((_, i) => (
@@ -705,13 +721,25 @@ const Notifications = () => {
       case "system":
         return (
           <DetailCard>
+            {n.detail?.image_url && (
+              <NotifListingBanner
+                src={n.detail.image_url}
+                alt="listing"
+                onError={(e) => { e.target.style.display = "none"; }}
+              />
+            )}
             <DetailRow>
-              <DetailLabel>Message </DetailLabel>
+              <DetailLabel>Message</DetailLabel>
               <DetailValue style={{ maxWidth: "68%", lineHeight: 1.55 }}>
-                {n.detail?.message}
+                {n.body || n.detail?.message}
               </DetailValue>
             </DetailRow>
-            {n.detail?.action && (
+            {n.detail?.listing_id && (
+              <DetailActionBtn onClick={() => navigate(`/listing/${n.detail.listing_id}`)}>
+                View Approved Listing →
+              </DetailActionBtn>
+            )}
+            {!n.detail?.listing_id && n.detail?.action && (
               <DetailActionBtn onClick={() => navigate("/list")}>
                 {n.detail.action} →
               </DetailActionBtn>
@@ -815,7 +843,17 @@ const Notifications = () => {
                       return (
                         <NotifItem key={n.id} $unread={!n.read}>
                           <NotifRow onClick={() => handleClick(n)}>
-                            <IconWrap $bg={meta.iconBg}>{meta.icon}</IconWrap>
+                            <IconWrap $bg={meta.iconBg}>
+                              {n.type === "system" && n.detail?.image_url ? (
+                                <NotifListingImg
+                                  src={n.detail.image_url}
+                                  alt=""
+                                  onError={(e) => { e.target.style.display = "none"; }}
+                                />
+                              ) : (
+                                meta.icon
+                              )}
+                            </IconWrap>
                             <NotifContent>
                               <NotifTitle $unread={!n.read}>
                                 {n.title}

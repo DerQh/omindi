@@ -83,13 +83,16 @@ const ListingDetail = () => {
   const { mutate: removeFav }  = useFavoriteDelete();
 
   const { data: allListings = [] } = useListings();
-  const related = allListings
-    .filter((l) => l.id !== listing?.id && l.category === listing?.category)
+  const otherSellers = allListings.filter(
+    (l) => l.id !== listing?.id && l.seller_id !== listing?.seller_id
+  );
+  const related = otherSellers
+    .filter((l) => l.category === listing?.category)
     .slice(0, 4)
     .concat(
-      allListings
-        .filter((l) => l.id !== listing?.id && l.category !== listing?.category)
-        .slice(0, Math.max(0, 4 - allListings.filter((l) => l.id !== listing?.id && l.category === listing?.category).length))
+      otherSellers
+        .filter((l) => l.category !== listing?.category)
+        .slice(0, Math.max(0, 4 - otherSellers.filter((l) => l.category === listing?.category).length))
     )
     .slice(0, 4);
 

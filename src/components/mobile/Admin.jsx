@@ -37,6 +37,10 @@ import {
   useAdminPendingPosts,
   useAdminApprovePost,
   useAdminRejectPost,
+  useAdminPendingListings,
+  useAdminApproveListing,
+  useAdminApproveAllListings,
+  useAdminNotifySeller,
 } from "../../hooks/useAdmin";
 import { formatSmartDate } from "../../hooks/dateFormat";
 
@@ -50,6 +54,7 @@ const NAV = [
   { id: "disputes", label: "Disputes", icon: "⚠️" },
   { id: "reviews", label: "Reviews", icon: "⭐" },
   { id: "posts", label: "Posts", icon: "📝" },
+  { id: "pendingListings", label: "Pending", icon: "⏳" },
   { id: "broadcast", label: "Broadcast", icon: "📢" },
 ];
 
@@ -125,6 +130,21 @@ function groupByPeriod(orders, period) {
 
 const shortId = (id) => (id ? String(id).slice(0, 8).toUpperCase() : "—");
 
+function downloadCSV(filename, rows, columns) {
+  const header = columns.map((c) => `"${c.label}"`).join(",");
+  const body = rows.map((row) =>
+    columns.map((c) => {
+      const val = c.fn ? c.fn(row) : (row[c.key] ?? "");
+      return `"${String(val).replace(/"/g, '""')}"`;
+    }).join(",")
+  ).join("\n");
+  const blob = new Blob([header + "\n" + body], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
 const initials = (name) =>
   (name || "?")
     .split(" ")
@@ -190,9 +210,21 @@ const Admin = () => {
   const { data: reviews, isLoading: loadingReviews } = useAdminReviews();
   const { mutate: deleteReview } = useAdminDeleteReview();
   const { mutate: broadcast, isPending: broadcasting } = useAdminBroadcast();
-  const { data: pendingPosts = [], isLoading: loadingPosts } = useAdminPendingPosts();
+  const { data: pendingPosts = [], isLoading: loadingPosts } =
+    useAdminPendingPosts();
   const { mutate: approvePost } = useAdminApprovePost();
   const { mutate: rejectPost } = useAdminRejectPost();
+  const { data: pendingListings = [], isLoading: loadingPendingListings } =
+    useAdminPendingListings();
+  const { mutate: approveListing, isPending: approvingOne } =
+    useAdminApproveListing();
+  const { mutate: approveAllListings, isPending: approvingAll } =
+    useAdminApproveAllListings();
+  const { mutate: notifySeller } = useAdminNotifySeller();
+  const [reviewListing, setReviewListing] = useState(null);
+  const [rejectModal, setRejectModal] = useState(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [pendingSearch, setPendingSearch] = useState("");
 
   // ── Computed ──────────────────────────────────────────────────────────────
 
@@ -255,6 +287,17 @@ const Admin = () => {
         (l.location ?? "").toLowerCase().includes(q),
     );
   }, [listings, listSearch]);
+
+  const filteredPendingListings = useMemo(() => {
+    const q = pendingSearch.toLowerCase();
+    if (!q) return pendingListings;
+    return pendingListings.filter(
+      (l) =>
+        (l.title ?? "").toLowerCase().includes(q) ||
+        (l.seller_name ?? "").toLowerCase().includes(q) ||
+        (l.category ?? "").toLowerCase().includes(q),
+    );
+  }, [pendingListings, pendingSearch]);
 
   const filteredOrders = useMemo(() => {
     const q = orderSearch.toLowerCase();
@@ -322,17 +365,197 @@ const Admin = () => {
 
   // ── Active tab badge counts ───────────────────────────────────────────────
 
-  const badges = { disputes: disputedOrders.length, posts: pendingPosts.length };
+  const badges = {
+    disputes: disputedOrders.length,
+    posts: pendingPosts.length,
+    pendingListings: pendingListings.length,
+  };
 
   return (
     <>
-      <Helmet><title>Admin Panel — AFARMER™</title></Helmet>
-            {confirmAction && (
+      <Helmet>
+        <title>Admin Panel — AFARMER™</title>
+      </Helmet>
+
+      {confirmAction && (
         <ConfirmModule
           text={confirmAction.label}
           onConfirm={handleConfirm}
           onCancel={() => setConfirmAction(null)}
         />
+      )}
+
+      {reviewListing && (
+        <PreviewOverlay onClick={() => setReviewListing(null)}>
+          <PreviewModal onClick={(e) => e.stopPropagation()}>
+            <PreviewClose onClick={() => setReviewListing(null)}>
+              ✕
+            </PreviewClose>
+
+            <PreviewImage
+              src={reviewListing.image_url || "/afarmer.jpg"}
+              alt={reviewListing.title}
+              onError={(e) => {
+                e.target.src = "/afarmer.jpg";
+              }}
+            />
+
+            <PreviewBody>
+              <PreviewMeta>
+                {reviewListing.category && (
+                  <PreviewCatChip>{reviewListing.category}</PreviewCatChip>
+                )}
+                <PreviewStatus>Pending Approval</PreviewStatus>
+              </PreviewMeta>
+
+              <PreviewTitle>{reviewListing.title}</PreviewTitle>
+              <PreviewPrice>
+                Kes {reviewListing.price}
+                {reviewListing.unit ? ` / ${reviewListing.unit}` : ""}
+              </PreviewPrice>
+
+              <PreviewSellerRow>
+                <PreviewAvatar
+                  src={reviewListing.seller_image_url || "/user.jpg"}
+                  alt={reviewListing.seller_name}
+                  onError={(e) => {
+                    e.target.src = "/user.jpg";
+                  }}
+                />
+                <div>
+                  <PreviewSellerName>
+                    {reviewListing.seller_name || "Unknown seller"}
+                  </PreviewSellerName>
+                  <PreviewSellerSub>
+                    Seller · {formatSmartDate(reviewListing.created_at)}
+                  </PreviewSellerSub>
+                </div>
+              </PreviewSellerRow>
+
+              <PreviewDivider />
+
+              {reviewListing.description && (
+                <PreviewSection>
+                  <PreviewSectionLabel>Description</PreviewSectionLabel>
+                  <PreviewDesc>{reviewListing.description}</PreviewDesc>
+                </PreviewSection>
+              )}
+
+              <PreviewChipRow>
+                {reviewListing.location && (
+                  <PreviewChip>📍 {reviewListing.location}</PreviewChip>
+                )}
+                {reviewListing.minimumOrder && (
+                  <PreviewChip>
+                    📦 Min order: {reviewListing.minimumOrder}
+                  </PreviewChip>
+                )}
+                {reviewListing.phone && (
+                  <PreviewChip>📞 {reviewListing.phone}</PreviewChip>
+                )}
+                {reviewListing.available === false && (
+                  <PreviewChip
+                    style={{
+                      background: "#fef2f2",
+                      color: "#991b1b",
+                      border: "1px solid #fecaca",
+                    }}
+                  >
+                    Out of Stock
+                  </PreviewChip>
+                )}
+              </PreviewChipRow>
+
+              <PreviewActions>
+                <SmallApproveBtn
+                  style={{ padding: "10px 24px", fontSize: "0.9rem" }}
+                  disabled={approvingOne}
+                  onClick={() => {
+                    const l = reviewListing;
+                    setReviewListing(null);
+                    approveListing(l.id, {
+                      onSuccess: () =>
+                        notifySeller({
+                          seller_id: l.seller_id,
+                          title: "Listing Approved ✅",
+                          body: `Your listing "${l.title}" has been approved and is now live.`,
+                          detail: { listing_id: l.id, image_url: l.image_url },
+                        }),
+                    });
+                  }}
+                >
+                  Approve
+                </SmallApproveBtn>
+                <DangerBtn
+                  style={{ padding: "10px 24px", fontSize: "0.9rem" }}
+                  onClick={() => {
+                    const l = reviewListing;
+                    setReviewListing(null);
+                    setRejectModal(l);
+                  }}
+                >
+                  Reject
+                </DangerBtn>
+              </PreviewActions>
+            </PreviewBody>
+          </PreviewModal>
+        </PreviewOverlay>
+      )}
+
+      {rejectModal && (
+        <PreviewOverlay
+          onClick={() => {
+            setRejectModal(null);
+            setRejectReason("");
+          }}
+        >
+          <RejectReasonModal onClick={(e) => e.stopPropagation()}>
+            <RejectModalIcon>🚫</RejectModalIcon>
+            <RejectModalTitle>Reject Listing</RejectModalTitle>
+            <RejectModalSub>
+              "{rejectModal.title}" by {rejectModal.seller_name || "Unknown"}
+            </RejectModalSub>
+            <RejectReasonLabel>
+              Reason (optional — sent to seller)
+            </RejectReasonLabel>
+            <RejectReasonTextarea
+              rows={3}
+              placeholder="e.g. Image is unclear, price is missing, category mismatch…"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              maxLength={300}
+            />
+            <RejectModalActions>
+              <RejectCancelBtn
+                onClick={() => {
+                  setRejectModal(null);
+                  setRejectReason("");
+                }}
+              >
+                Cancel
+              </RejectCancelBtn>
+              <RejectConfirmBtn
+                onClick={() => {
+                  deleteListing(rejectModal.id, {
+                    onSuccess: () => {
+                      notifySeller({
+                        seller_id: rejectModal.seller_id,
+                        title: "Listing Not Approved",
+                        body: rejectReason.trim()
+                          ? `Your listing "${rejectModal.title}" was not approved. Reason: ${rejectReason.trim()}`
+                          : `Your listing "${rejectModal.title}" was reviewed and not approved at this time.`,
+                      });
+                      setRejectModal(null);
+                      setRejectReason("");
+                    },
+                  });
+                }}
+              >
+                Reject & Notify Seller
+              </RejectConfirmBtn>
+            </RejectModalActions>
+          </RejectReasonModal>
+        </PreviewOverlay>
       )}
 
       <AppNavbar />
@@ -773,6 +996,15 @@ const Admin = () => {
                     )}
                   </SearchWrap>
                   <CountPill>{filteredUsers.length} users</CountPill>
+                  <CsvBtn onClick={() => downloadCSV("users.csv", filteredUsers, [
+                    { label: "ID",        fn: (u) => shortId(u.id) },
+                    { label: "Name",      key: "full_name" },
+                    { label: "Farm",      key: "farm_name" },
+                    { label: "Location",  key: "location" },
+                    { label: "Admin",     fn: (u) => u.is_admin ? "Yes" : "No" },
+                    { label: "Banned",    fn: (u) => u.is_banned ? "Yes" : "No" },
+                    { label: "Joined",    fn: (u) => new Date(u.created_at).toLocaleDateString() },
+                  ])}>↓ CSV</CsvBtn>
                 </ToolBar>
 
                 {loadingUsers ? (
@@ -942,7 +1174,6 @@ const Admin = () => {
 
                 <ToolBar>
                   <SearchWrap>
-                    <SearchIcon>🔍</SearchIcon>
                     <SearchBox
                       placeholder="Search title, category, location…"
                       value={listSearch}
@@ -953,6 +1184,16 @@ const Admin = () => {
                     )}
                   </SearchWrap>
                   <CountPill>{filteredListings.length} listings</CountPill>
+                  <CsvBtn onClick={() => downloadCSV("listings.csv", filteredListings, [
+                    { label: "Title",     key: "title" },
+                    { label: "Seller",    key: "seller_name" },
+                    { label: "Category", key: "category" },
+                    { label: "Price",    key: "price" },
+                    { label: "Unit",     key: "unit" },
+                    { label: "Location", key: "location" },
+                    { label: "Approved", fn: (l) => l.approved ? "Yes" : "No" },
+                    { label: "Posted",   fn: (l) => new Date(l.created_at).toLocaleDateString() },
+                  ])}>↓ CSV</CsvBtn>
                 </ToolBar>
 
                 {loadingLists ? (
@@ -1102,7 +1343,6 @@ const Admin = () => {
 
                 <ToolBar>
                   <SearchWrap>
-                    <SearchIcon>🔍</SearchIcon>
                     <SearchBox
                       placeholder="Search ID, address, phone…"
                       value={orderSearch}
@@ -1113,6 +1353,15 @@ const Admin = () => {
                     )}
                   </SearchWrap>
                   <CountPill>{filteredOrders.length} orders</CountPill>
+                  <CsvBtn onClick={() => downloadCSV("orders.csv", filteredOrders, [
+                    { label: "Order ID",  fn: (o) => shortId(o.id) },
+                    { label: "Status",    key: "status" },
+                    { label: "Total",     fn: (o) => `Kes ${o.total_cost ?? 0}` },
+                    { label: "Payment",   key: "payment_method" },
+                    { label: "Address",   key: "delivery_address" },
+                    { label: "Phone",     key: "mobile_no" },
+                    { label: "Date",      fn: (o) => new Date(o.created_at).toLocaleDateString() },
+                  ])}>↓ CSV</CsvBtn>
                 </ToolBar>
 
                 {selectedOrders.size > 0 && (
@@ -1477,39 +1726,222 @@ const Admin = () => {
                       <PostModerationCard key={post.id}>
                         <PostModerationMeta>
                           <PostModerationAvatar
-                            src={post.profiles?.avatar_url || "/user.jpg"}
-                            alt={post.profiles?.full_name}
-                            onError={(e) => { e.target.src = "/user.jpg"; }}
+                            src={post.user_image_url || "/user.jpg"}
+                            alt={post.author}
+                            onError={(e) => {
+                              e.target.src = "/user.jpg";
+                            }}
                           />
                           <div>
                             <PostModerationAuthor>
-                              {post.profiles?.full_name || post.author || "User"}
+                              {post.author || "User"}
                             </PostModerationAuthor>
                             <PostModerationDate>
-                              {new Date(post.created_at).toLocaleDateString("en-KE", {
-                                month: "short", day: "numeric", year: "numeric",
-                              })}
+                              {new Date(post.created_at).toLocaleDateString(
+                                "en-KE",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                },
+                              )}
                             </PostModerationDate>
                           </div>
                         </PostModerationMeta>
 
-                        {post.title && <PostModerationTitle>{post.title}</PostModerationTitle>}
-                        {post.content && <PostModerationContent>{post.content}</PostModerationContent>}
+                        {post.title && (
+                          <PostModerationTitle>
+                            {post.title}
+                          </PostModerationTitle>
+                        )}
+                        {post.content && (
+                          <PostModerationContent>
+                            {post.content}
+                          </PostModerationContent>
+                        )}
                         {post.image_url && (
-                          <PostModerationImage src={post.image_url} alt="post" />
+                          <PostModerationImage
+                            src={post.image_url}
+                            alt="post"
+                          />
                         )}
 
                         <PostModerationActions>
-                          <ApproveBtn onClick={() => approvePost(post.id)}>
+                          <SmallApproveBtn onClick={() => approvePost(post.id)}>
                             ✓ Approve
-                          </ApproveBtn>
-                          <RejectBtn onClick={() => rejectPost(post.id)}>
+                          </SmallApproveBtn>
+                          <DangerBtn onClick={() => rejectPost(post.id)}>
                             ✕ Reject
-                          </RejectBtn>
+                          </DangerBtn>
                         </PostModerationActions>
                       </PostModerationCard>
                     ))}
                   </>
+                )}
+              </Fade>
+            )}
+
+            {/* ══════════════════════════════════════════════════════════════
+                PENDING LISTINGS
+            ══════════════════════════════════════════════════════════════ */}
+            {tab === "pendingListings" && (
+              <Fade key="pendingListings">
+                <PageHeading>Pending Listings</PageHeading>
+
+                {loadingPendingListings ? (
+                  <LoadMsg>Loading pending listings…</LoadMsg>
+                ) : pendingListings.length === 0 ? (
+                  <EmptyCard>
+                    <EmptyIcon>✅</EmptyIcon>
+                    <EmptyTitle>All caught up!</EmptyTitle>
+                    <EmptySub>No listings are waiting for approval.</EmptySub>
+                  </EmptyCard>
+                ) : (
+                  <DataCard>
+                    <ToolBar
+                      style={{
+                        padding: "14px 16px",
+                        borderBottom: "1px solid #f0f7ee",
+                        gap: 10,
+                      }}
+                    >
+                      <SearchWrap style={{ flex: 1 }}>
+                        <SearchBox
+                          placeholder="Search title, seller, category…"
+                          value={pendingSearch}
+                          onChange={(e) => setPendingSearch(e.target.value)}
+                        />
+                        {pendingSearch && (
+                          <ClearBtn onClick={() => setPendingSearch("")}>
+                            ✕
+                          </ClearBtn>
+                        )}
+                      </SearchWrap>
+                      <CountPill>
+                        {filteredPendingListings.length} pending
+                      </CountPill>
+                      <ApproveAllBtn
+                        disabled={approvingAll}
+                        onClick={() =>
+                          approveAllListings(undefined, {
+                            onSuccess: () =>
+                              pendingListings.forEach((l) =>
+                                notifySeller({
+                                  seller_id: l.seller_id,
+                                  title: "Listing Approved ✅",
+                                  body: `Your listing "${l.title}" has been approved and is now live.`,
+                                  detail: { listing_id: l.id, image_url: l.image_url },
+                                }),
+                              ),
+                          })
+                        }
+                      >
+                        {approvingAll ? "Approving…" : "Approve All"}
+                      </ApproveAllBtn>
+                    </ToolBar>
+                    <DataScroll>
+                      <DataTable>
+                        <thead>
+                          <tr>
+                            <TH>Product</TH>
+                            <TH>Seller</TH>
+                            <TH>Category</TH>
+                            <TH>Price</TH>
+                            <TH>Submitted</TH>
+                            <TH>Actions</TH>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredPendingListings.map((l) => (
+                            <TR key={l.id}>
+                              <TD>
+                                <ListingCell>
+                                  <ListingThumb
+                                    src={l.image_url || "/afarmer.jpg"}
+                                    alt={l.title}
+                                    onError={(e) => {
+                                      e.target.src = "/afarmer.jpg";
+                                    }}
+                                  />
+                                  <ListingTitle>{l.title}</ListingTitle>
+                                </ListingCell>
+                              </TD>
+                              <TD>
+                                <Muted>{l.seller_name || "—"}</Muted>
+                              </TD>
+                              <TD>
+                                {l.category ? (
+                                  <CatTag
+                                    style={{
+                                      background: "#e8f5e9",
+                                      color: "#2f5a2a",
+                                    }}
+                                  >
+                                    {l.category}
+                                  </CatTag>
+                                ) : (
+                                  <Muted>—</Muted>
+                                )}
+                              </TD>
+                              <TD>
+                                <PriceText>
+                                  Kes {l.price}
+                                  {l.unit ? ` / ${l.unit}` : ""}
+                                </PriceText>
+                              </TD>
+                              <TD>
+                                <Muted>{formatSmartDate(l.created_at)}</Muted>
+                              </TD>
+                              <TD>
+                                <InlineActions>
+                                  <ViewBtn onClick={() => setReviewListing(l)}>
+                                    Review
+                                  </ViewBtn>
+                                  <SmallApproveBtn
+                                    disabled={approvingOne}
+                                    onClick={() =>
+                                      approveListing(l.id, {
+                                        onSuccess: () =>
+                                          notifySeller({
+                                            seller_id: l.seller_id,
+                                            title: "Listing Approved ✅",
+                                            body: `Your listing "${l.title}" has been approved and is now live.`,
+                                            detail: { listing_id: l.id, image_url: l.image_url },
+                                          }),
+                                      })
+                                    }
+                                  >
+                                    ✓
+                                  </SmallApproveBtn>
+                                  <DangerBtn onClick={() => setRejectModal(l)}>
+                                    ✕
+                                  </DangerBtn>
+                                </InlineActions>
+                              </TD>
+                            </TR>
+                          ))}
+                          {filteredPendingListings.length === 0 && (
+                            <tr>
+                              <TD
+                                colSpan={6}
+                                style={{
+                                  textAlign: "center",
+                                  padding: "32px",
+                                  color: "#9ca3af",
+                                }}
+                              >
+                                No listings match your search.
+                              </TD>
+                            </tr>
+                          )}
+                        </tbody>
+                      </DataTable>
+                    </DataScroll>
+                    <TableFooter>
+                      Showing {filteredPendingListings.length} of{" "}
+                      {pendingListings.length} pending
+                    </TableFooter>
+                  </DataCard>
                 )}
               </Fade>
             )}
@@ -1600,6 +2032,16 @@ export default Admin;
 const fadeUp = keyframes`
   from { opacity:0; transform:translateY(10px); }
   to   { opacity:1; transform:translateY(0); }
+`;
+
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to   { opacity: 1; }
+`;
+
+const popUp = keyframes`
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 `;
 
 const Fade = styled.div`
@@ -1905,7 +2347,10 @@ const PeriodBtn = styled.button`
   color: ${({ $active }) => ($active ? "white" : "#6b7280")};
   cursor: pointer;
   transition: all 0.15s;
-  &:hover { border-color: #2f5a2a; color: ${({ $active }) => ($active ? "white" : "#2f5a2a")}; }
+  &:hover {
+    border-color: #2f5a2a;
+    color: ${({ $active }) => ($active ? "white" : "#2f5a2a")};
+  }
 `;
 
 const TwoColGrid = styled.div`
@@ -2007,14 +2452,10 @@ const SearchWrap = styled.div`
   display: flex;
   align-items: center;
 `;
-const SearchIcon = styled.span`
-  position: absolute;
-  left: 12px;
-  font-size: 0.9rem;
-  pointer-events: none;
-`;
+
 const SearchBox = styled.input`
   width: 100%;
+  font-size: 16px;
   padding: 9px 36px;
   border-radius: 10px;
   border: 1.5px solid #e5e7eb;
@@ -2398,7 +2839,25 @@ const DangerBtn = styled.button`
   border: 1px solid #fecaca;
   white-space: nowrap;
   transition: all 0.15s;
-  &:hover { background: #991b1b; color: white; border-color: #991b1b; }
+  &:hover {
+    background: #991b1b;
+    color: white;
+    border-color: #991b1b;
+  }
+`;
+
+const CsvBtn = styled.button`
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #f0fdf4;
+  color: #2f5a2a;
+  border: 1px solid #a5d6a7;
+  white-space: nowrap;
+  transition: all 0.15s;
+  &:hover { background: #2f5a2a; color: white; border-color: #2f5a2a; }
 `;
 
 // ── Disputes ──
@@ -2678,13 +3137,363 @@ const LoadMsg = styled.div`
 
 // ── Post moderation cards ──
 
+const ViewBtn = styled.button`
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  white-space: nowrap;
+  transition: all 0.15s;
+  &:hover {
+    background: #1d4ed8;
+    color: white;
+    border-color: #1d4ed8;
+  }
+`;
+
+// ── Listing preview modal ──
+
+const PreviewOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 20px;
+  animation: ${fadeIn} 0.18s ease;
+`;
+
+const PreviewModal = styled.div`
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+  animation: ${popUp} 0.22s ease;
+  position: relative;
+`;
+
+const PreviewClose = styled.button`
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.35);
+  color: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: background 0.15s;
+  &:hover {
+    background: rgba(0, 0, 0, 0.6);
+  }
+`;
+
+const PreviewImage = styled.img`
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 20px 20px 0 0;
+  display: block;
+`;
+
+const PreviewBody = styled.div`
+  padding: 20px 24px 24px;
+`;
+
+const PreviewMeta = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+`;
+
+const PreviewCatChip = styled.span`
+  background: #e8f5e9;
+  color: #2f5a2a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+`;
+
+const PreviewStatus = styled.span`
+  background: #fff8e1;
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+`;
+
+const PreviewTitle = styled.h2`
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
+`;
+
+const PreviewPrice = styled.p`
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #2f5a2a;
+  margin: 0 0 16px;
+`;
+
+const PreviewSellerRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+`;
+
+const PreviewAvatar = styled.img`
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e8f0e8;
+  flex-shrink: 0;
+`;
+
+const PreviewSellerName = styled.p`
+  margin: 0 0 2px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a3318;
+`;
+
+const PreviewSellerSub = styled.p`
+  margin: 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+`;
+
+const PreviewDivider = styled.div`
+  height: 1px;
+  background: #f0f7ee;
+  margin: 0 0 16px;
+`;
+
+const PreviewSection = styled.div`
+  margin-bottom: 16px;
+`;
+
+const PreviewSectionLabel = styled.p`
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin: 0 0 6px;
+`;
+
+const PreviewDesc = styled.p`
+  font-size: 0.9rem;
+  color: #374151;
+  line-height: 1.75;
+  margin: 0;
+  white-space: pre-wrap;
+`;
+
+const PreviewChipRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+`;
+
+const PreviewChip = styled.span`
+  background: #f5f8f5;
+  border: 1px solid #e2eae2;
+  color: #374151;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+`;
+
+const PreviewActions = styled.div`
+  display: flex;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f7ee;
+`;
+
+const RejectReasonModal = styled.div`
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  padding: 28px 28px 24px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+  animation: ${popUp} 0.22s ease;
+`;
+
+const RejectModalIcon = styled.div`
+  font-size: 2rem;
+  margin-bottom: 12px;
+  text-align: center;
+`;
+
+const RejectModalTitle = styled.h3`
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin: 0 0 4px;
+  text-align: center;
+`;
+
+const RejectModalSub = styled.p`
+  font-size: 0.82rem;
+  color: #6b7280;
+  text-align: center;
+  margin: 0 0 20px;
+`;
+
+const RejectReasonLabel = styled.label`
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+`;
+
+const RejectReasonTextarea = styled.textarea`
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.9rem;
+  color: #111827;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s;
+  &:focus {
+    border-color: #ef4444;
+  }
+  &::placeholder {
+    color: #d1d5db;
+  }
+`;
+
+const RejectModalActions = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+`;
+
+const RejectCancelBtn = styled.button`
+  flex: 1;
+  padding: 11px;
+  border-radius: 12px;
+  border: 1.5px solid #e5e7eb;
+  background: white;
+  color: #374151;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover {
+    background: #f9fafb;
+  }
+`;
+
+const RejectConfirmBtn = styled.button`
+  flex: 2;
+  padding: 11px;
+  border-radius: 12px;
+  border: none;
+  background: #ef4444;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover {
+    background: #dc2626;
+  }
+`;
+
+const InlineActions = styled.div`
+  display: flex;
+  gap: 6px;
+  align-items: center;
+`;
+
+const SmallApproveBtn = styled.button`
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #e8f5e9;
+  color: #2f5a2a;
+  border: 1px solid #a5d6a7;
+  white-space: nowrap;
+  transition: all 0.15s;
+  &:hover {
+    background: #2f5a2a;
+    color: white;
+    border-color: #2f5a2a;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const ApproveAllBtn = styled.button`
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+  &:hover {
+    background: #1e3d1a;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
 const PostModerationCard = styled.div`
   background: white;
   border-radius: 16px;
   border: 1.5px solid #e8f0e8;
   padding: 18px 20px;
   margin-bottom: 14px;
-  box-shadow: 0 2px 10px rgba(20,57,32,0.05);
+  box-shadow: 0 2px 10px rgba(20, 57, 32, 0.05);
 `;
 
 const PostModerationMeta = styled.div`
@@ -2695,7 +3504,8 @@ const PostModerationMeta = styled.div`
 `;
 
 const PostModerationAvatar = styled.img`
-  width: 38px; height: 38px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #e8f0e8;
@@ -2741,10 +3551,11 @@ const PostModerationImage = styled.img`
 
 const PostModerationActions = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-top: 14px;
-  padding-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid #f0f7ee;
+  justify-content: flex-end;
 `;
 
 const ApproveBtn = styled.button`
@@ -2758,7 +3569,9 @@ const ApproveBtn = styled.button`
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
-  &:hover { background: #1e3d1a; }
+  &:hover {
+    background: #1e3d1a;
+  }
 `;
 
 const RejectBtn = styled.button`
@@ -2772,7 +3585,11 @@ const RejectBtn = styled.button`
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s;
-  &:hover { background: #a32d2d; color: white; border-color: #a32d2d; }
+  &:hover {
+    background: #a32d2d;
+    color: white;
+    border-color: #a32d2d;
+  }
 `;
 
 // ── Access denied ──

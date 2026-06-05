@@ -11,6 +11,11 @@ import {
   useDashboardStats,
   useToggleAvailability,
 } from "../../hooks/useDashboard";
+import { useProfile } from "../../hooks/useProfile";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer,
+} from "recharts";
 import { formatSmartDate } from "../../hooks/dateFormat";
 
 // ─── TOKENS ──────────────────────────────────────────────────────────────────
@@ -189,6 +194,89 @@ const RevenueLink = styled.span`
 `;
 
 // ─── STAT CARDS ──────────────────────────────────────────────────────────────
+const ProfileBanner = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(135deg, #fff8e5, #fef3c7);
+  border: 1.5px solid #fde68a;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+`;
+
+const ProfileBannerLeft = styled.div`flex: 1;`;
+
+const ProfileBannerTitle = styled.p`
+  margin: 0 0 3px;
+  font-size: 0.93rem;
+  font-weight: 800;
+  color: #92400e;
+`;
+
+const ProfileBannerSub = styled.p`
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  color: #b45309;
+`;
+
+const ProfileProgress = styled.div`
+  height: 6px;
+  background: #fde68a;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 5px;
+`;
+
+const ProfileProgressBar = styled.div`
+  height: 100%;
+  width: ${({ $pct }) => $pct}%;
+  background: #d97706;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+`;
+
+const ProfileBannerPct = styled.p`
+  margin: 0;
+  font-size: 0.75rem;
+  color: #b45309;
+  font-weight: 700;
+`;
+
+const ProfileBannerBtn = styled.button`
+  padding: 9px 18px;
+  border-radius: 10px;
+  background: #d97706;
+  color: white;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  &:hover { background: #b45309; }
+`;
+
+const ChartCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 20px 20px 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(20,57,32,0.06);
+  border: 1px solid ${C.border};
+`;
+
+const ChartTitle = styled.p`
+  margin: 0 0 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: ${C.textMuted};
+`;
+
 const StatsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -808,6 +896,35 @@ const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: stats } = useDashboardStats(seller_id);
+  const { data: profile } = useProfile(seller_id);
+
+  // Profile completion check
+  const profileFields = [
+    { key: "avatar_url",  label: "Profile photo",  path: "/edit-profile" },
+    { key: "farm_name",   label: "Farm name",       path: "/edit-profile" },
+    { key: "location",    label: "Location",         path: "/edit-profile" },
+    { key: "description", label: "Bio / description", path: "/edit-profile" },
+  ];
+  const missingFields = profileFields.filter((f) => !profile?.[f.key]);
+  const completionPct = Math.round(((profileFields.length - missingFields.length) / profileFields.length) * 100);
+
+  // Revenue chart — last 7 days from ordersRaw
+  const revenueChart = (() => {
+    const raw = stats?.ordersRaw ?? [];
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return d;
+    });
+    return days.map((d) => {
+      const label = d.toLocaleDateString("en-KE", { weekday: "short" });
+      const rev = raw
+        .filter((item) => item.orders?.created_at &&
+          new Date(item.orders.created_at).toDateString() === d.toDateString())
+        .reduce((s, item) => s + (item.price_at_purchase * item.quantity || 0), 0);
+      return { day: label, revenue: rev };
+    });
+  })();
   const { data: listings = [], isLoading: loadingListings } =
     useSellerListings(seller_id);
   const { data: orderItems = [], isLoading: loadingOrders } =
@@ -887,6 +1004,25 @@ const Dashboard = () => {
           {/* <AddBtn onClick={() => navigate("/newlist")}>+ New Listing</AddBtn> */}
         </TopBar>
 
+        {/* PROFILE COMPLETION BANNER */}
+        {missingFields.length > 0 && (
+          <ProfileBanner>
+            <ProfileBannerLeft>
+              <ProfileBannerTitle>Complete your profile</ProfileBannerTitle>
+              <ProfileBannerSub>
+                Missing: {missingFields.map((f) => f.label).join(", ")}
+              </ProfileBannerSub>
+              <ProfileProgress>
+                <ProfileProgressBar $pct={completionPct} />
+              </ProfileProgress>
+              <ProfileBannerPct>{completionPct}% complete</ProfileBannerPct>
+            </ProfileBannerLeft>
+            <ProfileBannerBtn onClick={() => navigate("/edit-profile")}>
+              Complete →
+            </ProfileBannerBtn>
+          </ProfileBanner>
+        )}
+
         {/* STATS */}
         <StatsGrid>
           <RevenueCard $delay="0s" onClick={() => navigate("/sales")}>
@@ -918,6 +1054,29 @@ const Dashboard = () => {
           </StatCard>
 
         </StatsGrid>
+
+        {/* REVENUE CHART */}
+        <ChartCard>
+          <ChartTitle>Revenue — Last 7 Days</ChartTitle>
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={revenueChart} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+              <defs>
+                <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor="#2f5a2a" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#2f5a2a" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e8f2e8" />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#7b9b7b" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: "#7b9b7b" }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ borderRadius: 10, border: "1px solid #e8f2e8", fontSize: 12 }}
+                formatter={(v) => [`Kes ${v.toLocaleString()}`, "Revenue"]}
+              />
+              <Area type="monotone" dataKey="revenue" stroke="#2f5a2a" strokeWidth={2.5} fill="url(#revGrad)" dot={{ r: 3, fill: "#2f5a2a" }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
 
         {/* TABS */}
         <TabRow>

@@ -40,6 +40,7 @@ const NewListing = () => {
   const { mutate, isPending } = useCreateListing();
   const navigate = useNavigate();
 
+  const [submitted, setSubmitted] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -87,9 +88,52 @@ const NewListing = () => {
         phone,
         available,
       },
-      { onSuccess: () => navigate("/list") },
+      { onSuccess: () => setSubmitted(true) },
     );
   };
+
+  if (submitted) {
+    return (
+      <>
+        <AppNavbar />
+        <PendingPage>
+          <PendingCard>
+            <PendingIcon>🕐</PendingIcon>
+            <PendingTitle>Listing Submitted!</PendingTitle>
+            <PendingMessage>
+              Your listing is currently <strong>under review</strong> by our team.
+              Once approved, it will go live and be visible to buyers on AFARMER™.
+            </PendingMessage>
+            <PendingSteps>
+              <PendingStep $done>
+                <StepDot $done />
+                <span>Listing submitted</span>
+              </PendingStep>
+              <PendingStep>
+                <StepDot />
+                <span>Admin review</span>
+              </PendingStep>
+              <PendingStep>
+                <StepDot />
+                <span>Goes live for buyers</span>
+              </PendingStep>
+            </PendingSteps>
+            <PendingNote>
+              You'll receive a notification once your listing has been reviewed.
+            </PendingNote>
+            <PendingActions>
+              <PendingPrimary onClick={() => navigate("/dashboard")}>
+                Go to Dashboard
+              </PendingPrimary>
+              <PendingSecondary onClick={() => navigate("/mobile")}>
+                Back to Home
+              </PendingSecondary>
+            </PendingActions>
+          </PendingCard>
+        </PendingPage>
+      </>
+    );
+  }
 
   return (
     <>
@@ -346,6 +390,117 @@ export default NewListing;
 const Page = styled.div`
   min-height: 100vh;
   background: #f5f8f5;
+`;
+
+const PendingPage = styled.div`
+  min-height: 100vh;
+  background: #f5f8f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+`;
+
+const PendingCard = styled.div`
+  background: white;
+  border-radius: 24px;
+  padding: 40px 28px 32px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(20, 57, 32, 0.1);
+  animation: ${fadeUp} 0.4s ease;
+`;
+
+const PendingIcon = styled.div`
+  font-size: 3.2rem;
+  margin-bottom: 16px;
+  line-height: 1;
+`;
+
+const PendingTitle = styled.h2`
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1a3318;
+  margin: 0 0 12px;
+  letter-spacing: -0.3px;
+`;
+
+const PendingMessage = styled.p`
+  font-size: 0.92rem;
+  color: #4b5563;
+  line-height: 1.75;
+  margin: 0 0 24px;
+  strong { color: #2f5a2a; }
+`;
+
+const PendingSteps = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  background: #f5f8f5;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+`;
+
+const PendingStep = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  font-weight: ${({ $done }) => ($done ? "700" : "500")};
+  color: ${({ $done }) => ($done ? "#2f5a2a" : "#9ca3af")};
+`;
+
+const StepDot = styled.div`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: ${({ $done }) => ($done ? "#2f5a2a" : "#d1d5db")};
+`;
+
+const PendingNote = styled.p`
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin: 0 0 24px;
+  line-height: 1.6;
+`;
+
+const PendingActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const PendingPrimary = styled.button`
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  background: #2f5a2a;
+  color: white;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: #245026; }
+`;
+
+const PendingSecondary = styled.button`
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background: transparent;
+  color: #4b5563;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover { background: #f9fafb; border-color: #d1d5db; }
 `;
 
 const StickyHeader = styled.div`

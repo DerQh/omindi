@@ -53,6 +53,7 @@ import SalesDashboard from "./components/mobile/SalesDashboard";
 import Admin from "./components/mobile/Admin";
 import MyOrders from "./components/mobile/MyOrders";
 import ResetPassword from "./components/web/ResetPassword";
+import BackToTop from "./components/mobile/BackToTop";
 
 function App() {
   // Create a client
@@ -129,6 +130,7 @@ function App() {
             <Route path="*" element={<ErrorDisplay />} />
           </Routes>
         </BrowserRouter>
+        <BackToTop />
       </>
     </QueryClientProvider>
     </HelmetProvider>

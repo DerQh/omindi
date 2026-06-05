@@ -10,6 +10,7 @@ export function useListings() {
       const { data, error } = await supabase
         .from("listings")
         .select("*")
+        .eq("approved", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
       // console.log("Fetched listings:", data);
@@ -43,7 +44,8 @@ export function useSearchListings(query) {
     staleTime: 30000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .rpc("search_listings", { search_query: query.trim() });
+        .rpc("search_listings", { search_query: query.trim() })
+        .eq("approved", true);
       if (error) throw error;
       return data ?? [];
     },

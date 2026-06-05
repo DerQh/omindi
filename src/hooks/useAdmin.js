@@ -97,8 +97,12 @@ export function useAdminDeleteListing() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id) => {
-      const { error } = await supabase.from("listings").delete().eq("id", id);
+      const { error, count } = await supabase
+        .from("listings")
+        .delete({ count: "exact" })
+        .eq("id", id);
       if (error) throw error;
+      if (count === 0) throw new Error("Delete blocked — add admin DELETE policy on listings table in Supabase.");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin"] }),
   });
@@ -217,6 +221,101 @@ export function useAdminDeleteReview() {
   });
 }
 
+// ─── Listing approval ─────────────────────────────────────────────────────────
+
+// Fetches all listings pending admin approval (approved = false).
+export function useAdminPendingListings() {
+  return useQuery({
+    queryKey: ["admin", "pendingListings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("listings")
+        .select("*")
+        .or("approved.eq.false,approved.is.null")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// Approves a single listing — optimistically removes it from the pending cache immediately.
+export function useAdminApproveListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const { data, error } = await supabase
+        .from("listings")
+        .update({ approved: true })
+        .eq("id", id)
+        .select("id");
+      if (error) throw error;
+      if (!data?.length) throw new Error("Approval blocked — add admin UPDATE policy on listings table in Supabase.");
+    },
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["admin", "pendingListings"] });
+      const previous = qc.getQueryData(["admin", "pendingListings"]);
+      qc.setQueryData(["admin", "pendingListings"], (old) =>
+        (old ?? []).filter((l) => l.id !== id)
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      qc.setQueryData(["admin", "pendingListings"], context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "pendingListings"] });
+      qc.invalidateQueries({ queryKey: ["listings"] });
+    },
+  });
+}
+
+// Approves all pending listings — covers both approved=false and approved=null rows.
+export function useAdminApproveAllListings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase
+        .from("listings")
+        .update({ approved: true })
+        .or("approved.eq.false,approved.is.null")
+        .select("id");
+      if (error) throw error;
+      if (!data?.length) throw new Error("Approval blocked — add admin UPDATE policy on listings table in Supabase.");
+    },
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["admin", "pendingListings"] });
+      const previous = qc.getQueryData(["admin", "pendingListings"]);
+      qc.setQueryData(["admin", "pendingListings"], []);
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      qc.setQueryData(["admin", "pendingListings"], context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "pendingListings"] });
+      qc.invalidateQueries({ queryKey: ["listings"] });
+    },
+  });
+}
+
+// Sends a targeted notification to a single seller (used for listing approve/reject feedback).
+export function useAdminNotifySeller() {
+  return useMutation({
+    mutationFn: async ({ seller_id, title, body, detail = {} }) => {
+      const { error } = await supabase.from("notifications").insert({
+        user_id: seller_id,
+        type: "system",
+        title,
+        body,
+        detail,
+        read: false,
+      });
+      if (error) throw error;
+    },
+  });
+}
+
 // ─── Posts moderation ─────────────────────────────────────────────────────────
 
 // Fetches all posts pending admin approval.
@@ -226,8 +325,8 @@ export function useAdminPendingPosts() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("posts")
-        .select("*, profiles!user_id(full_name, avatar_url)")
-        .eq("approved", false)
+        .select("*")
+        .or("approved.eq.false,approved.is.null")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
