@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../../supabase";
+import { queryClient } from "../App";
 
 const AuthContext = createContext();
 
@@ -13,7 +14,24 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
-      setUser(data?.session?.user ?? null);
+      const sessionUser = data?.session?.user ?? null;
+
+      if (sessionUser) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_banned")
+          .eq("id", sessionUser.id)
+          .single();
+
+        if (profile?.is_banned) {
+          await supabase.auth.signOut();
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+      }
+
+      setUser(sessionUser);
       setLoading(false);
     };
 
@@ -62,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   // ✅ LOGOUT
   const logout = async () => {
     await supabase.auth.signOut();
-    console.log("User logged out");
+    queryClient.clear();
   };
 
   return (

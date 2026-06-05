@@ -592,7 +592,7 @@ const FooterBtn = styled.button`
     background 0.15s,
     color 0.15s;
   color: ${({ $liked }) => ($liked ? "#ef4444" : "#6b7280")};
-  ${({ $pop }) => $pop && `animation: ${heartPop} 0.42s ease;`}
+  ${({ $pop }) => $pop && css`animation: ${heartPop} 0.42s ease;`}
   &:active { transform: scale(0.92); }
   &:hover {
     background: #f0fdf4;

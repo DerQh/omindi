@@ -18,6 +18,7 @@ import {
   Cell,
 } from "recharts";
 import { useIsAdmin } from "../../hooks/useShopAdmin";
+import { useToast } from "../../context/ToastContext";
 import { useUser } from "../../hooks/useUser";
 import {
   useAdminStats,
@@ -180,6 +181,7 @@ const Admin = () => {
   const [tab, setTab] = useState("overview");
   const [period, setPeriod] = useState("month");
   const [userSearch, setUserSearch] = useState("");
+  const [showBannedOnly, setShowBannedOnly] = useState(false);
   const [listSearch, setListSearch] = useState("");
   const [orderSearch, setOrderSearch] = useState("");
   const [orderStatus, setOrderStatus] = useState("all");
@@ -190,6 +192,7 @@ const Admin = () => {
   const [broadcastBody, setBroadcastBody] = useState("");
   const [broadcastDone, setBroadcastDone] = useState(false);
 
+  const toast = useToast();
   const { data: currentUser } = useUser();
   const { data: isAdmin, isLoading: checkingAdmin } = useIsAdmin(
     currentUser?.id,
@@ -272,11 +275,16 @@ const Admin = () => {
     const q = userSearch.toLowerCase();
     return (users ?? []).filter(
       (u) =>
-        (u.farm_name ?? "").toLowerCase().includes(q) ||
-        (u.full_name ?? "").toLowerCase().includes(q) ||
-        (u.email ?? "").toLowerCase().includes(q),
+        (!showBannedOnly || u.is_banned) &&
+        (
+          (u.farm_name ?? "").toLowerCase().includes(q) ||
+          (u.full_name ?? "").toLowerCase().includes(q) ||
+          (u.email ?? "").toLowerCase().includes(q)
+        ),
     );
-  }, [users, userSearch]);
+  }, [users, userSearch, showBannedOnly]);
+
+  const bannedCount = (users ?? []).filter((u) => u.is_banned).length;
 
   const filteredListings = useMemo(() => {
     const q = listSearch.toLowerCase();
@@ -355,11 +363,20 @@ const Admin = () => {
     if (!confirmAction) return;
     const { type, id } = confirmAction;
     if (type === "deleteUser")
-      deleteUser(id, { onSuccess: () => setConfirmAction(null) });
+      deleteUser(id, {
+        onSuccess: () => { setConfirmAction(null); toast("User removed.", "success"); },
+        onError: () => toast("Failed to remove user.", "error"),
+      });
     if (type === "deleteListing")
-      deleteListing(id, { onSuccess: () => setConfirmAction(null) });
+      deleteListing(id, {
+        onSuccess: () => { setConfirmAction(null); toast("Listing removed.", "success"); },
+        onError: () => toast("Failed to remove listing.", "error"),
+      });
     if (type === "deleteReview")
-      deleteReview(id, { onSuccess: () => setConfirmAction(null) });
+      deleteReview(id, {
+        onSuccess: () => { setConfirmAction(null); toast("Review removed.", "success"); },
+        onError: () => toast("Failed to remove review.", "error"),
+      });
     setConfirmAction(null);
   };
 
@@ -996,6 +1013,14 @@ const Admin = () => {
                     )}
                   </SearchWrap>
                   <CountPill>{filteredUsers.length} users</CountPill>
+                  {bannedCount > 0 && (
+                    <BannedFilterBtn
+                      $active={showBannedOnly}
+                      onClick={() => setShowBannedOnly((v) => !v)}
+                    >
+                      🚫 Banned {bannedCount > 0 && `(${bannedCount})`}
+                    </BannedFilterBtn>
+                  )}
                   <CsvBtn onClick={() => downloadCSV("users.csv", filteredUsers, [
                     { label: "ID",        fn: (u) => shortId(u.id) },
                     { label: "Name",      key: "full_name" },
@@ -1046,6 +1071,7 @@ const Admin = () => {
                                     <UserInfo>
                                       <UserPrimary>
                                         {u.full_name || u.username || "—"}
+                                        {u.is_banned && <BannedBadge>Banned</BannedBadge>}
                                       </UserPrimary>
                                       {u.email && (
                                         <UserSecondary>{u.email}</UserSecondary>
@@ -1111,14 +1137,21 @@ const Admin = () => {
                                   <BanBtn
                                     $banned={u.is_banned}
                                     onClick={() =>
-                                      banUser({
-                                        id: u.id,
-                                        is_banned: !u.is_banned,
-                                      })
+                                      banUser(
+                                        { id: u.id, is_banned: !u.is_banned },
+                                        {
+                                          onSuccess: () =>
+                                            toast(
+                                              u.is_banned
+                                                ? `${u.full_name || "User"} unbanned.`
+                                                : `${u.full_name || "User"} has been banned.`,
+                                              u.is_banned ? "success" : "error"
+                                            ),
+                                          onError: () => toast("Action failed.", "error"),
+                                        }
+                                      )
                                     }
-                                    title={
-                                      u.is_banned ? "Unban user" : "Ban user"
-                                    }
+                                    title={u.is_banned ? "Unban user" : "Ban user"}
                                   >
                                     {u.is_banned ? "Unban" : "Ban"}
                                   </BanBtn>
@@ -2844,6 +2877,34 @@ const DangerBtn = styled.button`
     color: white;
     border-color: #991b1b;
   }
+`;
+
+const BannedFilterBtn = styled.button`
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  background: ${({ $active }) => ($active ? "#fef2f2" : "#f9fafb")};
+  color: ${({ $active }) => ($active ? "#991b1b" : "#6b7280")};
+  border: 1px solid ${({ $active }) => ($active ? "#fecaca" : "#e5e7eb")};
+  &:hover { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+`;
+
+const BannedBadge = styled.span`
+  display: inline-block;
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-left: 6px;
 `;
 
 const CsvBtn = styled.button`

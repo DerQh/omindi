@@ -60,7 +60,8 @@ const List = () => {
           item.title?.toLowerCase().includes(search) ||
           item.description?.toLowerCase().includes(search) ||
           item.category?.toLowerCase().includes(search) ||
-          item.location?.toLowerCase().includes(search),
+          item.location?.toLowerCase().includes(search) ||
+          item.seller_name?.toLowerCase().includes(search),
       );
     }
     if (activeCategory !== "All") {
@@ -127,7 +128,11 @@ const List = () => {
     if (!searchTerm || searchTerm.length < 2) return [];
     const q = searchTerm.toLowerCase();
     return (allData ?? [])
-      .filter((l) => l.title?.toLowerCase().includes(q) || l.category?.toLowerCase().includes(q))
+      .filter((l) =>
+        l.title?.toLowerCase().includes(q) ||
+        l.category?.toLowerCase().includes(q) ||
+        l.seller_name?.toLowerCase().includes(q)
+      )
       .slice(0, 5);
   }, [searchTerm, allData]);
 
@@ -208,6 +213,10 @@ const List = () => {
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setShowSuggestions(true); }}
                 onFocus={() => setShowSuggestions(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { setShowSuggestions(false); e.target.blur(); }
+                  if (e.key === "Escape") { setSearchTerm(""); setShowSuggestions(false); }
+                }}
               />
               {isSearching && <SearchSpinner>⟳</SearchSpinner>}
               {searchTerm && !isSearching && (

@@ -39,6 +39,8 @@ import UpcomingEvents from "./components/mobile/UpcomingEvent";
 import EventDetail from "./components/mobile/EventDetail";
 import Followers from "./components/mobile/Followers";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+export const queryClient = new QueryClient();
 import { HelmetProvider } from "react-helmet-async";
 import EditProfile from "./components/mobile/EditProfile";
 import { TestHooks } from "./components/mobile/TestHooks";
@@ -56,8 +58,6 @@ import ResetPassword from "./components/web/ResetPassword";
 import BackToTop from "./components/mobile/BackToTop";
 
 function App() {
-  // Create a client
-  const queryClient = new QueryClient();
   return (
     <HelmetProvider>
     <QueryClientProvider client={queryClient}>

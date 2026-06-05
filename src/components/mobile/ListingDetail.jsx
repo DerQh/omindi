@@ -84,7 +84,10 @@ const ListingDetail = () => {
 
   const { data: allListings = [] } = useListings();
   const otherSellers = allListings.filter(
-    (l) => l.id !== listing?.id && l.seller_id !== listing?.seller_id
+    (l) =>
+      l.id !== listing?.id &&
+      l.seller_id !== listing?.seller_id &&
+      l.seller_id !== user?.id
   );
   const related = otherSellers
     .filter((l) => l.category === listing?.category)
@@ -126,7 +129,7 @@ const ListingDetail = () => {
         navigate("/cart");
       } else {
         mutateAddItem(
-          { user_id: user?.id, listing_id: listing?.id },
+          { user_id: user?.id, listing_id: listing?.id, quantity: Number(quantity) || 1 },
           { onSuccess: () => navigate("/cart", { state: { listing } }) },
         );
       }
@@ -141,7 +144,7 @@ const ListingDetail = () => {
         setCartMsg({ text: "Item is already in your cart.", error: true });
       } else {
         mutateAddItem(
-          { user_id: user?.id, listing_id: listing?.id },
+          { user_id: user?.id, listing_id: listing?.id, quantity: Number(quantity) || 1 },
           { onSuccess: () => setCartMsg({ text: `✓ ${listing.title} added to cart.`, error: false }) },
         );
       }
@@ -314,8 +317,20 @@ const ListingDetail = () => {
                   >
                     −
                   </QtyBtn>
-                  <QtyVal>{quantity}</QtyVal>
-                  <QtyBtn onClick={() => setQuantity((q) => q + 1)}>+</QtyBtn>
+                  <QtyInput
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      if (!isNaN(val) && val >= 1) setQuantity(val);
+                      else if (e.target.value === "") setQuantity("");
+                    }}
+                    onBlur={() => {
+                      if (!quantity || quantity < 1) setQuantity(1);
+                    }}
+                  />
+                  <QtyBtn onClick={() => setQuantity((q) => (Number(q) || 0) + 1)}>+</QtyBtn>
                 </QuantityRow>
               </OptionBlock>
 
@@ -913,6 +928,25 @@ const QtyBtn = styled.button`
 
   &:hover { background: #eef7ee; }
   &:disabled { color: #cde5cf; cursor: not-allowed; }
+`;
+
+const QtyInput = styled.input`
+  width: 56px;
+  height: 44px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a2e1a;
+  border: none;
+  border-left: 1px solid #e8f0e8;
+  border-right: 1px solid #e8f0e8;
+  outline: none;
+  background: white;
+  font-family: inherit;
+  -moz-appearance: textfield;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  &:focus { background: #f5fef5; }
 `;
 
 const QtyVal = styled.span`

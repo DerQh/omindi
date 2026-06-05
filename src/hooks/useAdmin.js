@@ -174,20 +174,45 @@ export function useAdminUpdateOrderNote() {
   });
 }
 
-// Bans or unbans a user by toggling the is_banned flag on their profile.
-// Requires: ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_banned boolean DEFAULT false;
-// Banned users can still log in — enforce ban checks at the app/RLS level as needed.
+// Bans or unbans a user. When banning, all their listings are set to approved=false
+// so they disappear from the public feed immediately. Unbanning does not auto-restore
+// listings — they must go through admin approval again.
 export function useAdminBanUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, is_banned }) => {
-      const { error } = await supabase
+      const { data, error: profileError } = await supabase
         .from("profiles")
         .update({ is_banned })
-        .eq("id", id);
-      if (error) throw error;
+        .eq("id", id)
+        .select("id");
+      if (profileError) throw profileError;
+      if (!data?.length) throw new Error("Update blocked — add admin UPDATE policy on profiles table.");
+
+      if (is_banned) {
+        const { error: listingError } = await supabase
+          .from("listings")
+          .update({ approved: false })
+          .eq("seller_id", id);
+        if (listingError) throw listingError;
+      }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin"] }),
+    onMutate: async ({ id, is_banned }) => {
+      await qc.cancelQueries({ queryKey: ["admin", "users"] });
+      const previous = qc.getQueryData(["admin", "users"]);
+      qc.setQueryData(["admin", "users"], (old) =>
+        (old ?? []).map((u) => u.id === id ? { ...u, is_banned } : u)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      qc.setQueryData(["admin", "users"], context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["admin"] });
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      qc.invalidateQueries({ queryKey: ["admin", "pendingListings"] });
+    },
   });
 }
 

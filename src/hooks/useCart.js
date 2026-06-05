@@ -6,13 +6,13 @@ import { supabase } from "../../supabase";
 export function useAddItem() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ user_id, listing_id }) => {
+    mutationFn: async ({ user_id, listing_id, quantity = 1 }) => {
       const { data, error } = await supabase
         .from("cart")
         .insert({
           user_id: user_id,
           listing_id,
-          quantity: 1,
+          quantity: Number(quantity) || 1,
         })
         .select(); // 🔥 THIS IS IMPORTANT FOR DEBUGGING
 

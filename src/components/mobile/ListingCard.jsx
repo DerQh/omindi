@@ -1,4 +1,4 @@
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import { formatSmartDate } from "../../hooks/dateFormat";
 import {
   useCreateFavorite,
@@ -221,7 +221,7 @@ const FavBtn = styled.button`
     color: #ef4444;
   }
 
-  ${({ $pop }) => $pop && `animation: ${heartPop} 0.4s ease;`}
+  ${({ $pop }) => $pop && css`animation: ${heartPop} 0.4s ease;`}
 
   &:active {
     transform: scale(0.88);
