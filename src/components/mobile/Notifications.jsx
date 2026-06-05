@@ -728,21 +728,26 @@ const Notifications = () => {
                 onError={(e) => { e.target.style.display = "none"; }}
               />
             )}
-            <DetailRow>
-              <DetailLabel>Message</DetailLabel>
-              <DetailValue style={{ maxWidth: "68%", lineHeight: 1.55 }}>
-                {n.body || n.detail?.message}
-              </DetailValue>
-            </DetailRow>
-            {n.detail?.listing_id && (
+            {n.detail?.listing_id ? (
               <DetailActionBtn onClick={() => navigate(`/listing/${n.detail.listing_id}`)}>
                 View Approved Listing →
               </DetailActionBtn>
-            )}
-            {!n.detail?.listing_id && n.detail?.action && (
-              <DetailActionBtn onClick={() => navigate("/list")}>
-                {n.detail.action} →
-              </DetailActionBtn>
+            ) : (
+              <>
+                {n.detail?.message && (
+                  <DetailRow>
+                    <DetailLabel>Message</DetailLabel>
+                    <DetailValue style={{ maxWidth: "68%", lineHeight: 1.55 }}>
+                      {n.detail.message}
+                    </DetailValue>
+                  </DetailRow>
+                )}
+                {n.detail?.action && (
+                  <DetailActionBtn onClick={() => navigate("/list")}>
+                    {n.detail.action} →
+                  </DetailActionBtn>
+                )}
+              </>
             )}
           </DetailCard>
         );

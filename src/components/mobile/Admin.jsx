@@ -477,7 +477,7 @@ const Admin = () => {
                       onSuccess: () =>
                         notifySeller({
                           seller_id: l.seller_id,
-                          title: "Listing Approved ✅",
+                          title: "Listing Approved",
                           body: `Your listing "${l.title}" has been approved and is now live.`,
                           detail: { listing_id: l.id, image_url: l.image_url },
                         }),
@@ -1828,7 +1828,7 @@ const Admin = () => {
                               pendingListings.forEach((l) =>
                                 notifySeller({
                                   seller_id: l.seller_id,
-                                  title: "Listing Approved ✅",
+                                  title: "Listing Approved",
                                   body: `Your listing "${l.title}" has been approved and is now live.`,
                                   detail: { listing_id: l.id, image_url: l.image_url },
                                 }),
@@ -1904,7 +1904,7 @@ const Admin = () => {
                                         onSuccess: () =>
                                           notifySeller({
                                             seller_id: l.seller_id,
-                                            title: "Listing Approved ✅",
+                                            title: "Listing Approved",
                                             body: `Your listing "${l.title}" has been approved and is now live.`,
                                             detail: { listing_id: l.id, image_url: l.image_url },
                                           }),

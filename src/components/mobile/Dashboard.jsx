@@ -896,7 +896,7 @@ const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: stats } = useDashboardStats(seller_id);
-  const { data: profile } = useProfile(seller_id);
+  const { data: profile, isLoading: loadingProfile } = useProfile(seller_id);
 
   // Profile completion check
   const profileFields = [
@@ -1005,7 +1005,7 @@ const Dashboard = () => {
         </TopBar>
 
         {/* PROFILE COMPLETION BANNER */}
-        {missingFields.length > 0 && (
+        {!loadingProfile && missingFields.length > 0 && (
           <ProfileBanner>
             <ProfileBannerLeft>
               <ProfileBannerTitle>Complete your profile</ProfileBannerTitle>

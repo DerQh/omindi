@@ -538,6 +538,19 @@ const Profile = () => {
   // Profile is considered "complete" when both description and location are filled
   const isComplete = !!(profileData?.description && profileData?.location);
 
+  const profileFields = [
+    { key: "avatar_url",  label: "Profile photo" },
+    { key: "farm_name",   label: "Farm name" },
+    { key: "location",    label: "Location" },
+    { key: "description", label: "Bio" },
+  ];
+  const missingFields = !isLoading
+    ? profileFields.filter((f) => !profileData?.[f.key])
+    : [];
+  const completionPct = Math.round(
+    ((profileFields.length - missingFields.length) / profileFields.length) * 100
+  );
+
   const farmName = profileData?.farm_name || "My Farm";
   const location = profileData?.location;
   const description = profileData?.description;
@@ -597,6 +610,24 @@ const Profile = () => {
               Share
             </ShareBtn>
           </ActionRow>
+
+          {missingFields.length > 0 && (
+            <ProfileCompletionBanner>
+              <CompletionTop>
+                <CompletionTitle>Complete your profile</CompletionTitle>
+                <CompletionPct>{completionPct}%</CompletionPct>
+              </CompletionTop>
+              <CompletionBar>
+                <CompletionFill $pct={completionPct} />
+              </CompletionBar>
+              <CompletionMissing>
+                Missing: {missingFields.map((f) => f.label).join(" · ")}
+              </CompletionMissing>
+              <CompletionBtn onClick={() => navigate("/edit-profile")}>
+                Complete Profile →
+              </CompletionBtn>
+            </ProfileCompletionBanner>
+          )}
         </ProfileSection>
 
         {/* ── Stats bar ── */}
@@ -912,4 +943,69 @@ const ReviewComment = styled.p`
 const ReviewDate = styled.span`
   font-size: 0.75rem;
   color: #b0c4b0;
+`;
+
+const ProfileCompletionBanner = styled.div`
+  margin-top: 20px;
+  background: linear-gradient(135deg, #fff8e5, #fef3c7);
+  border: 1.5px solid #fde68a;
+  border-radius: 16px;
+  padding: 16px 18px;
+`;
+
+const CompletionTop = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+`;
+
+const CompletionTitle = styled.p`
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #92400e;
+`;
+
+const CompletionPct = styled.span`
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #d97706;
+`;
+
+const CompletionBar = styled.div`
+  height: 6px;
+  background: #fde68a;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+`;
+
+const CompletionFill = styled.div`
+  height: 100%;
+  width: ${({ $pct }) => $pct}%;
+  background: #d97706;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+`;
+
+const CompletionMissing = styled.p`
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  color: #b45309;
+  font-weight: 600;
+`;
+
+const CompletionBtn = styled.button`
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background: #d97706;
+  color: white;
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover { background: #b45309; }
 `;
