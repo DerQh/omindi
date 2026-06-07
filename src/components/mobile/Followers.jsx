@@ -197,7 +197,7 @@ const Followers = () => {
                 <ProfileSection
                   onClick={() => navigate(`/follower/${follower.id}`)}
                 >
-                  <img src={follower.image} alt={follower.name} />
+                  <img src={follower.image} alt={follower.name} loading="lazy" decoding="async" />
                   <Info>
                     <h3>{follower.name}</h3>
                     <p>

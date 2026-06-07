@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 
 const BASE_URL = "https://omindifarm.vercel.app";
-const DEFAULT_IMAGE = `${BASE_URL}/afarmer.jpg`;
+const DEFAULT_IMAGE = `${BASE_URL}/afarmer.webp`;
 const SITE_NAME = "AFARMER™";
 
 export default function SEO({ title, description, path = "", image }) {

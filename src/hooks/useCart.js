@@ -25,9 +25,7 @@ export function useAddItem() {
     },
 
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["cart", variables.user_id, variables.listing_id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["cart", variables.user_id] });
     },
   });
 }
@@ -74,9 +72,7 @@ export function useCartItemDelete() {
       return data;
     },
     onSuccess: (data, variables) => {
-      queryClient.refetchQueries({
-        queryKey: ["cart", variables.user_id, variables.listing_id], // this should be changed
-      });
+      queryClient.invalidateQueries({ queryKey: ["cart", variables.user_id] });
     },
   });
 }
@@ -100,9 +96,7 @@ export function useCartItemsAllDelete() {
       return data;
     },
     onSuccess: (data, variables) => {
-      queryClient.refetchQueries({
-        queryKey: ["cart", variables.user_id, variables.listing_id], // this should be changed
-      });
+      queryClient.invalidateQueries({ queryKey: ["cart", variables.user_id] });
     },
   });
 }

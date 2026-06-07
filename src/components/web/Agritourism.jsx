@@ -137,7 +137,7 @@ const Agritourism = () => {
             {HOW_IT_WORKS.map((h, i) => (
               <HowCard key={h.title} style={{ animationDelay: `${i * 0.1}s` }}>
                 <HowImgWrap>
-                  <img src={h.img} alt={h.title} />
+                  <img src={h.img} alt={h.title} loading="lazy" decoding="async" />
                 </HowImgWrap>
                 <HowTitle>{h.title}</HowTitle>
                 <HowText>{h.text}</HowText>
@@ -167,7 +167,7 @@ const Agritourism = () => {
       {/* ── Highlight strip ── */}
       <HighlightStrip>
         <HighlightInner>
-          <HighlightImg src="/farming.jpg" alt="Farm experience" />
+          <HighlightImg src="/farming.webp" alt="Farm experience" />
           <HighlightContent>
             <SectionLabel style={{ textAlign: "left" }}>
               For Farm Hosts

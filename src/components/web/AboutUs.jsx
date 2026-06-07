@@ -486,7 +486,7 @@ const AboutUs = () => {
           <PillarGrid>
             {PILLARS.map((p) => (
               <PillarCard key={p.title}>
-                <PillarImg><img src={p.img} alt={p.title} /></PillarImg>
+                <PillarImg><img src={p.img} alt={p.title} loading="lazy" decoding="async" /></PillarImg>
                 <PillarTitle>{p.title}</PillarTitle>
                 <PillarText>{p.text}</PillarText>
               </PillarCard>
@@ -524,7 +524,7 @@ const AboutUs = () => {
         <Inner>
           <StoryGrid>
             <StoryImg>
-              <img src="/farming.jpg" alt="Farming in Kenya" />
+              <img src="/farming.webp" alt="Farming in Kenya" loading="lazy" decoding="async" />
             </StoryImg>
             <StoryContent>
               <StoryLabel>The Origin</StoryLabel>
@@ -559,7 +559,7 @@ const AboutUs = () => {
           <Divider />
           <FounderCard>
             <FounderImgWrap>
-              <img src="/founder1.jpg" alt="Omindi — Founder" />
+              <img src="/founder1.webp" alt="Omindi — Founder" loading="lazy" decoding="async" />
             </FounderImgWrap>
             <FounderBody>
               <FounderQuote>"</FounderQuote>
@@ -606,7 +606,7 @@ const AboutUs = () => {
           <SectionTitle>From Farm to Table</SectionTitle>
           <Divider />
           <FoodChainWrap>
-            <img src="/food-chain.png" alt="Farm to table supply chain" />
+            <img src="/food-chain.webp" alt="Farm to table supply chain" loading="lazy" decoding="async" />
           </FoodChainWrap>
         </Inner>
       </Section>

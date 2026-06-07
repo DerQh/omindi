@@ -84,7 +84,7 @@ export default function AppHome() {
 
           <CardHeader>
             <FarmAvatarWrap>
-              <FarmAvatar src="/afarmer.jpg" alt="Omindi FarmHouse" />
+              <FarmAvatar src="/afarmer.webp" alt="Omindi FarmHouse" />
             </FarmAvatarWrap>
             <CardHeaderText>
               <FarmName>Omindi FarmHouse</FarmName>

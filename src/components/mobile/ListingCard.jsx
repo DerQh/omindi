@@ -6,10 +6,10 @@ import {
   useFavoriteDelete,
 } from "../../hooks/useFavListings";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, memo } from "react";
 
 // Renders a single listing card with image, price, details, and a favourite toggle button.
-export function ListingCardTest({ listingItem, handleCardClick, user_id, index }) {
+function ListingCardTestBase({ listingItem, handleCardClick, user_id, index }) {
   const queryClient = useQueryClient();
   const listing_id = listingItem?.id;
   const [popHeart, setPopHeart] = useState(false);
@@ -38,6 +38,7 @@ export function ListingCardTest({ listingItem, handleCardClick, user_id, index }
             src={listingItem.image_url}
             alt={listingItem.title}
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <NoImage>🌱</NoImage>
@@ -111,6 +112,8 @@ export function ListingCardTest({ listingItem, handleCardClick, user_id, index }
     </Card>
   );
 }
+
+export const ListingCardTest = memo(ListingCardTestBase);
 
 // ─── Styled components ────────────────────────────────────────────────────────
 

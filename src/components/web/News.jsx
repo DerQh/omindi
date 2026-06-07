@@ -23,7 +23,7 @@ const FEATURED = {
   title: "AFARMER™ Now Supports In-App Checkout for Verified Sellers",
   excerpt:
     "We're rolling out a new checkout flow that lets verified sellers receive payments directly through the app — no third-party tools required. Here's everything you need to know about the update and how to get verified.",
-  img: "/farming.jpg",
+  img: "/farming.webp",
   readTime: "4 min read",
 };
 
@@ -35,7 +35,7 @@ const ARTICLES = [
       "How Smallholder Farmers in Kisumu Are Using AFARMER™ to Reach New Markets",
     excerpt:
       "Three farmers share their stories of connecting with urban buyers and doubling their weekly sales through the platform.",
-    img: "/eggs.jpg",
+    img: "/eggs.webp",
     readTime: "6 min read",
   },
   {
@@ -44,7 +44,7 @@ const ARTICLES = [
     title: "5 Ways to Write a Listing That Sells Faster",
     excerpt:
       "From high-quality photos to clear pricing, here are the proven tactics that top AFARMER™ sellers use to move inventory quickly.",
-    img: "/tomatoes.jpg",
+    img: "/tomatoes.webp",
     readTime: "3 min read",
   },
   {
@@ -53,7 +53,7 @@ const ARTICLES = [
     title: "Farm Event Season Is Here — How to Promote Your U-Pick Days",
     excerpt:
       "Seasonal events drive some of the highest engagement on the platform. We break down what makes an event listing stand out.",
-    img: "/honey.jpg",
+    img: "/honey.webp",
     readTime: "5 min read",
   },
   {
@@ -62,7 +62,7 @@ const ARTICLES = [
     title: "Kenya's Local Food Economy: Why the Shift to Farm-Direct Matters",
     excerpt:
       "A look at the data behind Kenya's growing demand for locally sourced food and what it means for smallholder farmers.",
-    img: "/founder1.jpg",
+    img: "/founder1.webp",
     readTime: "7 min read",
   },
   {
@@ -71,7 +71,7 @@ const ARTICLES = [
     title: "New: Admin Tools, Dispute Resolution, and Seller Analytics",
     excerpt:
       "Our biggest product update yet — a full admin dashboard, dispute flagging for orders, and a new sales analytics view for sellers.",
-    img: "/farming.jpg",
+    img: "/farming.webp",
     readTime: "4 min read",
   },
   {
@@ -81,7 +81,7 @@ const ARTICLES = [
       "Farmers Market Managers: How to Build Your Market's Digital Presence",
     excerpt:
       "Practical steps for using AFARMER™ to connect vendors with shoppers, promote events, and keep your community engaged off-site.",
-    img: "/afarmer.jpg",
+    img: "/afarmer.webp",
     readTime: "5 min read",
   },
   {
@@ -101,7 +101,7 @@ const ARTICLES = [
       "The Rise of Urban Farming in Nairobi: Opportunity or Oversaturation?",
     excerpt:
       "As rooftop and container farming grows in Nairobi, we explore what it means for rural smallholders and how both can coexist on the platform.",
-    img: "/market.jpg",
+    img: "/market.webp",
     readTime: "8 min read",
   },
   {

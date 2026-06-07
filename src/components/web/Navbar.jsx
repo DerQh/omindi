@@ -27,7 +27,7 @@ const NAV_ITEMS = [
     label: "How it works",
     children: [
       { label: "For Farmers",  path: "/forfarms" },
-      { label: "For Buyers",   path: "/for farmersmarket" },
+      { label: "For Buyers",   path: "/forbuyers" },
       { label: "Agritourism",  path: "/agritourism" },
     ],
   },
@@ -477,7 +477,7 @@ export default function Navbar() {
       <Inner>
         {/* ── Logo ── */}
         <LogoWrap onClick={() => go("/")}>
-          <LogoImg src="/afarmer.jpg" alt="Afarmer™ logo" />
+          <LogoImg src="/afarmer.webp" alt="Afarmer™ logo" />
           <LogoText>AFARMER™</LogoText>
         </LogoWrap>
 

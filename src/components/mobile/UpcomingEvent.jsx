@@ -95,7 +95,7 @@ const eventsData = [
     location: "Kasarani Grounds",
     description:
       "Browse fresh produce, meet trusted sellers, and enjoy live cooking demos.",
-    image: "/market.jpg",
+    image: "/market.webp",
   },
   {
     id: 2,
@@ -141,7 +141,7 @@ const UpcomingEvents = () => {
           {eventsData.map((event) => (
             <Card key={event.id} onClick={() => handleEventClick(event.id)}>
               <CardTop>
-                <img src={event.image} alt={event.title} />
+                <img src={event.image} alt={event.title} loading="lazy" decoding="async" />
               </CardTop>
               <CardBody>
                 <h3>{event.title}</h3>

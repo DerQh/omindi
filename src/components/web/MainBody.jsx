@@ -730,7 +730,7 @@ const HOW_ITEMS = [
     icon: "/buy.png",
     title: "Buy",
     text: "Search by location or keyword for fresh produce on sale. Message the seller and arrange a pickup, meetup, or delivery — all in one place.",
-    link: "/for farmersmarket",
+    link: "/forbuyers",
   },
   {
     icon: "/sell.png",
@@ -858,7 +858,7 @@ function Body() {
           <HeroRight>
             <AppMockup
               loading="lazy"
-              src="/app screenshot.png"
+              src="/app screenshot.webp"
               alt="Afarmer™ app screenshot"
             />
           </HeroRight>

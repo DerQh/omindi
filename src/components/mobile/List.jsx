@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useListings, useSearchListings } from "../../hooks/useListings";
 import { useQueryClient } from "@tanstack/react-query";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ListingCardTest } from "./ListingCard";
 import { useUser } from "../../hooks/useUser";
 
@@ -19,17 +20,15 @@ const SORT_OPTIONS = [
   { value: "price_desc", label: "Price: High → Low" },
 ];
 
-const PAGE_SIZE = 15;
-
 const List = () => {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
   const [activeCategory, setActiveCategory] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const sentinelRef = useRef(null);
+  const [cols, setCols] = useState(2);
+  const gridRef = useRef(null);
   const searchRef = useRef(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -37,11 +36,13 @@ const List = () => {
   const user_id = user?.id;
 
   const { data: allData, isLoading, error, refetch } = useListings();
-  const { data: searchData, isFetching: isSearching } = useSearchListings(searchTerm);
+  const { data: searchData, isFetching: isSearching } =
+    useSearchListings(searchTerm);
 
   // Use server-side search results when query is active, otherwise use all listings
-  const data = searchTerm.trim().length > 1 ? searchData : allData;
-  const dataMain = data?.filter((item) => item.seller_id !== user?.id);
+  const dataMain = (allData ?? []).filter(
+    (item) => item.seller_id !== user?.id,
+  );
 
   const categories = useMemo(() => {
     if (!dataMain) return ["All"];
@@ -75,27 +76,38 @@ const List = () => {
     return result;
   }, [dataMain, searchTerm, activeCategory, sortBy]);
 
-  // Reset visible count when filters change
+  // Scroll to top when filters change
   useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [searchTerm, activeCategory, sortBy]);
 
-  // Infinite scroll — load more when sentinel enters viewport
+  // Responsive column count based on grid container width
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && visibleCount < filteredAndSorted.length) {
-          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredAndSorted.length));
-        }
-      },
-      { rootMargin: "300px" }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [filteredAndSorted.length, visibleCount]);
+    const el = gridRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width;
+      setCols(Math.max(1, Math.floor(w / 280)));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Group filtered items into rows for the virtualizer
+  const rows = useMemo(() => {
+    const r = [];
+    for (let i = 0; i < filteredAndSorted.length; i += cols) {
+      r.push(filteredAndSorted.slice(i, i + cols));
+    }
+    return r;
+  }, [filteredAndSorted, cols]);
+
+  const rowVirtualizer = useWindowVirtualizer({
+    count: rows.length,
+    estimateSize: () => 420,
+    overscan: 5,
+    scrollMargin: gridRef.current?.offsetTop ?? 0,
+  });
 
   // Close autocomplete when clicking outside search box
   useEffect(() => {
@@ -110,28 +122,32 @@ const List = () => {
 
   // Pull-to-refresh via touch
   const touchStartY = useRef(0);
-  const onTouchStart = useCallback((e) => { touchStartY.current = e.touches[0].clientY; }, []);
-  const onTouchEnd = useCallback(async (e) => {
-    const delta = e.changedTouches[0].clientY - touchStartY.current;
-    if (window.scrollY === 0 && delta > 80) {
-      setRefreshing(true);
-      await refetch();
-      setRefreshing(false);
-    }
-  }, [refetch]);
+  const onTouchStart = useCallback((e) => {
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+  const onTouchEnd = useCallback(
+    async (e) => {
+      const delta = e.changedTouches[0].clientY - touchStartY.current;
+      if (window.scrollY === 0 && delta > 80) {
+        setRefreshing(true);
+        await refetch();
+        setRefreshing(false);
+      }
+    },
+    [refetch],
+  );
 
-  const visibleItems = filteredAndSorted.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredAndSorted.length;
 
   // Autocomplete suggestions — top 5 matching titles
   const suggestions = useMemo(() => {
     if (!searchTerm || searchTerm.length < 2) return [];
     const q = searchTerm.toLowerCase();
     return (allData ?? [])
-      .filter((l) =>
-        l.title?.toLowerCase().includes(q) ||
-        l.category?.toLowerCase().includes(q) ||
-        l.seller_name?.toLowerCase().includes(q)
+      .filter(
+        (l) =>
+          l.title?.toLowerCase().includes(q) ||
+          l.category?.toLowerCase().includes(q) ||
+          l.seller_name?.toLowerCase().includes(q),
       )
       .slice(0, 5);
   }, [searchTerm, allData]);
@@ -156,8 +172,10 @@ const List = () => {
 
   return (
     <>
-      <Helmet><title>Browse Listings — AFARMER™</title></Helmet>
-            <AppNavbar />
+      <Helmet>
+        <title>Browse Listings — AFARMER™</title>
+      </Helmet>
+      <AppNavbar />
 
       {/* ── Filter bar — sibling of AppNavbar so sticky chains correctly ── */}
       <FilterBar>
@@ -211,16 +229,32 @@ const List = () => {
                 type="text"
                 placeholder="Search by name, category, or location…"
                 value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setShowSuggestions(true); }}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setShowSuggestions(true);
+                }}
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") { setShowSuggestions(false); e.target.blur(); }
-                  if (e.key === "Escape") { setSearchTerm(""); setShowSuggestions(false); }
+                  if (e.key === "Enter") {
+                    setShowSuggestions(false);
+                    e.target.blur();
+                  }
+                  if (e.key === "Escape") {
+                    setSearchTerm("");
+                    setShowSuggestions(false);
+                  }
                 }}
               />
               {isSearching && <SearchSpinner>⟳</SearchSpinner>}
               {searchTerm && !isSearching && (
-                <ClearBtn onClick={() => { setSearchTerm(""); setShowSuggestions(false); }}>✕</ClearBtn>
+                <ClearBtn
+                  onClick={() => {
+                    setSearchTerm("");
+                    setShowSuggestions(false);
+                  }}
+                >
+                  ✕
+                </ClearBtn>
               )}
               {showSuggestions && suggestions.length > 0 && (
                 <AutocompleteList>
@@ -234,13 +268,17 @@ const List = () => {
                       }}
                     >
                       <AutocompleteThumb
-                        src={s.image_url || "/afarmer.jpg"}
+                        src={s.image_url || "/afarmer.webp"}
                         alt=""
-                        onError={(e) => { e.target.src = "/afarmer.jpg"; }}
+                        onError={(e) => {
+                          e.target.src = "/afarmer.webp";
+                        }}
                       />
                       <div>
                         <AutocompleteTitle>{s.title}</AutocompleteTitle>
-                        <AutocompleteMeta>{s.category} · Kes {s.price}</AutocompleteMeta>
+                        <AutocompleteMeta>
+                          {s.category} · Kes {s.price}
+                        </AutocompleteMeta>
                       </div>
                     </AutocompleteItem>
                   ))}
@@ -279,21 +317,29 @@ const List = () => {
                 ))}
               </Grid>
             ) : filteredAndSorted.length > 0 ? (
-              <>
-                <Grid>
-                  {visibleItems.map((item, i) => (
-                    <ListingCardTest
-                      key={item.id}
-                      listingItem={item}
-                      handleCardClick={handleCardClick}
-                      user_id={user_id}
-                      index={i}
-                    />
-                  ))}
-                </Grid>
-                <div ref={sentinelRef} style={{ height: 1 }} />
-                {hasMore && <LoadMoreIndicator>Loading more…</LoadMoreIndicator>}
-              </>
+              <VirtualGrid
+                ref={gridRef}
+                style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
+              >
+                {rowVirtualizer.getVirtualItems().map((vRow) => (
+                  <VirtualRow
+                    key={vRow.key}
+                    data-index={vRow.index}
+                    ref={rowVirtualizer.measureElement}
+                    style={{ transform: `translateY(${vRow.start - rowVirtualizer.options.scrollMargin}px)`, gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+                  >
+                    {rows[vRow.index].map((item, i) => (
+                      <ListingCardTest
+                        key={item.id}
+                        listingItem={item}
+                        handleCardClick={handleCardClick}
+                        user_id={user_id}
+                        index={vRow.index * cols + i}
+                      />
+                    ))}
+                  </VirtualRow>
+                ))}
+              </VirtualGrid>
             ) : (
               <EmptyState>
                 <EmptyIcon>🌾</EmptyIcon>
@@ -342,7 +388,7 @@ const SkeletonCard = styled.div`
   background: white;
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(20,57,32,0.06);
+  box-shadow: 0 4px 20px rgba(20, 57, 32, 0.06);
 `;
 
 const SkeletonImg = styled.div`
@@ -381,7 +427,7 @@ const AutocompleteList = styled.ul`
   right: 0;
   background: white;
   border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(20,57,32,0.14);
+  box-shadow: 0 8px 32px rgba(20, 57, 32, 0.14);
   z-index: 100;
   list-style: none;
   margin: 0;
@@ -397,7 +443,9 @@ const AutocompleteItem = styled.li`
   border-radius: 10px;
   cursor: pointer;
   transition: background 0.15s;
-  &:hover { background: #f0fdf4; }
+  &:hover {
+    background: #f0fdf4;
+  }
 `;
 
 const AutocompleteThumb = styled.img`
@@ -475,10 +523,12 @@ const spin = keyframes`from { transform: rotate(0deg); } to { transform: rotate(
 const SearchSpinner = styled.span`
   position: absolute;
   right: 14px;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 1rem;
   animation: ${spin} 0.8s linear infinite;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const ClearBtn = styled.button`
@@ -527,7 +577,9 @@ const CategoryChips = styled.div`
   overflow-x: auto;
   flex-wrap: nowrap;
   scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   @media (max-width: 768px) {
     display: none;
@@ -641,7 +693,9 @@ const AddListingBtn = styled.button`
   cursor: pointer;
   white-space: nowrap;
   animation: ${btnPulse} 2.4s ease-in-out infinite;
-  transition: transform 0.15s, background 0.15s;
+  transition:
+    transform 0.15s,
+    background 0.15s;
   &:hover {
     background: linear-gradient(135deg, #2f5a2a, #245026);
     transform: translateY(-2px);
@@ -664,6 +718,21 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
+`;
+
+const VirtualGrid = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const VirtualRow = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: grid;
+  gap: 20px;
+  padding-bottom: 20px;
 `;
 
 const EmptyState = styled.div`

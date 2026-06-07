@@ -286,7 +286,7 @@ export default function FooterContainer() {
         {/* ── Brand + newsletter ── */}
         <BrandCol>
           <LogoRow to="/">
-            <img src="/afarmer.jpg" alt="Afarmer™ logo" loading="lazy" />
+            <img src="/afarmer.webp" alt="Afarmer™ logo" loading="lazy" />
             <LogoText>AFARMER™</LogoText>
           </LogoRow>
           <BrandDesc>
@@ -356,7 +356,7 @@ export default function FooterContainer() {
               <NavLink to="/forfarms">For Farmers</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink to="/for farmersmarket">For Buyers</NavLink>
+              <NavLink to="/forbuyers">For Buyers</NavLink>
             </NavItem>
             <NavItem>
               <NavLink to="/pricing">Pricing</NavLink>

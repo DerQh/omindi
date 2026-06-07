@@ -191,7 +191,7 @@ export default function Navbar() {
   return (
     <Nav>
       <LogoContainer onClick={() => handleNavigation("/")}>
-        <img loading="lazy" src="/afarmer.jpg" alt="logo" />
+        <img loading="lazy" src="/afarmer.webp" alt="logo" />
         <h1>AFARMER</h1>
       </LogoContainer>
       <MenuContainer>
@@ -209,7 +209,7 @@ export default function Navbar() {
             <Link to="/forfarms">
               <li onClick={() => toggleMenu()}>For Farmers</li>
             </Link>
-            <Link to="/for farmersmarket">
+            <Link to="/forbuyers">
               <li onClick={() => toggleMenu()}>For Buyers</li>
             </Link>
             <Link to="/agritourism">

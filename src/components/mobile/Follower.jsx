@@ -542,7 +542,7 @@ const Follower = () => {
                   onClick={() => navigate(`/listing/${item.id}`, { state: { listing: item } })}
                 >
                   <ProductImageWrap>
-                    {item.image_url && <img src={item.image_url} alt={item.title} />}
+                    {item.image_url && <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" />}
                     <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
                   </ProductImageWrap>
                   <ProductBody>

@@ -95,7 +95,7 @@ const ForMarketers = () => {
 
       {/* ── Market image ── */}
       <ImageBanner>
-        <img src="/market.png" alt="Farmers market" />
+        <img src="/market.webp" alt="Farmers market" loading="lazy" decoding="async" />
       </ImageBanner>
 
       {/* ── Benefits ── */}

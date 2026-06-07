@@ -116,9 +116,9 @@ const ListingDetail = () => {
     : 0;
 
   const images = [
-    listing?.image_url || "/afarmer.jpg",
-    listing?.image_url || "/afarmer.jpg",
-    listing?.image_url || "/afarmer.jpg",
+    listing?.image_url || "/afarmer.webp",
+    listing?.image_url || "/afarmer.webp",
+    listing?.image_url || "/afarmer.webp",
   ];
 
   const handleGreenBtn = () => {
@@ -240,7 +240,8 @@ const ListingDetail = () => {
                   <img
                     src={images[activeThumb]}
                     alt={listing.title}
-                    onError={(e) => { e.target.src = "/afarmer.jpg"; }}
+                    decoding="async"
+                    onError={(e) => { e.target.src = "/afarmer.webp"; }}
                   />
                 ) : (
                   <NoImage>🌱</NoImage>
@@ -261,7 +262,9 @@ const ListingDetail = () => {
                     <img
                       src={img}
                       alt=""
-                      onError={(e) => { e.target.src = "/afarmer.jpg"; }}
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => { e.target.src = "/afarmer.webp"; }}
                     />
                   </Thumb>
                 ))}
@@ -576,7 +579,7 @@ const ListingDetail = () => {
                         <ReviewItem key={r.id}>
                           <ReviewAvatar>
                             {r.profiles?.avatar_url ? (
-                              <img src={r.profiles.avatar_url} alt="" />
+                              <img src={r.profiles.avatar_url} alt="" loading="lazy" decoding="async" />
                             ) : (
                               <ReviewAvatarFallback>
                                 {(r.profiles?.full_name || r.profiles?.farm_name || "?")[0].toUpperCase()}
@@ -622,9 +625,9 @@ const ListingDetail = () => {
                     onClick={() => navigate(`/listing/${l.id}`, { state: { listing: l } })}
                   >
                     <RelatedImg
-                      src={l.image_url || "/afarmer.jpg"}
+                      src={l.image_url || "/afarmer.webp"}
                       alt={l.title}
-                      onError={(e) => { e.target.src = "/afarmer.jpg"; }}
+                      onError={(e) => { e.target.src = "/afarmer.webp"; }}
                     />
                     <RelatedBody>
                       {l.category && <RelatedCategory>{l.category}</RelatedCategory>}

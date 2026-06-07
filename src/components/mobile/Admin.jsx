@@ -198,9 +198,9 @@ const Admin = () => {
     currentUser?.id,
   );
   const { data: stats, isLoading: loadingStats } = useAdminStats();
-  const { data: users, isLoading: loadingUsers } = useAdminUsers();
-  const { data: listings, isLoading: loadingLists } = useAdminListings();
-  const { data: orders, isLoading: loadingOrders } = useAdminOrders();
+  const { data: users, isLoading: loadingUsers } = useAdminUsers(tab === "users");
+  const { data: listings, isLoading: loadingLists } = useAdminListings(tab === "listings");
+  const { data: orders, isLoading: loadingOrders } = useAdminOrders(tab === "orders" || tab === "disputes");
 
   const { mutate: toggleAdmin } = useAdminToggleAdmin();
   const { mutate: deleteUser } = useAdminDeleteUser();
@@ -210,15 +210,15 @@ const Admin = () => {
     useAdminBulkUpdateStatus();
   const { mutate: updateOrderNote } = useAdminUpdateOrderNote();
   const { mutate: banUser } = useAdminBanUser();
-  const { data: reviews, isLoading: loadingReviews } = useAdminReviews();
+  const { data: reviews, isLoading: loadingReviews } = useAdminReviews(tab === "reviews");
   const { mutate: deleteReview } = useAdminDeleteReview();
   const { mutate: broadcast, isPending: broadcasting } = useAdminBroadcast();
   const { data: pendingPosts = [], isLoading: loadingPosts } =
-    useAdminPendingPosts();
+    useAdminPendingPosts(tab === "posts");
   const { mutate: approvePost } = useAdminApprovePost();
   const { mutate: rejectPost } = useAdminRejectPost();
   const { data: pendingListings = [], isLoading: loadingPendingListings } =
-    useAdminPendingListings();
+    useAdminPendingListings(tab === "pendingListings");
   const { mutate: approveListing, isPending: approvingOne } =
     useAdminApproveListing();
   const { mutate: approveAllListings, isPending: approvingAll } =
@@ -410,10 +410,10 @@ const Admin = () => {
             </PreviewClose>
 
             <PreviewImage
-              src={reviewListing.image_url || "/afarmer.jpg"}
+              src={reviewListing.image_url || "/afarmer.webp"}
               alt={reviewListing.title}
               onError={(e) => {
-                e.target.src = "/afarmer.jpg";
+                e.target.src = "/afarmer.webp";
               }}
             />
 
@@ -1252,10 +1252,10 @@ const Admin = () => {
                               <TD>
                                 <ListingCell>
                                   <ListingThumb
-                                    src={l.image_url || "/afarmer.jpg"}
+                                    src={l.image_url || "/afarmer.webp"}
                                     alt={l.title}
                                     onError={(e) => {
-                                      e.target.src = "/afarmer.jpg";
+                                      e.target.src = "/afarmer.webp";
                                     }}
                                   />
                                   <ListingTitle>{l.title}</ListingTitle>
@@ -1890,10 +1890,10 @@ const Admin = () => {
                               <TD>
                                 <ListingCell>
                                   <ListingThumb
-                                    src={l.image_url || "/afarmer.jpg"}
+                                    src={l.image_url || "/afarmer.webp"}
                                     alt={l.title}
                                     onError={(e) => {
-                                      e.target.src = "/afarmer.jpg";
+                                      e.target.src = "/afarmer.webp";
                                     }}
                                   />
                                   <ListingTitle>{l.title}</ListingTitle>

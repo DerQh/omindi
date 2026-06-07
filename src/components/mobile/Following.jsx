@@ -764,7 +764,7 @@ const Following = () => {
                     <SellerCover $gradient={COVER_GRADIENTS[idx % COVER_GRADIENTS.length]} />
                     <SellerAvatarWrap>
                       {seller.avatar_url ? (
-                        <img src={seller.avatar_url} alt={seller.farm_name} onError={(e) => { e.target.style.display = "none"; }} />
+                        <img src={seller.avatar_url} alt={seller.farm_name} loading="lazy" decoding="async" onError={(e) => { e.target.style.display = "none"; }} />
                       ) : (
                         <SellerAvatarInitial>
                           {(seller.farm_name || seller.full_name || "?")[0].toUpperCase()}
@@ -809,7 +809,7 @@ const Following = () => {
               {followData.events.map((event) => (
                 <EventCard key={event.id}>
                   <EventCover>
-                    <img src={event.image} alt={event.title} />
+                    <img src={event.image} alt={event.title} loading="lazy" decoding="async" />
                     <DateBadge>
                       <DateDay>{event.day}</DateDay>
                       <DateMonth>{event.month}</DateMonth>
@@ -852,7 +852,7 @@ const Following = () => {
                     onClick={() => navigate(`/listing/${item.id}`, { state: { listing: item } })}
                   >
                     <FavCover>
-                      {item.image_url && <img src={item.image_url} alt={item.title} />}
+                      {item.image_url && <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" />}
                       <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
                       <HeartBtn onClick={(e) => handleRemoveFav(e, item.id)}>❤️</HeartBtn>
                     </FavCover>

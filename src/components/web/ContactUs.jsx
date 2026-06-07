@@ -147,7 +147,7 @@ function ContactUs() {
           </HeroLeft>
           <HeroRight>
             <HeroImageCard>
-              <img src="/farming.jpg" alt="AFARMER support" />
+              <img src="/farming.webp" alt="AFARMER support" loading="lazy" decoding="async" />
               <HeroImageOverlay>
                 <HeroImageStat>
                   <HeroStatNum>2,000+</HeroStatNum>

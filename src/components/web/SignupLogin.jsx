@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import { Link, useNavigate } from "react-router-dom";
@@ -612,7 +612,11 @@ const TRUST = [
 
 function SignupLogin() {
   const navigate = useNavigate();
-  const { login, signup } = useAuth();
+  const { login, signup, user } = useAuth();
+
+  useEffect(() => {
+    if (user) navigate("/mobile", { replace: true });
+  }, [user, navigate]);
 
   const [isLogin, setIsLogin] = useState(true);
   const [signupSuccess, setSignupSuccess] = useState(false);
@@ -706,7 +710,7 @@ function SignupLogin() {
       <Page>
         <LeftPanel>
           <LeftLogo to="/">
-            <img src="/afarmer.jpg" alt="Afarmer™ logo" loading="lazy" />
+            <img src="/afarmer.webp" alt="Afarmer™ logo" loading="lazy" />
             <LeftLogoText>AFARMER™</LeftLogoText>
           </LeftLogo>
         </LeftPanel>
@@ -789,7 +793,7 @@ function SignupLogin() {
       {/* ── Left panel — brand + trust signals ── */}
       <LeftPanel>
         <LeftLogo to="/">
-          <img src="/afarmer.jpg" alt="Afarmer™ logo" loading="lazy" />
+          <img src="/afarmer.webp" alt="Afarmer™ logo" loading="lazy" />
           <LeftLogoText>AFARMER™</LeftLogoText>
         </LeftLogo>
 
@@ -827,7 +831,7 @@ function SignupLogin() {
       <RightPanel>
         {/* Logo shown only on mobile (left panel is hidden) */}
         <MobileLogo to="/">
-          <img src="/afarmer.jpg" alt="Afarmer™ logo" loading="lazy" />
+          <img src="/afarmer.webp" alt="Afarmer™ logo" loading="lazy" />
           <span>AFARMER™</span>
         </MobileLogo>
 

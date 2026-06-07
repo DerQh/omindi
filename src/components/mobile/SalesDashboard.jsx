@@ -10,30 +10,9 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { formatSmartDate } from "../../hooks/dateFormat";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from "chart.js";
-import { Bar, Line } from "react-chartjs-2";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-);
+  BarChart, Bar, AreaChart, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
+} from "recharts";
 
 // ─── TOKENS ──────────────────────────────────────────────────────────────────
 const C = {
@@ -541,73 +520,6 @@ const MONTHS = [
 ];
 const paymentLabels = { cash: "Cash", mobile: "M-Pesa", bank: "Bank" };
 
-const barOpts = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      backgroundColor: C.forest,
-      titleColor: "white",
-      bodyColor: "rgba(255,255,255,0.75)",
-      padding: 10,
-      cornerRadius: 8,
-      callbacks: { label: (c) => `  Kes ${c.raw?.toLocaleString()}` },
-    },
-  },
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: { color: C.textMuted, font: { size: 11, weight: "600" } },
-      border: { display: false },
-    },
-    y: {
-      grid: { color: C.border },
-      ticks: {
-        color: C.textMuted,
-        font: { size: 11 },
-        callback: (v) => `${v >= 1000 ? (v / 1000).toFixed(0) + "k" : v}`,
-      },
-      border: { display: false },
-    },
-  },
-};
-
-const heroLineOpts = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { display: false }, tooltip: { enabled: false } },
-  scales: { x: { display: false }, y: { display: false } },
-  elements: { point: { radius: 0 } },
-};
-
-const statusBarOpts = {
-  indexAxis: "y",
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      backgroundColor: C.forest,
-      titleColor: "white",
-      bodyColor: "rgba(255,255,255,0.75)",
-      padding: 10,
-      cornerRadius: 8,
-    },
-  },
-  scales: {
-    x: {
-      grid: { color: C.border },
-      ticks: { color: C.textMuted, font: { size: 11 } },
-      border: { display: false },
-    },
-    y: {
-      grid: { display: false },
-      ticks: { color: C.textMuted, font: { size: 11, weight: "600" } },
-      border: { display: false },
-    },
-  },
-};
 
 // ─── COMPONENT ───────────────────────────────────────────────────────────────
 const SalesDashboard = () => {
@@ -651,49 +563,15 @@ const SalesDashboard = () => {
     .slice(0, 5);
   const recentOrders = orders.slice(0, 6);
 
-  const barData = {
-    labels: MONTHS,
-    datasets: [
-      {
-        data: monthlyRevenue,
-        backgroundColor: C.green,
-        hoverBackgroundColor: C.greenLight,
-        borderRadius: 7,
-        borderSkipped: false,
-      },
-    ],
-  };
-
-  const heroLineData = {
-    labels: MONTHS,
-    datasets: [
-      {
-        data: monthlyRevenue,
-        borderColor: "rgba(255,255,255,0.7)",
-        backgroundColor: "rgba(255,255,255,0.1)",
-        fill: true,
-        tension: 0.45,
-        borderWidth: 2,
-      },
-    ],
-  };
+  const barChartData = MONTHS.map((month, i) => ({ month, revenue: monthlyRevenue[i] }));
 
   const statusLabels = Object.keys(statusCounts);
-  const statusColors = statusLabels.map((s) => statusMap[s]?.color ?? C.green);
-  const statusBgs = statusLabels.map((s) => statusMap[s]?.bg ?? C.mint);
-
-  const statusData = {
-    labels: statusLabels.map((s) => statusMap[s]?.label ?? s),
-    datasets: [
-      {
-        data: Object.values(statusCounts),
-        backgroundColor: statusBgs,
-        borderColor: statusColors,
-        borderWidth: 2,
-        borderRadius: 6,
-      },
-    ],
-  };
+  const statusChartData = statusLabels.map((s) => ({
+    status: statusMap[s]?.label ?? s,
+    count: statusCounts[s],
+    fill: statusMap[s]?.bg ?? C.mint,
+    stroke: statusMap[s]?.color ?? C.green,
+  }));
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -781,7 +659,15 @@ const SalesDashboard = () => {
             </PanelHeader>
             <Divider />
             <div style={{ height: 210 }}>
-              <Bar data={barData} options={barOpts} />
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barChartData} barCategoryGap="30%">
+                  <CartesianGrid vertical={false} stroke={C.border} />
+                  <XAxis dataKey="month" tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} width={36} />
+                  <Tooltip formatter={(v) => [`Kes ${v.toLocaleString()}`, "Revenue"]} contentStyle={{ background: C.forest, border: "none", borderRadius: 8, color: "white" }} />
+                  <Bar dataKey="revenue" fill={C.green} radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </Panel>
 
@@ -792,7 +678,17 @@ const SalesDashboard = () => {
               <HeroSub>Last 7 days</HeroSub>
             </div>
             <HeroChartWrap>
-              <Line data={heroLineData} options={heroLineOpts} />
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={barChartData}>
+                  <defs>
+                    <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="rgba(255,255,255,0.3)" />
+                      <stop offset="95%" stopColor="rgba(255,255,255,0)" />
+                    </linearGradient>
+                  </defs>
+                  <Area type="monotone" dataKey="revenue" stroke="rgba(255,255,255,0.7)" fill="url(#heroGrad)" strokeWidth={2} dot={false} />
+                </AreaChart>
+              </ResponsiveContainer>
             </HeroChartWrap>
           </HeroCard>
         </Grid3_1>
@@ -806,8 +702,18 @@ const SalesDashboard = () => {
             </PanelHeader>
             <Divider />
             <div style={{ height: 185 }}>
-              {statusLabels.length > 0 ? (
-                <Bar data={statusData} options={statusBarOpts} />
+              {statusChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={statusChartData} layout="vertical" barCategoryGap="25%">
+                    <CartesianGrid horizontal={false} stroke={C.border} />
+                    <XAxis type="number" tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="status" tick={{ fill: C.textMuted, fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} width={64} />
+                    <Tooltip contentStyle={{ background: C.forest, border: "none", borderRadius: 8, color: "white" }} />
+                    <Bar dataKey="count" radius={[0, 6, 6, 0]}>
+                      {statusChartData.map((entry, i) => <Cell key={i} fill={entry.fill} stroke={entry.stroke} strokeWidth={1.5} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               ) : (
                 <EmptyText>No orders to display yet.</EmptyText>
               )}

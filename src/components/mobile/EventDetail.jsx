@@ -206,7 +206,7 @@ const events = [
     date: "May 12, 2026",
     time: "8:00 AM - 4:00 PM",
     location: "Kasarani Grounds, Nairobi",
-    image: "/market.jpg",
+    image: "/market.webp",
     description:
       "Join local farmers and food producers for a vibrant community market experience. Discover fresh organic produce, dairy, honey, baked goods, and handmade agricultural products.",
     organizer: {
@@ -242,7 +242,7 @@ const EventDetail = () => {
           <BackButton onClick={() => navigate(-1)}>← Back to Events</BackButton>
         </TopBar>
         <HeroSection>
-          <img src={event.image} alt={event.title} />
+          <img src={event.image} alt={event.title} loading="lazy" decoding="async" />
           <HeroContent>
             <EventTitle>{event.title}</EventTitle>
             <DateBadge>{event.date}</DateBadge>
@@ -274,7 +274,7 @@ const EventDetail = () => {
             <Section>
               <h2>Organizer</h2>
               <OrganizerCard>
-                <img src={event.organizer.image} alt={event.organizer.name} />
+                <img src={event.organizer.image} alt={event.organizer.name} loading="lazy" decoding="async" />
                 <div>
                   <h4>{event.organizer.name}</h4>
                   <p>{event.organizer.role}</p>

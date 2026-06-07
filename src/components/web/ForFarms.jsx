@@ -120,7 +120,7 @@ const ForFarms = () => {
       {/* ── Feature image ── */}
       <ImageSection>
         <ImageInner>
-          <img src="/For Consumers.png" alt="AFARMER™ platform for farmers" />
+          <img src="/For Consumers.webp" alt="AFARMER™ platform for farmers" loading="lazy" decoding="async" />
         </ImageInner>
       </ImageSection>
 
@@ -153,7 +153,7 @@ const ForFarms = () => {
               — we never take a cut.
             </LocalSub>
           </LocalText>
-          <LocalImg src="/farming.jpg" alt="Local farm sale" />
+          <LocalImg src="/farming.webp" alt="Local farm sale" />
         </LocalInner>
       </LocalStrip>
 

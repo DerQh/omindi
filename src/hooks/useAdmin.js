@@ -12,7 +12,7 @@ export function useAdminStats() {
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("listings").select("*", { count: "exact", head: true }),
         supabase.from("orders").select("id, total_cost, created_at, status"),
-        supabase.from("listings").select("inquiries, favourites"),
+        supabase.from("listings").select("inquiries, favourites", { count: "exact" }),
       ]);
       const orders = ordersRes.data ?? [];
       const listingStats = statsRes.data ?? [];
@@ -34,9 +34,10 @@ export function useAdminStats() {
 // ─── Users ────────────────────────────────────────────────────────────────────
 
 // Fetches all user profiles ordered by most recently created, for the admin users panel.
-export function useAdminUsers() {
+export function useAdminUsers(enabled = true) {
   return useQuery({
     queryKey: ["admin", "users"],
+    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -78,9 +79,10 @@ export function useAdminDeleteUser() {
 // ─── Listings ─────────────────────────────────────────────────────────────────
 
 // Fetches all listings ordered by most recently created, for the admin listings panel.
-export function useAdminListings() {
+export function useAdminListings(enabled = true) {
   return useQuery({
     queryKey: ["admin", "listings"],
+    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("listings")
@@ -111,9 +113,10 @@ export function useAdminDeleteListing() {
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
 // Fetches all orders ordered by most recently created, for the admin orders panel.
-export function useAdminOrders() {
+export function useAdminOrders(enabled = true) {
   return useQuery({
     queryKey: ["admin", "orders"],
+    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
@@ -220,9 +223,10 @@ export function useAdminBanUser() {
 
 // Fetches all reviews across every listing, joining the listing title for display.
 // Used in the Reviews moderation tab so admins can read and remove any review.
-export function useAdminReviews() {
+export function useAdminReviews(enabled = true) {
   return useQuery({
     queryKey: ["admin", "reviews"],
+    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reviews")
@@ -249,9 +253,10 @@ export function useAdminDeleteReview() {
 // ─── Listing approval ─────────────────────────────────────────────────────────
 
 // Fetches all listings pending admin approval (approved = false).
-export function useAdminPendingListings() {
+export function useAdminPendingListings(enabled = true) {
   return useQuery({
     queryKey: ["admin", "pendingListings"],
+    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("listings")
@@ -344,9 +349,10 @@ export function useAdminNotifySeller() {
 // ─── Posts moderation ─────────────────────────────────────────────────────────
 
 // Fetches all posts pending admin approval.
-export function useAdminPendingPosts() {
+export function useAdminPendingPosts(enabled = true) {
   return useQuery({
     queryKey: ["admin", "pendingPosts"],
+    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("posts")

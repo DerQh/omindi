@@ -13,7 +13,7 @@ function DropDownMenu({ isOpen, toggleMenu, checkUser }) {
           <Link to="/forfarms">
             <li onClick={() => toggleMenu()}>For Farmers</li>
           </Link>
-          <Link to="/for farmersmarket">
+          <Link to="/forbuyers">
             <li onClick={() => toggleMenu()}>For Buyers</li>
           </Link>
           <Link to="/agritourism">

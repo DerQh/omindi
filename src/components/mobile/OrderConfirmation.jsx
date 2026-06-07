@@ -264,7 +264,7 @@ const OrderConfirmation = () => {
               <ReceiptBand>
                 <ReceiptCloseX onClick={() => setShowReceipt(false)} title="Close">✕</ReceiptCloseX>
                 <ReceiptLogoRow>
-                  <ReceiptLogoImg src="/afarmer.jpg" alt="Omindi" />
+                  <ReceiptLogoImg src="/afarmer.webp" alt="Omindi" />
                   <ReceiptLogoText>
                     <ReceiptBrandName>Omindi FarmHouse</ReceiptBrandName>
                     <ReceiptBrandSub>Alendu, Kisumu · Kenya</ReceiptBrandSub>

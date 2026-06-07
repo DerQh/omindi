@@ -125,7 +125,7 @@ function Wholesale() {
 
       {/* ── Wholesale image ── */}
       <FullImg>
-        <img loading="lazy" src="/wholesale.png" alt="Wholesale farming" />
+        <img loading="lazy" src="/wholesale.webp" alt="Wholesale farming" />
       </FullImg>
 
       {/* ── Features ── */}
@@ -173,7 +173,7 @@ function Wholesale() {
             </AppLinks>
           </ProfileText>
           <ProfileImgWrap>
-            <img src="/app screenshot.png" alt="AFARMER™ app" />
+            <img src="/app screenshot.webp" alt="AFARMER™ app" loading="lazy" decoding="async" />
           </ProfileImgWrap>
         </ProfileInner>
       </ProfileStrip>
@@ -186,7 +186,7 @@ function Wholesale() {
           <SectionDivider />
           <HowImgStack>
             <HowImg
-              src="/AFARMER_Mockup.png"
+              src="/AFARMER_Mockup.webp"
               alt="How to use AFARMER™ — step 1"
             />
             <HowImg

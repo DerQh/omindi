@@ -386,7 +386,7 @@ export default function AppNavbar() {
         <NavInner>
           {/* Logo */}
           <Logo onClick={() => navigate("/mobile")}>
-            <img loading="lazy" src="/afarmer.jpg" alt="Afarmer™ logo" />
+            <img loading="lazy" src="/afarmer.webp" alt="Afarmer™ logo" />
             <span>AFARMER™</span>
           </Logo>
 

@@ -9,9 +9,10 @@ export function useListings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("listings")
-        .select("*")
+        .select("id, title, price, unit, image_url, category, location, seller_id, seller_name, description, available, favourites, inquiries, created_at")
         .eq("approved", true)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(1000);
       if (error) throw error;
       // console.log("Fetched listings:", data);
       return data;
@@ -60,7 +61,7 @@ export function useUserListings(user_id) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("listings")
-        .select("*")
+        .select("id, title, price, unit, image_url, category, location, seller_id, seller_name, description, available, approved, created_at")
         .eq("seller_id", user_id);
 
       if (error) throw error;

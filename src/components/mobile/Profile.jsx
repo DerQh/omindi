@@ -671,7 +671,7 @@ const Profile = () => {
                     onClick={() => navigate(`/listing/${item.id}`)}
                   >
                     <ListingImageWrap>
-                      <img src={item.image_url} alt={item.title} />
+                      <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" />
                       <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
 
                       {/* Floating edit / delete icons — stop propagation so card click doesn't fire */}
@@ -757,7 +757,7 @@ const Profile = () => {
                     onClick={() => navigate(`/listing/${item.id}`)}
                   >
                     <ListingImageWrap>
-                      <img src={item.image_url} alt={item.title} />
+                      <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" />
                       <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
                       <CardIconRow onClick={(e) => e.stopPropagation()}>
                         <CardIconBtn
@@ -801,7 +801,7 @@ const Profile = () => {
                   <ReviewItem key={r.id}>
                     <ReviewAvatar>
                       {r.profiles?.avatar_url
-                        ? <img src={r.profiles.avatar_url} alt="" />
+                        ? <img src={r.profiles.avatar_url} alt="" loading="lazy" decoding="async" />
                         : <ReviewAvatarFallback>
                             {(r.profiles?.full_name || r.profiles?.farm_name || "?")[0].toUpperCase()}
                           </ReviewAvatarFallback>

@@ -130,7 +130,7 @@ const Post = () => {
             {/* Image */}
             {post.image_url && (
               <PostImage>
-                <img src={post.image_url} alt={post.title} />
+                <img src={post.image_url} alt={post.title} loading="lazy" decoding="async" />
               </PostImage>
             )}
 
