@@ -5,6 +5,7 @@ import styled, { keyframes } from "styled-components";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -87,6 +88,7 @@ const FAQS = [
 
 const Pricing = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [billing, setBilling] = useState("monthly"); // "monthly" | "yearly"
   const [openFaq, setOpenFaq] = useState(null);
 
@@ -164,7 +166,7 @@ const Pricing = () => {
 
                   <PlanCta
                     $popular={plan.popular}
-                    onClick={() => navigate(plan.ctaPath)}
+                    onClick={() => navigate(user ? "/mobile" : plan.ctaPath)}
                   >
                     {plan.cta}
                   </PlanCta>
@@ -263,10 +265,10 @@ const Pricing = () => {
           Join thousands of local farmers already growing with AFARMER™.
         </CtaSub>
         <CtaButtons>
-          <CtaPrimary onClick={() => navigate("/sign-up")}>
+          <CtaPrimary onClick={() => navigate(user ? "/mobile" : "/sign-up")}>
             Start for Free
           </CtaPrimary>
-          <CtaSecondary onClick={() => navigate("/sign-up")}>
+          <CtaSecondary onClick={() => navigate(user ? "/mobile" : "/sign-up")}>
             Upgrade to Limitless
           </CtaSecondary>
         </CtaButtons>

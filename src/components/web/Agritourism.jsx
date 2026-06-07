@@ -3,6 +3,7 @@ import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 
@@ -92,6 +93,7 @@ const FAQS = [
 
 const Agritourism = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [openFaq, setOpenFaq] = React.useState(null);
 
   return (
@@ -113,10 +115,10 @@ const Agritourism = () => {
             promote your own agritourism experiences to your community.
           </HeroSub>
           <HeroActions>
-            <PrimaryBtn onClick={() => navigate("/sign-up")}>
+            <PrimaryBtn onClick={() => navigate(user ? "/mobile" : "/sign-up")}>
               Explore Events
             </PrimaryBtn>
-            <OutlineBtn onClick={() => navigate("/sign-up")}>
+            <OutlineBtn onClick={() => navigate(user ? "/newlist" : "/sign-up")}>
               List Your Event
             </OutlineBtn>
           </HeroActions>
@@ -184,7 +186,7 @@ const Agritourism = () => {
               Selling products during your event? Let buyers know in your
               listing — honey, produce, baked goods, and crafts are all welcome.
             </HighlightText>
-            <PrimaryGreenBtn onClick={() => navigate("/sign-up")}>
+            <PrimaryGreenBtn onClick={() => navigate(user ? "/newlist" : "/sign-up")}>
               List Your Event Free
             </PrimaryGreenBtn>
           </HighlightContent>
@@ -218,10 +220,10 @@ const Agritourism = () => {
         <CtaTitle>Ready to Share Your Farm Experience?</CtaTitle>
         <CtaSub>Listing an event is free and takes less than 5 minutes.</CtaSub>
         <CtaActions>
-          <PrimaryBtn onClick={() => navigate("/sign-up")}>
+          <PrimaryBtn onClick={() => navigate(user ? "/newlist" : "/sign-up")}>
             List an Event
           </PrimaryBtn>
-          <OutlineBtn onClick={() => navigate("/sign-up")}>
+          <OutlineBtn onClick={() => navigate(user ? "/mobile" : "/sign-up")}>
             Explore Events
           </OutlineBtn>
         </CtaActions>

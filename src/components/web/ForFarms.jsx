@@ -2,6 +2,7 @@ import styled, { keyframes } from "styled-components";
 import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 
@@ -67,6 +68,7 @@ const FEATURES = [
 
 const ForFarms = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   return (
     <>
       <SEO title="For Farms" description="Sell your farm produce directly to buyers on AFARMER™. Free to list. No middlemen. Reach hundreds of buyers across Kenya." path="/forfarms" />
@@ -86,7 +88,7 @@ const ForFarms = () => {
             with local buyers and grow your farm business on your own terms.
           </HeroSub>
           <HeroActions>
-            <PrimaryBtn onClick={() => navigate("/sign-up")}>
+            <PrimaryBtn onClick={() => navigate(user ? "/newlist" : "/sign-up")}>
               Start Selling Free
             </PrimaryBtn>
             <OutlineBtn onClick={() => navigate("/pricing")}>
@@ -161,7 +163,7 @@ const ForFarms = () => {
       <CtaBanner>
         <CtaTitle>Ready to Reach More Buyers?</CtaTitle>
         <CtaSub>Join hundreds of farmers already selling on AFARMER™__TM__.</CtaSub>
-        <PrimaryBtn onClick={() => navigate("/sign-up")}>
+        <PrimaryBtn onClick={() => navigate(user ? "/newlist" : "/sign-up")}>
           Set Up Your Listing
         </PrimaryBtn>
       </CtaBanner>

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 import { Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const MainContainer = styled.div`
   padding: 20px 40px;
@@ -207,6 +208,7 @@ const LearnButton = styled.button`
 
 function LocalSourcing() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   return (
     <>
       <SEO title="Local Sourcing" description="AFARMER™ connects healthcare institutions, schools, and food businesses to local farmers for reliable, fresh produce sourcing." path="/localsourcing" />
@@ -220,7 +222,7 @@ function LocalSourcing() {
           track local produce through one streamlined platform
         </p>
         <DownloadContainer>
-          <button onClick={() => navigate("/sign-up")}>Get Started</button>
+          <button onClick={() => navigate(user ? "/list" : "/sign-up")}>Get Started</button>
         </DownloadContainer>
       </MainContainer>
 

@@ -2,6 +2,7 @@ import styled, { keyframes } from "styled-components";
 import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 
@@ -62,6 +63,7 @@ const FAQS = [
 
 const ForMarketers = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [openFaq, setOpenFaq] = React.useState(null);
   return (
     <>
@@ -82,7 +84,7 @@ const ForMarketers = () => {
             local food community — beyond just market days.
           </HeroSub>
           <HeroActions>
-            <PrimaryBtn onClick={() => navigate("/sign-up")}>
+            <PrimaryBtn onClick={() => navigate(user ? "/mobile" : "/sign-up")}>
               Get Started Free
             </PrimaryBtn>
             <OutlineBtn onClick={() => navigate("/pricing")}>
@@ -126,7 +128,7 @@ const ForMarketers = () => {
             start connecting with local buyers immediately. Need more? Upgrade
             to unlimited listings for just Kes 10 per month.
           </StartSub>
-          <PrimaryBtn onClick={() => navigate("/sign-up")}>
+          <PrimaryBtn onClick={() => navigate(user ? "/mobile" : "/sign-up")}>
             Get Started Today
           </PrimaryBtn>
         </StartInner>
@@ -175,7 +177,7 @@ const ForMarketers = () => {
         <CtaSub>
           Join farmers and market managers already connecting on AFARMER™__TM__.
         </CtaSub>
-        <PrimaryBtn onClick={() => navigate("/sign-up")}>
+        <PrimaryBtn onClick={() => navigate(user ? "/mobile" : "/sign-up")}>
           Start for Free
         </PrimaryBtn>
       </CtaBanner>

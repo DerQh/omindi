@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "../../../supabase";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 
@@ -785,6 +786,7 @@ const FEATURES = [
 
 function Body() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Tracks which testimonial is currently visible.
   const [activeTestimonial, setActiveTestimonial] = useState(0);
@@ -846,7 +848,7 @@ function Body() {
               trusted farmers and buyers across Kenya. No middlemen, no markup.
             </HeroSub>
             <HeroCtas>
-              <CtaPrimary onClick={() => navigate("/sign-up")}>
+              <CtaPrimary onClick={() => navigate(user ? "/mobile" : "/sign-up")}>
                 Get Started Free
               </CtaPrimary>
               <CtaSecondary onClick={() => navigate("/agritourism")}>
@@ -946,7 +948,7 @@ function Body() {
               platform. Free to sign up, free to list.
             </CtaBannerSub>
           </div>
-          <CtaBannerBtn onClick={() => navigate("/sign-up")}>
+          <CtaBannerBtn onClick={() => navigate(user ? "/mobile" : "/sign-up")}>
             Create Free Account
           </CtaBannerBtn>
         </CtaBanner>

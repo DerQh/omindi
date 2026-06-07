@@ -1,6 +1,7 @@
 import styled, { keyframes } from "styled-components";
 import SEO from "./SEO";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 
@@ -66,6 +67,7 @@ const FEATURES = [
 
 const ForBuyers = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   return (
     <>
       <SEO
@@ -92,7 +94,7 @@ const ForBuyers = () => {
             <PrimaryBtn onClick={() => navigate("/mobile")}>
               Browse Listings
             </PrimaryBtn>
-            <OutlineBtn onClick={() => navigate("/sign-up")}>
+            <OutlineBtn onClick={() => navigate(user ? "/list" : "/sign-up")}>
               Create Free Account
             </OutlineBtn>
           </HeroActions>
@@ -165,7 +167,7 @@ const ForBuyers = () => {
         <CtaSub>
           Join thousands of Kenyans already buying directly from local farms.
         </CtaSub>
-        <PrimaryBtn onClick={() => navigate("/sign-up")}>
+        <PrimaryBtn onClick={() => navigate(user ? "/list" : "/sign-up")}>
           Create Your Free Account
         </PrimaryBtn>
       </CtaBanner>
