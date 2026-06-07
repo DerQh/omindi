@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import ProtectedRoutes from "./components/mobile/ProtectedRoutes";
@@ -72,6 +73,12 @@ const PageLoader = () => (
   </div>
 );
 
+function PublicRoute({ children }) {
+  const { user } = useAuth();
+  if (user) return <Navigate to="/mobile" replace />;
+  return children;
+}
+
 function App() {
   return (
     <HelmetProvider>
@@ -126,8 +133,8 @@ function App() {
                   <Route path="test" element={<h1>TEST PAGE</h1>} />
                 </Route>
                 <Route path="/contactus"          element={<ContactUs />} />
-                <Route path="/sign-up"            element={<SignupLogin />} />
-                <Route path="/login"              element={<SignupLogin />} />
+                <Route path="/sign-up"            element={<PublicRoute><SignupLogin /></PublicRoute>} />
+                <Route path="/login"              element={<PublicRoute><SignupLogin /></PublicRoute>} />
                 <Route path="/reset-password"     element={<ResetPassword />} />
                 <Route path="/news"              element={<News />} />
                 <Route path="/shop"              element={<Shop />} />
