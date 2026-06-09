@@ -6,7 +6,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // Set SENDER_EMAIL to a verified domain email e.g. orders@afarmer.co.ke
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
-const SENDER_EMAIL   = Deno.env.get("SENDER_EMAIL") ?? "orders@afarmer.co.ke";
+const REPLY_TO       = "difffred@gmail.com";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -137,7 +137,8 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `AFARMER™ <${SENDER_EMAIL}>`,
+        from: "AFARMER™ <onboarding@resend.dev>",
+        reply_to: REPLY_TO,
         to: [user.email],
         subject: `Order confirmed #${order_id.slice(0, 8).toUpperCase()} — AFARMER™`,
         html: emailHtml,
