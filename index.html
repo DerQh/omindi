@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/puodho.svg" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/afarmer.webp" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/afarmer.webp" />
     <link rel="preconnect" href="https://kdnswhflymslpbsftwek.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://kdnswhflymslpbsftwek.supabase.co" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -47,6 +49,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Afarmer" />
   </head>
+  <!-- Google Analytics GA4 — replace G-XXXXXXXXXX with your Measurement ID -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

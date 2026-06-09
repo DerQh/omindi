@@ -2,14 +2,13 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import {
   useAllCartItems,
   useCartItemDeleteId,
   useUpdateCartItem,
 } from "../../hooks/useCart";
 import { useUser } from "../../hooks/useUser";
-import LoadingComponent from "./Loading";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(8px); }
@@ -52,7 +51,27 @@ const Cart = () => {
     );
   };
 
-  if (isLoading || isLoadingUser) return <LoadingComponent />;
+  if (isLoading || isLoadingUser) return (
+    <>
+      <Helmet><title>My Cart — AFARMER™</title></Helmet>
+      <AppNavbar />
+      <Page>
+        <Header><SkeletonRound style={{ width: 40, height: 40 }} /></Header>
+        <CartSkeleton>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SkeletonCard key={i}>
+              <SkeletonImg />
+              <SkeletonInfo>
+                <SkeletonLine $w="60%" $h="16px" />
+                <SkeletonLine $w="35%" $h="13px" />
+                <SkeletonLine $w="45%" $h="13px" />
+              </SkeletonInfo>
+            </SkeletonCard>
+          ))}
+        </CartSkeleton>
+      </Page>
+    </>
+  );
 
   return (
     <>
@@ -699,4 +718,62 @@ const BrowseBtn = styled.button`
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
+`;
+
+const shimmer = keyframes`
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+`;
+
+const shimmerBase = css`
+  background: linear-gradient(90deg, #e8f0e8 25%, #f3f7f3 50%, #e8f0e8 75%);
+  background-size: 800px 100%;
+  animation: ${shimmer} 1.4s infinite;
+  border-radius: 8px;
+`;
+
+const CartSkeleton = styled.div`
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+`;
+
+const SkeletonCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  gap: 14px;
+  box-shadow: 0 2px 12px rgba(20, 57, 32, 0.05);
+`;
+
+const SkeletonImg = styled.div`
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  ${shimmerBase}
+`;
+
+const SkeletonInfo = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+`;
+
+const SkeletonLine = styled.div`
+  height: ${({ $h }) => $h || "14px"};
+  width: ${({ $w }) => $w || "100%"};
+  ${shimmerBase}
+`;
+
+const SkeletonRound = styled.div`
+  border-radius: 50%;
+  ${shimmerBase}
 `;

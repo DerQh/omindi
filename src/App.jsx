@@ -34,6 +34,8 @@ const Merchandise     = lazy(() => import("./components/web/Merchandise"));
 const Wholesale       = lazy(() => import("./components/web/Wholesale"));
 const ErrorDisplay    = lazy(() => import("./components/web/Error"));
 const ResetPassword   = lazy(() => import("./components/web/ResetPassword"));
+const TermsOfService  = lazy(() => import("./components/web/TermsOfService"));
+const PrivacyPolicy   = lazy(() => import("./components/web/PrivacyPolicy"));
 
 // ─── Lazy app (mobile) routes ─────────────────────────────────────────────────
 const AppHome         = lazy(() => import("./components/mobile/AppHome"));
@@ -141,6 +143,8 @@ function App() {
                 <Route path="/aboutus"           element={<AboutUs />} />
                 <Route path="/faq"               element={<FAQ />} />
                 <Route path="/shop/item/:id"     element={<Merchandise />} />
+                <Route path="/terms"             element={<TermsOfService />} />
+                <Route path="/privacy-policy"    element={<PrivacyPolicy />} />
                 <Route path="*"                  element={<ErrorDisplay />} />
               </Routes>
             </Suspense>

@@ -433,9 +433,9 @@ export default function FooterContainer() {
           .
         </Copyright>
         <LegalLinks>
-          <LegalLink href="#">Terms of Service</LegalLink>
-          <LegalLink href="#">Privacy Policy</LegalLink>
-          <LegalLink href="#">Security</LegalLink>
+          <LegalLink href="/terms">Terms of Service</LegalLink>
+          <LegalLink href="/privacy-policy">Privacy Policy</LegalLink>
+          <LegalLink href="/contactus">Contact Us</LegalLink>
         </LegalLinks>
       </BottomBar>
     </FooterWrap>

@@ -25,9 +25,12 @@ export function useAddOrder() {
         })
         .select();
 
-      if (error) {
-        // REMOVE LIKE
-        throw error;
+      if (error) throw error;
+
+      // Fire-and-forget confirmation email — don't block checkout on email failure
+      const order_id = data?.[0]?.id;
+      if (order_id) {
+        supabase.functions.invoke("send-order-email", { body: { order_id } }).catch(() => {});
       }
 
       return data;
