@@ -101,8 +101,9 @@ const CheckoutInner = () => {
 
   // Payment state: idle → processing → stk_sent (mpesa) → confirmed → done
   const [payStep, setPayStep]       = useState("idle");
-  const [stkOrderId, setStkOrderId] = useState(null);
-  const [stkError, setStkError]     = useState("");
+  const [stkOrderId, setStkOrderId]         = useState(null);
+  const [stkCheckoutId, setStkCheckoutId]   = useState(null);
+  const [stkError, setStkError]             = useState("");
   const [stkSecondsLeft, setStkSecondsLeft] = useState(60);
   const [pendingTxnId, setPendingTxnId]     = useState(null);
 
@@ -160,12 +161,31 @@ const CheckoutInner = () => {
     return orderIds;
   };
 
-  // ── Poll order status until Daraja callback arrives ──────────────────────
+  // ── Poll order status; fall back to direct Daraja query if callback is slow ─
   useEffect(() => {
     if (payStep !== "stk_sent" || !stkOrderId) return;
 
     let elapsed = 0;
     const TIMEOUT = 60;
+
+    const confirm = async () => {
+      clearInterval(poll);
+      clearInterval(countdown);
+      if (pendingTxnId) await approveTransaction(pendingTxnId).then(null, () => {});
+      setPayStep("confirmed");
+      setTimeout(() => navigate("/order-confirmation", {
+        state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: [stkOrderId], phone, purchaseDate: new Date().toISOString(), txnId: pendingTxnId },
+      }), 2000);
+    };
+
+    const fail = async () => {
+      clearInterval(poll);
+      clearInterval(countdown);
+      if (pendingTxnId) await failTransaction(pendingTxnId).then(null, () => {});
+      setStkError("Payment was cancelled or failed. Please try again.");
+      setPayStep("idle");
+      setStkOrderId(null);
+    };
 
     const countdown = setInterval(() => {
       elapsed += 1;
@@ -180,27 +200,25 @@ const CheckoutInner = () => {
     }, 1000);
 
     const poll = setInterval(async () => {
+      // 1. Check DB (fast path — works when callback fires correctly)
       const { data } = await supabase
         .from("orders")
         .select("status")
         .eq("id", stkOrderId)
         .single();
 
-      if (data?.status === "confirmed") {
-        clearInterval(poll);
-        clearInterval(countdown);
-        if (pendingTxnId) await approveTransaction(pendingTxnId).then(null, () => {});
-        setPayStep("confirmed");
-        setTimeout(() => navigate("/order-confirmation", {
-          state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: [stkOrderId], phone, purchaseDate: new Date().toISOString(), txnId: pendingTxnId },
-        }), 2000);
-      } else if (data?.status === "payment_failed") {
-        clearInterval(poll);
-        clearInterval(countdown);
-        if (pendingTxnId) await failTransaction(pendingTxnId).then(null, () => {});
-        setStkError("Payment was cancelled or failed. Please try again.");
-        setPayStep("idle");
-        setStkOrderId(null);
+      if (data?.status === "confirmed") { confirm(); return; }
+      if (data?.status === "payment_failed") { fail(); return; }
+
+      // 2. After 15 s without a callback, query Daraja directly
+      if (elapsed >= 15 && stkCheckoutId) {
+        try {
+          const { data: qData } = await supabase.functions.invoke("mpesa-stk-query", {
+            body: { checkout_request_id: stkCheckoutId, order_id: stkOrderId },
+          });
+          if (qData?.status === "confirmed") { confirm(); return; }
+          if (qData?.status === "failed")    { fail();    return; }
+        } catch { /* ignore — keep polling */ }
       }
     }, 3000);
 
@@ -253,6 +271,7 @@ const CheckoutInner = () => {
 
         // 4. Start polling — useEffect handles the rest
         setStkOrderId(orderId);
+        setStkCheckoutId(checkoutId);
         setStkSecondsLeft(60);
         setStkError("");
         setPayStep("stk_sent");
