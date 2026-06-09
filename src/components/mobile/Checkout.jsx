@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes, css } from "styled-components";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+
+const stripePromise = loadStripe("pk_test_51TgTrb2I2gjYkw0zZLgoiQb85ndnyDWsms3pgG7Zs6IEVORSlXumyTaZ2mPuY8pgoR5Ugjj8RxWFsDfIBJIqosdp003nKg0TDy");
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../../supabase";
 import { useAddOrder, useAddOrderItems } from "../../hooks/useOrders";
@@ -65,7 +69,9 @@ const PAYMENT_METHODS = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-const Checkout = () => {
+const CheckoutInner = () => {
+  const stripe   = useStripe();
+  const elements = useElements();
   const navigate  = useNavigate();
   const { state } = useLocation();
   const { user }  = useAuth();
@@ -87,10 +93,11 @@ const Checkout = () => {
   const [errors, setErrors]               = useState({});
 
   // Card fields
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvv, setCardCvv]       = useState("");
-  const [cardName, setCardName]     = useState("");
+  const [cardName, setCardName]         = useState("");
+  const [cardElementError, setCardElementError] = useState("");
+
+  // Card payments use inline loading so CardElement stays mounted during Stripe call
+  const [isCardProcessing, setIsCardProcessing] = useState(false);
 
   // Payment state: idle → processing → stk_sent (mpesa) → confirmed → done
   const [payStep, setPayStep]       = useState("idle");
@@ -120,9 +127,6 @@ const Checkout = () => {
     else if (!/^(07|01)\d{8}$/.test(phone.replace(/\s/g, "")))
       e.phone = "Enter a valid Kenyan number e.g. 0712 345 678";
     if (paymentMethod === "card") {
-      if (cardNumber.replace(/\s/g, "").length < 16) e.cardNumber = "Enter a valid 16-digit card number.";
-      if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) e.cardExpiry = "Enter expiry as MM/YY.";
-      if (cardCvv.length < 3) e.cardCvv = "Enter a valid CVV.";
       if (!cardName.trim()) e.cardName = "Name on card is required.";
     }
     setErrors(e);
@@ -206,15 +210,20 @@ const Checkout = () => {
   // ── Checkout handler ──────────────────────────────────────────────────────
   const handleCheckout = async () => {
     if (!validate()) return;
-    setPayStep("processing");
 
-    // Insert a pending transaction immediately so it's tracked in Supabase
-    // regardless of what happens next.
+    // Card: use inline button loading — never show the full overlay while CardElement
+    // must stay mounted for stripe.confirmCardPayment to work.
+    if (paymentMethod === "card") {
+      setIsCardProcessing(true);
+    } else {
+      setPayStep("processing");
+    }
+
     let txnId = null;
     try {
       const txn = await createTransaction({
         user_id:        user?.id,
-        order_id:       null,        // updated after order is created
+        order_id:       null,
         payment_method: paymentMethod,
         amount:         totalCost,
         phone:          phone,
@@ -222,7 +231,7 @@ const Checkout = () => {
       txnId = txn.id;
       setPendingTxnId(txn.id);
     } catch {
-      // Non-fatal — proceed even if transaction logging fails
+      // Non-fatal
     }
 
     if (paymentMethod === "mpesa") {
@@ -253,8 +262,26 @@ const Checkout = () => {
       }
 
     } else if (paymentMethod === "card") {
-      // processing (3.5s) → confirmed → navigate after 2.5s
-      setTimeout(async () => {
+      try {
+        // 1. Create PaymentIntent on the server
+        const { data, error: fnErr } = await supabase.functions.invoke("create-payment-intent", {
+          body: { amount: totalCost, currency: "kes" },
+        });
+        if (fnErr || data?.error) throw new Error(data?.error || fnErr?.message || "Could not initialize payment");
+
+        // 2. Confirm card payment — CardElement is still mounted because we never
+        //    called setPayStep("processing") for card payments.
+        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
+          payment_method: {
+            card: elements.getElement(CardElement),
+            billing_details: { name: cardName },
+          },
+        });
+        if (stripeError) throw new Error(stripeError.message);
+        if (paymentIntent.status !== "succeeded") throw new Error("Payment was not completed");
+
+        // 3. Payment confirmed — persist order in DB then show confirmation overlay
+        setIsCardProcessing(false);
         setPayStep("confirmed");
         const orderIds = await placeOrder();
         if (txnId) {
@@ -266,7 +293,10 @@ const Checkout = () => {
         setTimeout(() => navigate("/order-confirmation", {
           state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: orderIds, phone, purchaseDate: new Date().toISOString(), txnId },
         }), 2500);
-      }, 3500);
+      } catch (err) {
+        setStkError(err.message || "Card payment failed. Please try again.");
+        setIsCardProcessing(false);
+      }
 
     } else {
       // Cash — approve immediately (no waiting)
@@ -281,19 +311,6 @@ const Checkout = () => {
         state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: orderIds, phone, purchaseDate: new Date().toISOString(), txnId },
       });
     }
-  };
-
-  // ── Format card number with spaces ────────────────────────────────────────
-  const handleCardNumber = (v) => {
-    const digits = v.replace(/\D/g, "").slice(0, 16);
-    setCardNumber(digits.replace(/(.{4})/g, "$1 ").trim());
-    setErrors((p) => ({ ...p, cardNumber: "" }));
-  };
-
-  const handleExpiry = (v) => {
-    const digits = v.replace(/\D/g, "").slice(0, 4);
-    setCardExpiry(digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits);
-    setErrors((p) => ({ ...p, cardExpiry: "" }));
   };
 
   // ── Payment overlay ───────────────────────────────────────────────────────
@@ -466,42 +483,26 @@ const Checkout = () => {
                       {errors.cardName && <FieldError>{errors.cardName}</FieldError>}
                     </Field>
                     <Field>
-                      <FieldLabel>Card Number</FieldLabel>
-                      <FieldInput
-                        placeholder="1234 5678 9012 3456"
-                        value={cardNumber}
-                        onChange={(e) => handleCardNumber(e.target.value)}
-                        $error={!!errors.cardNumber}
-                        inputMode="numeric"
-                      />
-                      {errors.cardNumber && <FieldError>{errors.cardNumber}</FieldError>}
+                      <FieldLabel>Card Details</FieldLabel>
+                      <StripeCardWrapper>
+                        <CardElement
+                          options={{
+                            style: {
+                              base: {
+                                fontSize: "16px",
+                                color: "#1a3318",
+                                fontFamily: "inherit",
+                                "::placeholder": { color: "#9ca3af" },
+                              },
+                              invalid: { color: "#e63946" },
+                            },
+                          }}
+                          onChange={(e) => setCardElementError(e.error?.message || "")}
+                        />
+                      </StripeCardWrapper>
+                      {cardElementError && <FieldError>{cardElementError}</FieldError>}
                     </Field>
-                    <CardRow>
-                      <Field style={{ flex: 1 }}>
-                        <FieldLabel>Expiry</FieldLabel>
-                        <FieldInput
-                          placeholder="MM/YY"
-                          value={cardExpiry}
-                          onChange={(e) => handleExpiry(e.target.value)}
-                          $error={!!errors.cardExpiry}
-                          inputMode="numeric"
-                        />
-                        {errors.cardExpiry && <FieldError>{errors.cardExpiry}</FieldError>}
-                      </Field>
-                      <Field style={{ flex: 1 }}>
-                        <FieldLabel>CVV</FieldLabel>
-                        <FieldInput
-                          placeholder="123"
-                          value={cardCvv}
-                          onChange={(e) => { setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4)); setErrors((p) => ({ ...p, cardCvv: "" })); }}
-                          $error={!!errors.cardCvv}
-                          inputMode="numeric"
-                          type="password"
-                        />
-                        {errors.cardCvv && <FieldError>{errors.cardCvv}</FieldError>}
-                      </Field>
-                    </CardRow>
-                    <CardDisclaimer>🔒 Your card details are encrypted and never stored.</CardDisclaimer>
+                    <CardDisclaimer>🔒 Powered by Stripe · Card details never touch our servers.</CardDisclaimer>
                   </CardFields>
                 )}
               </FormCard>
@@ -549,12 +550,14 @@ const Checkout = () => {
               {stkError && (
                 <StkErrorMsg>{stkError}</StkErrorMsg>
               )}
-              <ConfirmBtn onClick={handleCheckout} disabled={isPendingOrder}>
+              <ConfirmBtn onClick={handleCheckout} disabled={isPendingOrder || isCardProcessing}>
                 {paymentMethod === "mpesa" && "📱 "}
                 {paymentMethod === "card"  && "💳 "}
                 {paymentMethod === "cash"  && "💵 "}
                 {isPendingOrder
                   ? "Placing order…"
+                  : isCardProcessing
+                  ? "Processing payment…"
                   : `Pay Kes ${totalCost?.toLocaleString()}`}
               </ConfirmBtn>
               <CancelBtn onClick={() => navigate(-1)}>Back to Cart</CancelBtn>
@@ -565,6 +568,12 @@ const Checkout = () => {
     </>
   );
 };
+
+const Checkout = () => (
+  <Elements stripe={stripePromise}>
+    <CheckoutInner />
+  </Elements>
+);
 
 export default Checkout;
 
@@ -774,6 +783,15 @@ const CardFields = styled.div`
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #f0f7ee;
+`;
+
+const StripeCardWrapper = styled.div`
+  padding: 11px 13px;
+  border-radius: 11px;
+  border: 1.5px solid #e8f0e8;
+  background: #fafcfa;
+  transition: border-color 0.15s;
+  &:focus-within { border-color: #2f5a2a; }
 `;
 
 const CardRow = styled.div`display: flex; gap: 12px;`;
