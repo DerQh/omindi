@@ -39,7 +39,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!.*\\.[\\w]+$).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
