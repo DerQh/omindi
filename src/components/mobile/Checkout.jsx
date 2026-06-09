@@ -92,13 +92,12 @@ const Checkout = () => {
   const [cardCvv, setCardCvv]       = useState("");
   const [cardName, setCardName]     = useState("");
 
-  // Payment simulation state:
-  // idle → processing → stk_sent (mpesa only) → confirmed → done
-  const [payStep, setPayStep]   = useState("idle");
-  const [otpValue, setOtpValue] = useState("");
-  const [otpError, setOtpError] = useState("");
-  // Holds the transaction ID after checkout starts so OTP handler can access it.
-  const [pendingTxnId, setPendingTxnId] = useState(null);
+  // Payment state: idle → processing → stk_sent (mpesa) → confirmed → done
+  const [payStep, setPayStep]       = useState("idle");
+  const [stkOrderId, setStkOrderId] = useState(null);
+  const [stkError, setStkError]     = useState("");
+  const [stkSecondsLeft, setStkSecondsLeft] = useState(60);
+  const [pendingTxnId, setPendingTxnId]     = useState(null);
 
   // ── Computed ──────────────────────────────────────────────────────────────
   const totalCount = cartItems.reduce((s, i) => s + (i.quantity || 0), 0);
@@ -157,37 +156,52 @@ const Checkout = () => {
     return orderIds;
   };
 
-  // ── OTP confirmation handler (M-Pesa) ────────────────────────────────────
-  // The "OTP" is the last 4 digits of the user's phone number — simulates real
-  // M-Pesa PIN verification. Wrong code marks the transaction failed and
-  // resets to idle so the user can retry.
-  const handleOtpSubmit = async () => {
-    const expected = phone.replace(/\D/g, "").slice(-4);
-    if (otpValue !== expected) {
-      setOtpError("Incorrect PIN. Payment failed.");
-      if (pendingTxnId) await failTransaction(pendingTxnId).catch(() => {});
-      setTimeout(() => {
-        setPayStep("idle");
-        setOtpValue("");
-        setOtpError("");
-        setPendingTxnId(null);
-      }, 2000);
-      return;
-    }
+  // ── Poll order status until Daraja callback arrives ──────────────────────
+  useEffect(() => {
+    if (payStep !== "stk_sent" || !stkOrderId) return;
 
-    // Correct PIN — confirm payment
-    setPayStep("confirmed");
-    const orderIds = await placeOrder();
-    if (pendingTxnId) {
-      await approveTransaction(pendingTxnId).catch(() => {});
-      if (orderIds[0]) {
-        await supabase.from("transactions").update({ order_id: orderIds[0] }).eq("id", pendingTxnId);
+    let elapsed = 0;
+    const TIMEOUT = 60;
+
+    const countdown = setInterval(() => {
+      elapsed += 1;
+      setStkSecondsLeft(TIMEOUT - elapsed);
+      if (elapsed >= TIMEOUT) {
+        clearInterval(countdown);
+        clearInterval(poll);
+        setStkError("Payment timed out. Please try again.");
+        setPayStep("idle");
+        setStkOrderId(null);
       }
-    }
-    setTimeout(() => navigate("/order-confirmation", {
-      state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: orderIds, phone, purchaseDate: new Date().toISOString(), txnId: pendingTxnId },
-    }), 2500);
-  };
+    }, 1000);
+
+    const poll = setInterval(async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("status")
+        .eq("id", stkOrderId)
+        .single();
+
+      if (data?.status === "confirmed") {
+        clearInterval(poll);
+        clearInterval(countdown);
+        if (pendingTxnId) await approveTransaction(pendingTxnId).catch(() => {});
+        setPayStep("confirmed");
+        setTimeout(() => navigate("/order-confirmation", {
+          state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: [stkOrderId], phone, purchaseDate: new Date().toISOString(), txnId: pendingTxnId },
+        }), 2000);
+      } else if (data?.status === "payment_failed") {
+        clearInterval(poll);
+        clearInterval(countdown);
+        if (pendingTxnId) await failTransaction(pendingTxnId).catch(() => {});
+        setStkError("Payment was cancelled or failed. Please try again.");
+        setPayStep("idle");
+        setStkOrderId(null);
+      }
+    }, 3000);
+
+    return () => { clearInterval(poll); clearInterval(countdown); };
+  }, [payStep, stkOrderId]);
 
   // ── Checkout handler ──────────────────────────────────────────────────────
   const handleCheckout = async () => {
@@ -212,8 +226,31 @@ const Checkout = () => {
     }
 
     if (paymentMethod === "mpesa") {
-      // processing (2s) → stk_sent — user must enter OTP to confirm
-      setTimeout(() => setPayStep("stk_sent"), 2000);
+      try {
+        // 1. Create order first (need order_id for STK push reference)
+        const orderIds = await placeOrder();
+        const orderId  = orderIds[0];
+        if (txnId) await supabase.from("transactions").update({ order_id: orderId }).eq("id", txnId).catch(() => {});
+
+        // 2. Call Daraja STK Push via Edge Function
+        const { data, error: fnErr } = await supabase.functions.invoke("mpesa-stk-push", {
+          body: { phone, amount: totalCost, order_id: orderId },
+        });
+        if (fnErr || data?.error) throw new Error(data?.error || fnErr?.message || "STK Push failed");
+
+        // 3. Save CheckoutRequestID to order so callback can match it
+        const checkoutId = data.CheckoutRequestID;
+        await supabase.from("orders").update({ mpesa_checkout_id: checkoutId }).eq("id", orderId).catch(() => {});
+
+        // 4. Start polling — useEffect handles the rest
+        setStkOrderId(orderId);
+        setStkSecondsLeft(60);
+        setStkError("");
+        setPayStep("stk_sent");
+      } catch (err) {
+        setStkError(err.message || "Could not send payment prompt. Please try again.");
+        setPayStep("idle");
+      }
 
     } else if (paymentMethod === "card") {
       // processing (3.5s) → confirmed → navigate after 2.5s
@@ -281,58 +318,17 @@ const Checkout = () => {
           {payStep === "stk_sent" && (
             <PayModal>
               <PhoneAnim>📲</PhoneAnim>
-              <PayModalTitle>Enter M-Pesa PIN</PayModalTitle>
+              <PayModalTitle>Check Your Phone</PayModalTitle>
               <PayModalSub>
-                A prompt was sent to <strong>{phone}</strong>.
-                Enter your 4-digit M-Pesa PIN to confirm.
+                A payment prompt was sent to <strong>{phone}</strong>.
+                Open M-Pesa and enter your PIN to complete the payment.
               </PayModalSub>
-
-              <OtpRow>
-                {[0, 1, 2, 3].map((i) => (
-                  <OtpBox
-                    key={i}
-                    type="password"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={otpValue[i] ?? ""}
-                    $filled={!!otpValue[i]}
-                    $error={!!otpError}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "");
-                      const next = (otpValue + "").split("");
-                      next[i] = val;
-                      const joined = next.join("").slice(0, 4);
-                      setOtpValue(joined);
-                      setOtpError("");
-                      // Auto-focus next box
-                      if (val && i < 3) {
-                        document.getElementById(`otp-${i + 1}`)?.focus();
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Backspace" && !otpValue[i] && i > 0) {
-                        document.getElementById(`otp-${i - 1}`)?.focus();
-                      }
-                    }}
-                    id={`otp-${i}`}
-                    autoFocus={i === 0}
-                  />
-                ))}
-              </OtpRow>
-
-              {otpError
-                ? <OtpError>{otpError}</OtpError>
-                : <StkNote>Enter your PIN to approve payment</StkNote>
-              }
-
-              <OtpConfirmBtn
-                disabled={otpValue.length < 4 || !!otpError}
-                onClick={handleOtpSubmit}
-              >
-                Confirm Payment
-              </OtpConfirmBtn>
-
-              <OtpCancel onClick={() => { setPayStep("idle"); setOtpValue(""); setOtpError(""); }}>
+              <StkCountdown $urgent={stkSecondsLeft <= 15}>
+                Expires in {stkSecondsLeft}s
+              </StkCountdown>
+              <Spinner style={{ margin: "8px auto 0" }} />
+              <StkNote>Waiting for Safaricom confirmation…</StkNote>
+              <OtpCancel onClick={() => { setPayStep("idle"); setStkOrderId(null); setStkError(""); }}>
                 Cancel
               </OtpCancel>
             </PayModal>
@@ -550,6 +546,9 @@ const Checkout = () => {
                 </Field>
               </FormCard>
 
+              {stkError && (
+                <StkErrorMsg>{stkError}</StkErrorMsg>
+              )}
               <ConfirmBtn onClick={handleCheckout} disabled={isPendingOrder}>
                 {paymentMethod === "mpesa" && "📱 "}
                 {paymentMethod === "card"  && "💳 "}
@@ -931,39 +930,24 @@ const GoBackBtn = styled.button`
   &:hover { background: #245026; }
 `;
 
-const OtpRow = styled.div`
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin: 4px 0;
-`;
-
-const OtpBox = styled.input`
-  width: 52px; height: 56px;
-  border-radius: 12px;
-  border: 2px solid ${({ $error }) => ($error ? "#ef4444" : ({ $filled }) => ($filled ? "#2f5a2a" : "#e5e7eb"))};
-  background: ${({ $error }) => ($error ? "#fef2f2" : "#f8faf6")};
-  text-align: center; font-size: 1.4rem; font-weight: 800;
-  color: #1a3318; outline: none;
-  transition: border-color 0.15s;
-  &:focus { border-color: ${({ $error }) => ($error ? "#ef4444" : "#2f5a2a")}; }
-`;
-
-const OtpError = styled.p`
-  margin: 0; font-size: 0.82rem; font-weight: 700;
-  color: #ef4444; text-align: center;
-`;
-
-const OtpConfirmBtn = styled.button`
-  width: 100%; padding: 14px; border-radius: 12px; border: none;
-  background: #2f5a2a; color: white; font-size: 0.95rem; font-weight: 700;
-  cursor: pointer; transition: background 0.15s;
-  &:hover:not(:disabled) { background: #245026; }
-  &:disabled { opacity: 0.45; cursor: not-allowed; }
+const StkCountdown = styled.div`
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: ${({ $urgent }) => ($urgent ? "#ef4444" : "#7b8f7f")};
+  margin: 4px 0 8px;
+  transition: color 0.3s;
 `;
 
 const OtpCancel = styled.button`
   background: none; border: none; color: #9ca3af;
   font-size: 0.82rem; cursor: pointer;
   &:hover { color: #6b7280; }
+`;
+
+const StkErrorMsg = styled.p`
+  margin: 0 0 8px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #ef4444;
+  text-align: center;
 `;
