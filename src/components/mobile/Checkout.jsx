@@ -185,7 +185,7 @@ const Checkout = () => {
       if (data?.status === "confirmed") {
         clearInterval(poll);
         clearInterval(countdown);
-        if (pendingTxnId) await approveTransaction(pendingTxnId).catch(() => {});
+        if (pendingTxnId) await approveTransaction(pendingTxnId).then(null, () => {});
         setPayStep("confirmed");
         setTimeout(() => navigate("/order-confirmation", {
           state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: [stkOrderId], phone, purchaseDate: new Date().toISOString(), txnId: pendingTxnId },
@@ -193,7 +193,7 @@ const Checkout = () => {
       } else if (data?.status === "payment_failed") {
         clearInterval(poll);
         clearInterval(countdown);
-        if (pendingTxnId) await failTransaction(pendingTxnId).catch(() => {});
+        if (pendingTxnId) await failTransaction(pendingTxnId).then(null, () => {});
         setStkError("Payment was cancelled or failed. Please try again.");
         setPayStep("idle");
         setStkOrderId(null);
@@ -230,7 +230,7 @@ const Checkout = () => {
         // 1. Create order first (need order_id for STK push reference)
         const orderIds = await placeOrder();
         const orderId  = orderIds[0];
-        if (txnId) await supabase.from("transactions").update({ order_id: orderId }).eq("id", txnId).catch(() => {});
+        if (txnId) await supabase.from("transactions").update({ order_id: orderId }).eq("id", txnId).then(null, () => {});
 
         // 2. Call Daraja STK Push via Edge Function
         const { data, error: fnErr } = await supabase.functions.invoke("mpesa-stk-push", {
@@ -240,7 +240,7 @@ const Checkout = () => {
 
         // 3. Save CheckoutRequestID to order so callback can match it
         const checkoutId = data.CheckoutRequestID;
-        await supabase.from("orders").update({ mpesa_checkout_id: checkoutId }).eq("id", orderId).catch(() => {});
+        await supabase.from("orders").update({ mpesa_checkout_id: checkoutId }).eq("id", orderId).then(null, () => {});
 
         // 4. Start polling — useEffect handles the rest
         setStkOrderId(orderId);
@@ -258,7 +258,7 @@ const Checkout = () => {
         setPayStep("confirmed");
         const orderIds = await placeOrder();
         if (txnId) {
-          await approveTransaction(txnId).catch(() => {});
+          await approveTransaction(txnId).then(null, () => {});
           if (orderIds[0]) {
             await supabase.from("transactions").update({ order_id: orderIds[0] }).eq("id", txnId);
           }
@@ -272,7 +272,7 @@ const Checkout = () => {
       // Cash — approve immediately (no waiting)
       const orderIds = await placeOrder();
       if (txnId) {
-        await approveTransaction(txnId).catch(() => {});
+        await approveTransaction(txnId).then(null, () => {});
         if (orderIds[0]) {
           await supabase.from("transactions").update({ order_id: orderIds[0] }).eq("id", txnId);
         }
