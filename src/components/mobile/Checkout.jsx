@@ -234,7 +234,7 @@ const Checkout = () => {
 
         // 2. Call Daraja STK Push via Edge Function
         const { data, error: fnErr } = await supabase.functions.invoke("mpesa-stk-push", {
-          body: { phone, amount: totalCost, order_id: orderId },
+          body: { phone, amount: 1, order_id: orderId }, // TODO: change back to totalCost before go-live
         });
         if (fnErr || data?.error) throw new Error(data?.error || fnErr?.message || "STK Push failed");
 
