@@ -64,7 +64,8 @@ function PrivacyPolicy() {
               <P>We do not sell your personal data. We share data only with:</P>
               <List>
                 <li><strong>Supabase:</strong> our database and authentication provider (servers located in the EU).</li>
-                <li><strong>Safaricom / M-Pesa:</strong> for payment processing — only transaction-relevant data.</li>
+                <li><strong>Safaricom / M-Pesa:</strong> for M-Pesa payment processing — only transaction-relevant data (phone number and amount).</li>
+                <li><strong>Stripe:</strong> for card payment processing — card details go directly to Stripe and never pass through our servers. See <a href="https://stripe.com/privacy" target="_blank" rel="noreferrer">Stripe's Privacy Policy</a>.</li>
                 <li><strong>Google:</strong> for analytics (anonymised usage data).</li>
                 <li><strong>Law enforcement</strong> when required by a valid legal order.</li>
               </List>

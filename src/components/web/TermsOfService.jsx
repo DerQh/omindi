@@ -101,10 +101,16 @@ function TermsOfService() {
             <Section>
               <SectionTitle>6. Payments</SectionTitle>
               <P>
-                Payments on AFARMER™ may be processed via M-Pesa or other methods
-                we support. By making a payment, you authorise the transaction.
-                AFARMER™ is not liable for any delays or failures in payment
-                processing caused by third-party providers.
+                Payments on AFARMER™ are processed via M-Pesa (Safaricom) or
+                card (Visa / Mastercard via Stripe). By making a payment you
+                authorise the transaction. Card details are transmitted directly
+                to Stripe and are never stored on AFARMER™ servers.
+              </P>
+              <P>
+                AFARMER™ is not liable for delays or failures in payment
+                processing caused by third-party providers (Safaricom or Stripe).
+                For payment disputes, contact us at{" "}
+                <a href="mailto:support@afarmer.co.ke">support@afarmer.co.ke</a>.
               </P>
             </Section>
 
