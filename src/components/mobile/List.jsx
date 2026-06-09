@@ -27,7 +27,7 @@ const List = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [cols, setCols] = useState(2);
+  const [cols, setCols] = useState(1);
   const gridRef = useRef(null);
   const searchRef = useRef(null);
   const navigate = useNavigate();
@@ -80,6 +80,7 @@ const List = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [searchTerm, activeCategory, sortBy]);
+
 
   // Responsive column count based on grid container width
   useEffect(() => {
@@ -290,7 +291,7 @@ const List = () => {
 
         {/* ── Body ── */}
         <Body>
-          <BodyInner>
+          <BodyInner ref={gridRef}>
             <ResultsMeta>
               <ResultsCount>
                 Total Listings {filteredAndSorted.length}
@@ -304,7 +305,7 @@ const List = () => {
             </ResultsMeta>
 
             {isLoading ? (
-              <Grid>
+              <Grid $cols={cols}>
                 {Array.from({ length: 6 }).map((_, i) => (
                   <SkeletonCard key={i}>
                     <SkeletonImg />
@@ -318,7 +319,6 @@ const List = () => {
               </Grid>
             ) : filteredAndSorted.length > 0 ? (
               <VirtualGrid
-                ref={gridRef}
                 style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
               >
                 {rowVirtualizer.getVirtualItems().map((vRow) => (
@@ -716,7 +716,7 @@ const ResultsCount = styled.p`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(${({ $cols }) => $cols || 1}, 1fr);
   gap: 20px;
 `;
 
