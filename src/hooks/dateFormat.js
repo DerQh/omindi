@@ -1,14 +1,5 @@
-// const formatDate = (dateString) => {
-//   console.log("Formatting date:", dateString);
-//   return new Date(dateString).toLocaleDateString(undefined, {
-//     day: "numeric",
-//     month: "long",
-//     year: "numeric",
-//   });
-// };
+// formatSmartDate takes a date string and returns a human-readable relative time format
 
-// e.g. "2 days ago"
-// Formats a date string as a human-readable relative time (e.g. "2h ago") or a short date for older dates.
 const formatSmartDate = (dateString) => {
   const now = new Date();
   const past = new Date(dateString);
