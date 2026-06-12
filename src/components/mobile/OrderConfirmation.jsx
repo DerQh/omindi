@@ -12,7 +12,7 @@ const fadeUp = keyframes`
 
 const popIn = keyframes`
   0%   { transform: scale(0); opacity: 0; }
-  70%  { transform: scale(1.15); }
+  70%  { transform: scale(1.12); }
   100% { transform: scale(1); opacity: 1; }
 `;
 
@@ -24,19 +24,19 @@ const fadeIn = keyframes`
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const PAYMENT_LABELS = {
-  cash:   "Cash on Delivery",
-  mpesa:  "M-Pesa",
-  card:   "Card Payment",
+  cash: "Cash on Delivery",
+  mpesa: "M-Pesa",
+  card: "Card Payment",
   mobile: "Mobile Money",
-  bank:   "Bank Transfer",
+  bank: "Bank Transfer",
 };
 
 const PAYMENT_ICONS = {
-  cash:   "💵",
-  mpesa:  "📱",
-  card:   "💳",
+  cash: "💵",
+  mpesa: "📱",
+  card: "💳",
   mobile: "📲",
-  bank:   "🏦",
+  bank: "🏦",
 };
 
 const STEPS = [
@@ -82,12 +82,18 @@ const OrderConfirmation = () => {
 
   const formattedDate = purchaseDate
     ? new Date(purchaseDate).toLocaleString("en-KE", {
-        day: "numeric", month: "long", year: "numeric",
-        hour: "2-digit", minute: "2-digit",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       })
     : new Date().toLocaleString("en-KE", {
-        day: "numeric", month: "long", year: "numeric",
-        hour: "2-digit", minute: "2-digit",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
 
   const totalCount = groups?.reduce(
@@ -97,13 +103,38 @@ const OrderConfirmation = () => {
   const totalProducts = groups?.reduce((s, g) => s + g.items.length, 0);
   const estimatedDays = paymentMethod === "cash" ? "2–4" : "1–3";
 
-  // VAT calculation — prices are VAT-inclusive at Kenya's standard 16% rate.
-  const TAX_RATE   = 0.16;
-  const exVat      = totalCost ? Math.round((totalCost / (1 + TAX_RATE)) * 100) / 100 : 0;
-  const vatAmount  = totalCost ? Math.round((totalCost - exVat) * 100) / 100 : 0;
-  const fmt        = (n) => n.toLocaleString("en-KE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const TAX_RATE = 0.16;
+  const exVat = totalCost
+    ? Math.round((totalCost / (1 + TAX_RATE)) * 100) / 100
+    : 0;
+  const vatAmount = totalCost ? Math.round((totalCost - exVat) * 100) / 100 : 0;
+  const fmt = (n) =>
+    n.toLocaleString("en-KE", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
   const shortId = orderId?.[0]?.slice(0, 8).toUpperCase();
+
+  const handlePrint = () => {
+    setShowReceipt(true);
+    setTimeout(() => {
+      const el = document.getElementById("receipt-printable");
+      if (!el) return;
+      const win = window.open("", "_blank");
+      win.document.write(`<html><head><title>Receipt-${shortId}</title>
+        <style>body{margin:0;font-family:sans-serif;background:#fafcfa;}
+        #receipt-printable{max-width:400px;margin:0 auto;}</style></head>
+        <body>${el.innerHTML}</body></html>`);
+      win.document.close();
+      win.focus();
+      setTimeout(() => {
+        win.print();
+        win.close();
+        setShowReceipt(false);
+      }, 500);
+    }, 300);
+  };
 
   return (
     <>
@@ -113,8 +144,8 @@ const OrderConfirmation = () => {
         <Hero>
           <CheckCircle>✓</CheckCircle>
           <HeroTitle>Order Placed!</HeroTitle>
-          <HeroSub>Thank you. The seller will contact you shortly.</HeroSub>
-          {shortId && <OrderIdBadge>Order # {shortId}</OrderIdBadge>}
+          <HeroSub>Thank you — the seller will contact you shortly.</HeroSub>
+          {shortId && <OrderIdBadge>Order #{shortId}</OrderIdBadge>}
         </Hero>
 
         {/* ── Content sheet ── */}
@@ -126,7 +157,7 @@ const OrderConfirmation = () => {
               {STEPS.map((step, i) => (
                 <Step key={i}>
                   <StepDot $done={i === 0}>{i === 0 ? "✓" : step.icon}</StepDot>
-                  {i < STEPS.length - 1 && <StepLine $done={false} />}
+                  {i < STEPS.length - 1 && <StepLine />}
                   <StepLabel $done={i === 0}>{step.label}</StepLabel>
                 </Step>
               ))}
@@ -146,7 +177,7 @@ const OrderConfirmation = () => {
                 <StatLabel>Total qty</StatLabel>
               </StatBlock>
               <StatBlock $green>
-                <StatNum $green>Kes {totalCost?.toLocaleString()}</StatNum>
+                <StatNum>Kes {totalCost?.toLocaleString()}</StatNum>
                 <StatLabel>Total paid</StatLabel>
               </StatBlock>
             </StatsRow>
@@ -159,7 +190,10 @@ const OrderConfirmation = () => {
               <SellerGroup key={group.seller_id}>
                 <GroupHeader>
                   <GroupSellerName>
-                    Sold by, {group.items[0]?.listings?.profiles?.farm_name || group.items[0]?.listings?.profiles?.full_name || "Farmer"}
+                    &nbsp;
+                    {group.items[0]?.listings?.profiles?.farm_name ||
+                      group.items[0]?.listings?.profiles?.full_name ||
+                      "Farmer"}
                   </GroupSellerName>
                   <GroupSubtotal>
                     Kes {group.totalCost.toLocaleString()}
@@ -170,6 +204,10 @@ const OrderConfirmation = () => {
                     <ItemImg
                       src={item.listings?.image_url}
                       alt={item.listings?.title}
+                      onError={(e) => {
+                        e.target.style.background = "#eef7ee";
+                        e.target.src = "";
+                      }}
                     />
                     <ItemMeta>
                       <ItemName>{item.listings?.title}</ItemName>
@@ -198,7 +236,9 @@ const OrderConfirmation = () => {
             <SectionLabel>Delivery Details</SectionLabel>
             <DeliveryCard>
               <DeliveryRow>
-                <DeliveryLabel>Payment</DeliveryLabel>
+                <DeliveryLabel>
+                  {PAYMENT_ICONS[paymentMethod] ?? "💰"} Payment
+                </DeliveryLabel>
                 <DeliveryValue>
                   {PAYMENT_LABELS[paymentMethod] ?? paymentMethod}
                 </DeliveryValue>
@@ -208,7 +248,7 @@ const OrderConfirmation = () => {
                 <DeliveryValue>{address}</DeliveryValue>
               </DeliveryRow>
               <DeliveryRow>
-                <DeliveryLabel>Estimated delivery</DeliveryLabel>
+                <DeliveryLabel>Est. delivery</DeliveryLabel>
                 <DeliveryValue>{estimatedDays} business days</DeliveryValue>
               </DeliveryRow>
               <DeliveryRow $last>
@@ -220,31 +260,16 @@ const OrderConfirmation = () => {
             <Divider />
 
             {/* ── Actions ── */}
-            <Actions>
+            <Actions id="receipt-actions">
               <ActionBtn $variant="ghost" onClick={() => setShowReceipt(true)}>
                 View Receipt
               </ActionBtn>
-              <ActionBtn $variant="ghost" onClick={() => {
-                setShowReceipt(true);
-                setTimeout(() => {
-                  const el = document.getElementById("receipt-printable");
-                  if (!el) return;
-                  const win = window.open("", "_blank");
-                  win.document.write(`<html><head><title>Receipt-${shortId}</title>
-                    <style>body{margin:0;font-family:sans-serif;background:#fafcfa;}
-                    #receipt-printable{max-width:400px;margin:0 auto;}</style></head>
-                    <body>${el.innerHTML}</body></html>`);
-                  win.document.close();
-                  win.focus();
-                  setTimeout(() => { win.print(); win.close(); setShowReceipt(false); }, 500);
-                }, 300);
-              }}>
-                 Download Receipt PDF
+              <ActionBtn $variant="ghost" onClick={handlePrint}>
+                Download Receipt PDF
               </ActionBtn>
               <ActionBtn $variant="primary" onClick={() => navigate("/list")}>
                 Continue Shopping
               </ActionBtn>
-           
             </Actions>
           </Inner>
         </Sheet>
@@ -255,14 +280,19 @@ const OrderConfirmation = () => {
         <>
           <PrintStyles />
           <ModalOverlay onClick={() => setShowReceipt(false)}>
-            <ModalBox onClick={(e) => e.stopPropagation()} id="receipt-printable">
-
-              {/* Drag handle — tap/click to close, visually signals dismissal */}
+            <ModalBox
+              onClick={(e) => e.stopPropagation()}
+              id="receipt-printable"
+            >
               <DragHandle onClick={() => setShowReceipt(false)} title="Close" />
 
-              {/* Green header band with logo */}
               <ReceiptBand>
-                <ReceiptCloseX onClick={() => setShowReceipt(false)} title="Close">✕</ReceiptCloseX>
+                <ReceiptCloseX
+                  onClick={() => setShowReceipt(false)}
+                  title="Close"
+                >
+                  ✕
+                </ReceiptCloseX>
                 <ReceiptLogoRow>
                   <ReceiptLogoImg src="/afarmer.webp" alt="Omindi" />
                   <ReceiptLogoText>
@@ -274,14 +304,14 @@ const OrderConfirmation = () => {
                   </ReceiptStatusBadge>
                 </ReceiptLogoRow>
                 <ReceiptTitle>TAX INVOICE</ReceiptTitle>
-                <ReceiptKraPIN>KRA PIN: P051234567X · VAT Reg. No. 0123456Z</ReceiptKraPIN>
+                <ReceiptKraPIN>
+                  KRA PIN: P051234567X · VAT Reg. No. 0123456Z
+                </ReceiptKraPIN>
               </ReceiptBand>
 
-              {/* Jagged tear edge */}
               <TearEdge />
 
               <ReceiptBody>
-                {/* Meta grid */}
                 <ReceiptMetaGrid>
                   <ReceiptMetaItem>
                     <ReceiptMetaLabel>Order No.</ReceiptMetaLabel>
@@ -293,7 +323,10 @@ const OrderConfirmation = () => {
                   </ReceiptMetaItem>
                   <ReceiptMetaItem>
                     <ReceiptMetaLabel>Payment</ReceiptMetaLabel>
-                    <ReceiptMetaValue>{PAYMENT_ICONS[paymentMethod]} {PAYMENT_LABELS[paymentMethod] ?? paymentMethod}</ReceiptMetaValue>
+                    <ReceiptMetaValue>
+                      {PAYMENT_ICONS[paymentMethod]}{" "}
+                      {PAYMENT_LABELS[paymentMethod] ?? paymentMethod}
+                    </ReceiptMetaValue>
                   </ReceiptMetaItem>
                   {phone && (
                     <ReceiptMetaItem>
@@ -304,23 +337,35 @@ const OrderConfirmation = () => {
                   {txnId && (
                     <ReceiptMetaItem style={{ gridColumn: "1 / -1" }}>
                       <ReceiptMetaLabel>Txn Reference</ReceiptMetaLabel>
-                      <ReceiptMetaValue>{String(txnId).slice(0, 16).toUpperCase()}</ReceiptMetaValue>
+                      <ReceiptMetaValue>
+                        {String(txnId).slice(0, 16).toUpperCase()}
+                      </ReceiptMetaValue>
                     </ReceiptMetaItem>
                   )}
                 </ReceiptMetaGrid>
 
                 <ReceiptDivider />
 
-                {/* Items */}
                 <ReceiptSectionLabel>Items Purchased</ReceiptSectionLabel>
                 {groups?.map((group) => (
                   <div key={group.seller_id}>
-                    <ReceiptSellerRow>🏪 {group.items[0]?.listings?.profiles?.farm_name || group.items[0]?.listings?.profiles?.full_name || "Farmer"}</ReceiptSellerRow>
+                    <ReceiptSellerRow>
+                      {group.items[0]?.listings?.profiles?.farm_name ||
+                        group.items[0]?.listings?.profiles?.full_name ||
+                        "Farmer"}
+                    </ReceiptSellerRow>
                     {group.items.map((item) => (
                       <ReceiptLine key={item.id}>
-                        <ReceiptItemName>{item.listings?.title}</ReceiptItemName>
+                        <ReceiptItemName>
+                          {item.listings?.title}
+                        </ReceiptItemName>
                         <ReceiptItemQty>×{item.quantity}</ReceiptItemQty>
-                        <ReceiptItemPrice>Kes {(item.listings?.price * item.quantity).toLocaleString()}</ReceiptItemPrice>
+                        <ReceiptItemPrice>
+                          Kes{" "}
+                          {(
+                            item.listings?.price * item.quantity
+                          ).toLocaleString()}
+                        </ReceiptItemPrice>
                       </ReceiptLine>
                     ))}
                   </div>
@@ -344,7 +389,9 @@ const OrderConfirmation = () => {
                   <span>Total (inc. VAT)</span>
                   <ReceiptTotalAmt>Kes {fmt(totalCost ?? 0)}</ReceiptTotalAmt>
                 </ReceiptGrandRow>
-                <ReceiptVatNote>VAT Amount: Kes {fmt(vatAmount)} · Rate 16% · Standard Rated</ReceiptVatNote>
+                <ReceiptVatNote>
+                  VAT Amount: Kes {fmt(vatAmount)} · Rate 16% · Standard Rated
+                </ReceiptVatNote>
 
                 <ReceiptDivider />
 
@@ -355,18 +402,24 @@ const OrderConfirmation = () => {
                 </ReceiptInfoRow>
                 <ReceiptInfoRow>
                   <ReceiptInfoLabel>Est. Arrival</ReceiptInfoLabel>
-                  <ReceiptInfoValue>{estimatedDays} business days</ReceiptInfoValue>
+                  <ReceiptInfoValue>
+                    {estimatedDays} business days
+                  </ReceiptInfoValue>
                 </ReceiptInfoRow>
 
-                {/* Barcode strip */}
                 <ReceiptBarcodeWrap>
                   <ReceiptBarcode>
-                    {/* Deterministic bar/space pattern seeded from shortId — mimics Code128 */}
                     {Array.from({ length: 60 }).map((_, i) => {
-                      const seed = (shortId?.charCodeAt(i % (shortId?.length || 1)) ?? 65) + i;
-                      const isBar = seed % 3 !== 0; // ~2/3 bars, 1/3 gaps
+                      const seed =
+                        (shortId?.charCodeAt(i % (shortId?.length || 1)) ??
+                          65) + i;
+                      const isBar = seed % 3 !== 0;
                       const width = seed % 5 === 0 ? 3 : seed % 7 === 0 ? 2 : 1;
-                      return isBar ? <ReceiptBar key={i} $w={width} /> : <ReceiptGap key={i} $w={width} />;
+                      return isBar ? (
+                        <ReceiptBar key={i} $w={width} />
+                      ) : (
+                        <ReceiptGap key={i} $w={width} />
+                      );
                     })}
                   </ReceiptBarcode>
                   <ReceiptBarcodeNum>{shortId}</ReceiptBarcodeNum>
@@ -379,6 +432,13 @@ const OrderConfirmation = () => {
                 <span>omindi.farm</span>
               </ReceiptFooter>
 
+              {/* Close / Print buttons inside the modal */}
+              <ReceiptActionsRow id="receipt-actions">
+                <ReceiptActionBtn $ghost onClick={() => setShowReceipt(false)}>
+                  Close
+                </ReceiptActionBtn>
+                <ReceiptActionBtn onClick={handlePrint}>Print</ReceiptActionBtn>
+              </ReceiptActionsRow>
             </ModalBox>
           </ModalOverlay>
         </>
@@ -393,14 +453,14 @@ export default OrderConfirmation;
 
 const Page = styled.div`
   min-height: 100vh;
-  background: #f5f8f5;
+  background: #f4f8f4;
 `;
 
 // ── Hero ──
 
 const Hero = styled.div`
   background: linear-gradient(135deg, #2f5a2a 0%, #3d7a35 60%, #4e9643 100%);
-  padding: 48px 24px 60px;
+  padding: 48px 24px 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -409,78 +469,93 @@ const Hero = styled.div`
 `;
 
 const CheckCircle = styled.div`
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  border: 3px solid rgba(255, 255, 255, 0.6);
-  color: white;
-  font-size: 2rem;
+  background: #fff;
+  color: #2f5a2a;
+  font-size: 2.1rem;
+  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
-  animation: ${popIn} 0.5s ease forwards;
+  margin-bottom: 6px;
+  animation: ${popIn} 0.45s ease forwards;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.14);
 `;
 
 const HeroTitle = styled.h1`
   margin: 0;
-  font-size: 1.8rem;
+  font-size: 1.85rem;
   font-weight: 800;
-  color: white;
+  color: #fff;
   letter-spacing: -0.3px;
 `;
 
 const HeroSub = styled.p`
   margin: 0;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.93rem;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 280px;
+  line-height: 1.45;
 `;
 
 const OrderIdBadge = styled.div`
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  color: white;
-  font-size: 0.82rem;
+  color: #fff;
+  font-size: 0.8rem;
   font-weight: 700;
-  padding: 6px 16px;
+  padding: 5px 16px;
   border-radius: 999px;
-  letter-spacing: 0.06em;
-  margin-top: 4px;
+  letter-spacing: 0.08em;
+  margin-top: 6px;
 `;
 
 // ── Sheet ──
 
 const Sheet = styled.div`
-  background: white;
+  background: #fff;
   border-radius: 24px 24px 0 0;
-  margin-top: -20px;
+  margin-top: -22px;
   position: relative;
   z-index: 1;
   min-height: calc(100vh - 260px);
-  padding-bottom: 48px;
+  padding-bottom: 56px;
 `;
 
 const Inner = styled.div`
   max-width: 720px;
   margin: 0 auto;
-  padding: 28px 24px 0;
+  padding: 32px 24px 0;
   animation: ${fadeUp} 0.35s ease;
 `;
 
 const SectionLabel = styled.h3`
-  margin: 0 0 14px;
-  font-size: 0.78rem;
+  margin: 0 0 16px;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #7b8f7f;
+  color: #8ea88e;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &::before {
+    content: "";
+    width: 3px;
+    height: 12px;
+    background: #2f5a2a;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
 `;
 
 const Divider = styled.div`
   height: 1px;
   background: #f0f7ee;
-  margin: 24px 0;
+  margin: 28px 0;
 `;
 
 // ── Timeline ──
@@ -500,36 +575,39 @@ const Step = styled.div`
 `;
 
 const StepDot = styled.div`
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: ${({ $done }) => ($done ? "#2f5a2a" : "#f0f7ee")};
+  background: ${({ $done }) => ($done ? "#2f5a2a" : "#f4f9f2")};
   border: 2px solid ${({ $done }) => ($done ? "#2f5a2a" : "#d7ead7")};
-  color: ${({ $done }) => ($done ? "white" : "#b0c4b0")};
-  font-size: ${({ $done }) => ($done ? "1rem" : "0.9rem")};
+  color: ${({ $done }) => ($done ? "#fff" : "#b0c8b0")};
+  font-size: ${({ $done }) => ($done ? "1rem" : "0.88rem")};
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   z-index: 1;
+  box-shadow: ${({ $done }) =>
+    $done ? "0 2px 10px rgba(47, 90, 42, 0.28)" : "none"};
 `;
 
 const StepLine = styled.div`
   position: absolute;
-  top: 18px;
+  top: 19px;
   left: 50%;
   width: 100%;
   height: 2px;
-  background: #d7ead7;
+  background: #e0ece0;
   z-index: 0;
 `;
 
 const StepLabel = styled.span`
   margin-top: 8px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: ${({ $done }) => ($done ? "700" : "500")};
-  color: ${({ $done }) => ($done ? "#2f5a2a" : "#7b8f7f")};
+  color: ${({ $done }) => ($done ? "#2f5a2a" : "#8ea88e")};
   text-align: center;
+  line-height: 1.3;
 `;
 
 // ── Stats ──
@@ -537,37 +615,38 @@ const StepLabel = styled.span`
 const StatsRow = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px;
 `;
 
 const StatBlock = styled.div`
   background: ${({ $green }) => ($green ? "#eef7ee" : "#f8faf6")};
-  border: 1px solid ${({ $green }) => ($green ? "#cde5cf" : "#eef0ee")};
+  border: 1px solid ${({ $green }) => ($green ? "#cde5cf" : "#edf0ed")};
   border-radius: 14px;
-  padding: 14px 12px;
+  padding: 14px 10px;
   text-align: center;
 `;
 
 const StatNum = styled.div`
-  font-size: ${({ $green }) => ($green ? "0.9rem" : "1.3rem")};
+  font-size: 1.1rem;
   font-weight: 800;
   color: #2f5a2a;
   margin-bottom: 4px;
+  line-height: 1.2;
 `;
 
 const StatLabel = styled.div`
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  color: #7b8f7f;
+  color: #8ea88e;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 `;
 
 // ── Items ──
 
 const SellerGroup = styled.div`
-  background: white;
-  border-radius: 16px;
+  background: #fff;
+  border-radius: 14px;
   border: 1px solid #e8f0e8;
   overflow: hidden;
   margin-bottom: 12px;
@@ -577,14 +656,14 @@ const GroupHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  background: #f8faf6;
+  padding: 11px 16px;
+  background: #f7fbf4;
   border-bottom: 1px solid #f0f7ee;
-  font-size: 0.88rem;
 `;
 
 const GroupSellerName = styled.span`
   flex: 1;
+  font-size: 0.86rem;
   font-weight: 700;
   color: #1a3318;
 `;
@@ -592,7 +671,7 @@ const GroupSellerName = styled.span`
 const GroupSubtotal = styled.span`
   font-weight: 700;
   color: #2f5a2a;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
 `;
 
 const ItemRow = styled.div`
@@ -600,7 +679,7 @@ const ItemRow = styled.div`
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-bottom: ${({ $last }) => ($last ? "none" : "1px solid #f0f7ee")};
+  border-bottom: ${({ $last }) => ($last ? "none" : "1px solid #f5f9f5")};
 `;
 
 const ItemImg = styled.img`
@@ -630,7 +709,7 @@ const ItemName = styled.p`
 const ItemSub = styled.p`
   margin: 0;
   font-size: 0.76rem;
-  color: #7b8f7f;
+  color: #8ea88e;
 `;
 
 const ItemTotal = styled.span`
@@ -645,7 +724,7 @@ const ItemTotal = styled.span`
 const DeliveryCard = styled.div`
   background: #f8faf6;
   border: 1px solid #e8f0e8;
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
 `;
 
@@ -660,13 +739,13 @@ const DeliveryRow = styled.div`
 
 const DeliveryLabel = styled.span`
   font-size: 0.82rem;
-  color: #7b8f7f;
+  color: #8ea88e;
   font-weight: 500;
   flex-shrink: 0;
 `;
 
 const DeliveryValue = styled.span`
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 700;
   color: #1a3318;
   text-align: right;
@@ -682,16 +761,18 @@ const Actions = styled.div`
 
 const ActionBtn = styled.button`
   width: 100%;
-  padding: 15px;
+  padding: 14px;
   border-radius: 14px;
-  font-size: 0.95rem;
+  font-size: 0.93rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.18s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 
   ${({ $variant }) =>
     $variant === "primary" &&
@@ -700,18 +781,11 @@ const ActionBtn = styled.button`
     &:hover { background: #245026; }
   `}
   ${({ $variant }) =>
-    $variant === "outline" &&
-    `
-    background: white; color: #2f5a2a;
-    border: 1.5px solid #cde5cf;
-    &:hover { background: #eef7ee; border-color: #2f5a2a; }
-  `}
-  ${({ $variant }) =>
     $variant === "ghost" &&
     `
-    background: #eef7ee; color: #2f5a2a;
-    border: 1.5px solid #cde5cf;
-    &:hover { background: #d7edd7; }
+    background: #f4f9f2; color: #2f5a2a;
+    border: 1.5px solid #d0e5cd;
+    &:hover { background: #e8f5e6; border-color: #2f5a2a; }
   `}
 `;
 
@@ -720,31 +794,42 @@ const ActionBtn = styled.button`
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.52);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 16px;
-  animation: ${fadeIn} 0.2s ease;
+  animation: ${fadeIn} 0.18s ease;
 `;
 
 const ModalBox = styled.div`
   background: #fafcfa;
-  border-radius: 18px;
+  border-radius: 20px;
   max-width: 400px;
   width: 100%;
   max-height: 92vh;
   overflow-y: auto;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.22);
-  animation: ${fadeUp} 0.25s ease;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+  animation: ${fadeUp} 0.22s ease;
 `;
 
-/* Green header band */
+const DragHandle = styled.div`
+  width: 38px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 999px;
+  margin: 10px auto 0;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover {
+    background: #9ca3af;
+  }
+`;
+
 const ReceiptBand = styled.div`
   background: linear-gradient(135deg, #2f5a2a 0%, #3d7a35 100%);
-  padding: 20px 20px 22px;
-  border-radius: 18px 18px 0 0;
+  padding: 18px 20px 20px;
   position: relative;
 `;
 
@@ -756,87 +841,137 @@ const ReceiptLogoRow = styled.div`
 `;
 
 const ReceiptLogoImg = styled.img`
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
   object-fit: cover;
-  border: 2px solid rgba(255,255,255,0.4);
+  border: 2px solid rgba(255, 255, 255, 0.4);
 `;
 
-const ReceiptLogoText = styled.div`flex: 1;`;
-const ReceiptBrandName = styled.div`font-size: 0.95rem; font-weight: 800; color: white;`;
-const ReceiptBrandSub  = styled.div`font-size: 0.72rem; color: rgba(255,255,255,0.7); margin-top: 1px;`;
+const ReceiptLogoText = styled.div`
+  flex: 1;
+`;
+const ReceiptBrandName = styled.div`
+  font-size: 0.93rem;
+  font-weight: 800;
+  color: #fff;
+`;
+const ReceiptBrandSub = styled.div`
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.68);
+  margin-top: 1px;
+`;
 
 const ReceiptStatusBadge = styled.div`
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  background: ${({ $cash }) => ($cash ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.25)")};
-  color: white;
-  border: 1px solid rgba(255,255,255,0.35);
+  background: ${({ $cash }) =>
+    $cash ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.22)"};
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   white-space: nowrap;
 `;
 
 const ReceiptTitle = styled.div`
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.62);
   text-transform: uppercase;
   text-align: center;
 `;
 
 const ReceiptKraPIN = styled.div`
-  font-size: 0.65rem;
-  color: rgba(255,255,255,0.5);
+  font-size: 0.63rem;
+  color: rgba(255, 255, 255, 0.45);
   text-align: center;
   margin-top: 3px;
   letter-spacing: 0.03em;
 `;
 
-/* Tear edge — simulates a torn receipt */
+const ReceiptCloseX = styled.button`
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  &:hover {
+    background: rgba(255, 255, 255, 0.28);
+    color: #fff;
+  }
+`;
+
 const TearEdge = styled.div`
   height: 12px;
   background: repeating-linear-gradient(
     90deg,
-    #fafcfa 0px, #fafcfa 10px,
-    transparent 10px, transparent 12px
+    #fafcfa 0px,
+    #fafcfa 10px,
+    transparent 10px,
+    transparent 12px
   );
   margin-top: -1px;
 `;
 
-const ReceiptBody = styled.div`padding: 16px 20px 4px;`;
+const ReceiptBody = styled.div`
+  padding: 14px 20px 4px;
+`;
 
 const ReceiptMetaGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 4px;
 `;
 
 const ReceiptMetaItem = styled.div`
-  background: white;
+  background: #fff;
   border: 1px solid #e8f0e8;
   border-radius: 10px;
   padding: 8px 10px;
 `;
 
-const ReceiptMetaLabel = styled.div`font-size: 0.68rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;`;
-const ReceiptMetaValue = styled.div`font-size: 0.82rem; color: #1a3318; font-weight: 700;`;
+const ReceiptMetaLabel = styled.div`
+  font-size: 0.65rem;
+  color: #9ca3af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+`;
+
+const ReceiptMetaValue = styled.div`
+  font-size: 0.81rem;
+  color: #1a3318;
+  font-weight: 700;
+`;
 
 const ReceiptDivider = styled.div`
   border: none;
   border-top: 2px dashed #e0ece0;
-  margin: 14px 0;
+  margin: 12px 0;
 `;
 
 const ReceiptSectionLabel = styled.p`
   margin: 0 0 8px;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   color: #9ca3af;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   font-weight: 700;
 `;
 
@@ -854,22 +989,37 @@ const ReceiptLine = styled.div`
   border-bottom: 1px solid #f5f5f5;
 `;
 
-const ReceiptItemName  = styled.span`flex: 1; font-size: 0.85rem; color: #1a3318;`;
-const ReceiptItemQty   = styled.span`font-size: 0.78rem; color: #9ca3af; margin: 0 10px;`;
-const ReceiptItemPrice = styled.span`font-size: 0.85rem; font-weight: 700; color: #2f5a2a;`;
+const ReceiptItemName = styled.span`
+  flex: 1;
+  font-size: 0.84rem;
+  color: #1a3318;
+`;
+const ReceiptItemQty = styled.span`
+  font-size: 0.76rem;
+  color: #9ca3af;
+  margin: 0 10px;
+`;
+const ReceiptItemPrice = styled.span`
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #2f5a2a;
+`;
 
 const ReceiptTotalRow = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 5px 0;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   color: #6b7280;
 `;
 
-const ReceiptFree = styled.span`color: #16a34a; font-weight: 700;`;
+const ReceiptFree = styled.span`
+  color: #16a34a;
+  font-weight: 700;
+`;
 
 const ReceiptVatNote = styled.div`
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   color: #9ca3af;
   background: #f8faf6;
   border: 1px dashed #d7edd9;
@@ -897,24 +1047,36 @@ const ReceiptTotalAmt = styled.span`
   color: #2f5a2a;
 `;
 
-const ReceiptInfoRow = styled.div`display: flex; justify-content: space-between; padding: 4px 0;`;
-const ReceiptInfoLabel = styled.span`font-size: 0.82rem; color: #9ca3af;`;
-const ReceiptInfoValue = styled.span`font-size: 0.82rem; font-weight: 600; color: #1a3318; text-align: right; max-width: 55%;`;
+const ReceiptInfoRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+`;
+const ReceiptInfoLabel = styled.span`
+  font-size: 0.81rem;
+  color: #9ca3af;
+`;
+const ReceiptInfoValue = styled.span`
+  font-size: 0.81rem;
+  font-weight: 600;
+  color: #1a3318;
+  text-align: right;
+  max-width: 55%;
+`;
 
-/* Barcode strip */
 const ReceiptBarcodeWrap = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 18px 0 8px;
+  margin: 16px 0 6px;
   gap: 6px;
 `;
 
 const ReceiptBarcode = styled.div`
   display: flex;
   align-items: stretch;
-  height: 72px;
-  background: white;
+  height: 68px;
+  background: #fff;
   padding: 0 2px;
 `;
 
@@ -926,12 +1088,12 @@ const ReceiptBar = styled.div`
 
 const ReceiptGap = styled.div`
   width: ${({ $w }) => ($w ?? 1) + 1}px;
-  background: white;
+  background: #fff;
   flex-shrink: 0;
 `;
 
 const ReceiptBarcodeNum = styled.div`
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   letter-spacing: 0.18em;
   color: #9ca3af;
   font-weight: 600;
@@ -941,67 +1103,32 @@ const ReceiptFooter = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px 16px;
+  padding: 12px 20px 14px;
   border-top: 2px dashed #e0ece0;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: #9ca3af;
   gap: 8px;
 `;
 
-// Pill handle at top of modal — subtle close affordance like a bottom sheet
-const DragHandle = styled.div`
-  width: 40px;
-  height: 4px;
-  background: #d1d5db;
-  border-radius: 999px;
-  margin: 10px auto 0;
+const ReceiptActionsRow = styled.div`
+  display: flex;
+  gap: 10px;
+  padding: 0 20px 18px;
+`;
+
+const ReceiptActionBtn = styled.button`
+  flex: 1;
+  padding: 11px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
-  &:hover { background: #9ca3af; }
-`;
 
-// Tiny ✕ floating in top-right of the green band
-const ReceiptCloseX = styled.button`
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  background: rgba(255,255,255,0.15);
-  border: none;
-  color: rgba(255,255,255,0.7);
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  font-size: 0.75rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, color 0.15s;
-  &:hover { background: rgba(255,255,255,0.3); color: white; }
-`;
-
-const ModalPdfBtn = styled.button`
-  flex: 1;
-  background: #1d4ed8;
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 12px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  cursor: pointer;
-  &:hover { background: #1e40af; }
-`;
-
-const ModalCloseBtn = styled.button`
-  flex: 1;
-  background: white;
-  color: #2f5a2a;
-  border: 1.5px solid #cde5cf;
-  padding: 12px;
-  border-radius: 12px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  cursor: pointer;
-  &:hover { background: #eef7ee; }
+  ${({ $ghost }) =>
+    $ghost
+      ? `background: #f4f9f2; color: #2f5a2a; border: 1.5px solid #d0e5cd;
+         &:hover { background: #e8f5e6; }`
+      : `background: #2f5a2a; color: white; border: none;
+         &:hover { background: #245026; }`}
 `;

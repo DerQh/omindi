@@ -35,6 +35,73 @@ const checkPop = keyframes`
   100% { transform: scale(1); opacity: 1; }
 `;
 
+const vibrate = keyframes`
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  15%       { transform: rotate(-10deg) scale(1.06); }
+  30%       { transform: rotate(10deg) scale(1.06); }
+  45%       { transform: rotate(-6deg) scale(1.02); }
+  60%       { transform: rotate(6deg) scale(1.02); }
+  75%       { transform: rotate(-3deg); }
+`;
+
+const ripple = keyframes`
+  0%   { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(2.6); opacity: 0; }
+`;
+
+const confettiFall = keyframes`
+  0%   { transform: translateY(0) rotate(0deg) scaleX(1); opacity: 1; }
+  50%  { transform: translateY(140px) rotate(380deg) scaleX(-1); opacity: 1; }
+  100% { transform: translateY(300px) rotate(700deg) scaleX(1); opacity: 0; }
+`;
+
+const fillBar = keyframes`
+  from { width: 0%; }
+  to   { width: 100%; }
+`;
+
+const dotBlink = keyframes`
+  0%, 20%  { opacity: 0; }
+  50%      { opacity: 1; }
+  80%,100% { opacity: 0; }
+`;
+
+const glow = keyframes`
+  0%, 100% { box-shadow: 0 0 18px rgba(22, 163, 74, 0.35); }
+  50%       { box-shadow: 0 0 44px rgba(22, 163, 74, 0.8); }
+`;
+
+// Animated dots — "Listening..." trailing effect
+const AnimDot = styled.span`
+  animation: ${dotBlink} 1.4s ease-in-out infinite;
+  animation-delay: ${({ $d }) => $d}s;
+  font-weight: 700;
+`;
+const AnimDots = () => (
+  <span aria-hidden="true">
+    <AnimDot $d={0}>.</AnimDot>
+    <AnimDot $d={0.3}>.</AnimDot>
+    <AnimDot $d={0.6}>.</AnimDot>
+  </span>
+);
+
+// Confetti data — seeded positions, colors, sizes, delays
+const CONFETTI = [
+  { color: "#16a34a", left: 8,  delay: 0,    size: 8  },
+  { color: "#2f5a2a", left: 18, delay: 0.12, size: 6  },
+  { color: "#86efac", left: 28, delay: 0.05, size: 10 },
+  { color: "#fbbf24", left: 38, delay: 0.22, size: 7  },
+  { color: "#34d399", left: 48, delay: 0.32, size: 9  },
+  { color: "#16a34a", left: 58, delay: 0.08, size: 6  },
+  { color: "#fbbf24", left: 68, delay: 0.18, size: 8  },
+  { color: "#86efac", left: 78, delay: 0.27, size: 7  },
+  { color: "#2f5a2a", left: 88, delay: 0.1,  size: 10 },
+  { color: "#16a34a", left: 13, delay: 0.38, size: 6  },
+  { color: "#34d399", left: 43, delay: 0.42, size: 9  },
+  { color: "#fbbf24", left: 73, delay: 0.15, size: 7  },
+  { color: "#16a34a", left: 93, delay: 0.29, size: 8  },
+];
+
 // ─── Payment methods ──────────────────────────────────────────────────────────
 
 const PAYMENT_METHODS = [
@@ -334,13 +401,18 @@ const CheckoutInner = () => {
 
   // ── Payment overlay ───────────────────────────────────────────────────────
   if (payStep !== "idle") {
+    const circumference = 2 * Math.PI * 32;
+    const strokeOffset  = circumference - (stkSecondsLeft / 60) * circumference;
+
     return (
       <>
         <AppNavbar />
-        <PayOverlay>
+        <PayOverlay $step={payStep}>
+
+          {/* ── PROCESSING ── */}
           {payStep === "processing" && (
             <PayModal>
-              <Spinner />
+              <RingSpinner />
               <PayModalTitle>
                 {paymentMethod === "mpesa" ? "Sending STK Push…" : "Processing Payment…"}
               </PayModalTitle>
@@ -349,33 +421,85 @@ const CheckoutInner = () => {
                   ? `Requesting payment from ${phone}`
                   : "Please wait while we process your card."}
               </PayModalSub>
+              <ProcessingSteps>
+                <ProcessStep $active>Connecting to Safaricom</ProcessStep>
+                <ProcessStep>Sending PIN prompt to phone</ProcessStep>
+                <ProcessStep>Confirming payment</ProcessStep>
+              </ProcessingSteps>
             </PayModal>
           )}
+
+          {/* ── STK SENT — waiting for PIN ── */}
           {payStep === "stk_sent" && (
             <PayModal>
-              <PhoneAnim>📲</PhoneAnim>
+              <CountdownRing>
+                <svg width="100" height="100" style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx="50" cy="50" r="32" fill="none" stroke="#e8f0e8" strokeWidth="5" />
+                  <circle
+                    cx="50" cy="50" r="32" fill="none"
+                    stroke={stkSecondsLeft <= 15 ? "#ef4444" : "#16a34a"}
+                    strokeWidth="5"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeOffset}
+                    strokeLinecap="round"
+                    style={{ transition: "stroke-dashoffset 1s linear, stroke 0.4s ease" }}
+                  />
+                </svg>
+                <CountdownNum $urgent={stkSecondsLeft <= 15}>{stkSecondsLeft}</CountdownNum>
+              </CountdownRing>
+
+              <VibratePhone>📲</VibratePhone>
+
               <PayModalTitle>Check Your Phone</PayModalTitle>
               <PayModalSub>
-                A payment prompt was sent to <strong>{phone}</strong>.
-                Open M-Pesa and enter your PIN to complete the payment.
+                Sent to <PhoneHighlight>{phone}</PhoneHighlight>
               </PayModalSub>
-              <StkCountdown $urgent={stkSecondsLeft <= 15}>
-                Expires in {stkSecondsLeft}s
-              </StkCountdown>
-              <Spinner style={{ margin: "8px auto 0" }} />
-              <StkNote>Waiting for Safaricom confirmation…</StkNote>
+
+              <StepsCard>
+                <StepRow>
+                  <StepNum>1</StepNum>
+                  <StepText>Open M-Pesa app or notification</StepText>
+                </StepRow>
+                <StepRow>
+                  <StepNum>2</StepNum>
+                  <StepText>Enter your PIN to approve payment</StepText>
+                </StepRow>
+              </StepsCard>
+
+              <LiveIndicator>
+                <LiveDot />
+                <LiveText>Listening for confirmation<AnimDots /></LiveText>
+              </LiveIndicator>
+
               <OtpCancel onClick={() => { setPayStep("idle"); setStkOrderId(null); setStkError(""); }}>
-                Cancel
+                Cancel payment
               </OtpCancel>
             </PayModal>
           )}
+
+          {/* ── CONFIRMED ── */}
           {payStep === "confirmed" && (
             <PayModal>
-              <CheckIcon>✓</CheckIcon>
-              <PayModalTitle>Payment Confirmed!</PayModalTitle>
-              <PayModalSub>Your order has been placed successfully.</PayModalSub>
+              <ConfettiWrap>
+                {CONFETTI.map((c, i) => (
+                  <ConfettiPiece key={i} $color={c.color} $left={c.left} $delay={c.delay} $size={c.size} />
+                ))}
+              </ConfettiWrap>
+              <SuccessRing>
+                <SuccessCheck>✓</SuccessCheck>
+              </SuccessRing>
+              <PayModalTitle style={{ fontSize: "1.4rem" }}>Payment Confirmed!</PayModalTitle>
+              {totalCost && (
+                <AmountDisplay>Kes {totalCost.toLocaleString()}</AmountDisplay>
+              )}
+              <PayModalSub>Your order is placed. The seller will contact you shortly.</PayModalSub>
+              <RedirectBar>
+                <RedirectFill />
+              </RedirectBar>
+              <RedirectNote>Redirecting to your order…</RedirectNote>
             </PayModal>
           )}
+
         </PayOverlay>
       </>
     );
@@ -575,8 +699,6 @@ const CheckoutInner = () => {
                 {paymentMethod === "cash"  && "💵 "}
                 {isPendingOrder
                   ? "Placing order…"
-                  : isCardProcessing
-                  ? "Processing payment…"
                   : `Pay Kes ${totalCost?.toLocaleString()}`}
               </ConfirmBtn>
               <CancelBtn onClick={() => navigate(-1)}>Back to Cart</CancelBtn>
@@ -584,6 +706,26 @@ const CheckoutInner = () => {
           </TwoCol>
         </Body>
       </Page>
+
+      {/* Card-payment processing overlay — position:fixed so CardElement stays
+          mounted in the DOM underneath (required by stripe.confirmCardPayment) */}
+      {isCardProcessing && (
+        <CardProcessingOverlay>
+          <PayModal>
+            <RingSpinner />
+            <PayModalTitle>Processing Card Payment…</PayModalTitle>
+            <PayModalSub>
+              Authorising with your bank — please don't close this page.
+            </PayModalSub>
+            <ProcessingSteps>
+              <ProcessStep $active>Verifying card details</ProcessStep>
+              <ProcessStep>Authorising with your bank</ProcessStep>
+              <ProcessStep>Confirming payment</ProcessStep>
+            </ProcessingSteps>
+            <CardSecureBadge>🔒 Secured by Stripe · End-to-end encrypted</CardSecureBadge>
+          </PayModal>
+        </CardProcessingOverlay>
+      )}
     </>
   );
 };
@@ -870,80 +1012,318 @@ const CancelBtn = styled.button`
 
 const PayOverlay = styled.div`
   min-height: 100vh;
-  background: #f5f8f5;
+  background: ${({ $step }) =>
+    $step === "confirmed"
+      ? "linear-gradient(160deg, #071a07 0%, #0f2e0f 60%, #163d16 100%)"
+      : "linear-gradient(160deg, #071520 0%, #0b2030 60%, #0f2840 100%)"};
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  transition: background 0.6s ease;
 `;
 
 const PayModal = styled.div`
-  background: white;
-  border-radius: 24px;
-  padding: 48px 36px;
+  background: #fff;
+  border-radius: 28px;
+  padding: 40px 32px 36px;
   max-width: 360px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.35);
   animation: ${fadeUp} 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
 `;
 
-const Spinner = styled.div`
-  width: 48px; height: 48px;
-  border: 3px solid #e8f0e8;
-  border-top-color: #2f5a2a;
+/* Ring spinner — dual-tone, smoother than a single border */
+const RingSpinner = styled.div`
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  animation: ${spin} 0.7s linear infinite;
-  margin-bottom: 8px;
-`;
-
-const PhoneAnim = styled.div`
-  font-size: 3rem;
-  animation: ${pulse} 1.2s ease-in-out infinite;
+  border: 4px solid #e0f0e0;
+  border-top-color: #16a34a;
+  border-right-color: #2f5a2a;
+  animation: ${spin} 0.75s linear infinite;
 `;
 
 const PayModalTitle = styled.h2`
   margin: 0;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: #1a3318;
+  letter-spacing: -0.3px;
 `;
 
 const PayModalSub = styled.p`
   margin: 0;
-  font-size: 0.88rem;
+  font-size: 0.87rem;
   color: #7b8f7f;
   line-height: 1.6;
 `;
 
-const StkPin = styled.div`
-  font-size: 0.82rem;
-  color: #374151;
-  background: #f3f4f6;
-  border-radius: 8px;
-  padding: 6px 14px;
+/* Processing step list */
+const ProcessingSteps = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  margin-top: 2px;
 `;
 
-const StkNote = styled.div`
-  font-size: 0.78rem;
-  color: #16a34a;
+const ProcessStep = styled.div`
+  font-size: 0.79rem;
   font-weight: 600;
-  animation: ${pulse} 1.5s ease-in-out infinite;
+  color: ${({ $active }) => ($active ? "#16a34a" : "#c0d4c0")};
+  padding: 8px 14px;
+  background: ${({ $active }) => ($active ? "#f0fdf4" : "#fafcfa")};
+  border-radius: 10px;
+  border-left: 3px solid ${({ $active }) => ($active ? "#16a34a" : "#e8f0e8")};
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  animation: ${({ $active }) => ($active ? css`${fadeUp} 0.3s ease` : "none")};
+
+  &::before {
+    content: ${({ $active }) => ($active ? '"●"' : '"○"')};
+    font-size: 0.5rem;
+    flex-shrink: 0;
+  }
 `;
 
-const CheckIcon = styled.div`
-  width: 64px; height: 64px;
+/* SVG countdown ring */
+const CountdownRing = styled.div`
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+`;
+
+const CountdownNum = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: ${({ $urgent }) => ($urgent ? "#ef4444" : "#1a3318")};
+  transition: color 0.4s ease;
+`;
+
+/* Phone icon with vibrate loop */
+const VibratePhone = styled.div`
+  font-size: 2.8rem;
+  animation: ${vibrate} 0.7s ease-in-out infinite;
+  animation-play-state: running;
+  margin: -4px 0;
+`;
+
+const PhoneHighlight = styled.strong`
+  color: #1a3318;
+  font-weight: 700;
+`;
+
+/* Step-by-step instruction card */
+const StepsCard = styled.div`
+  width: 100%;
+  background: #f7fbf4;
+  border-radius: 14px;
+  border: 1px solid #e0ece0;
+  overflow: hidden;
+`;
+
+const StepRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid #f0f7ee;
+  text-align: left;
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const StepNum = styled.div`
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
+  background: #2f5a2a;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`;
+
+const StepText = styled.div`
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #1a3318;
+`;
+
+/* Live indicator pill */
+const LiveIndicator = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: #f0fdf4;
-  border: 2px solid #86efac;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.8rem;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  padding: 7px 16px;
+`;
+
+const LiveDot = styled.div`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16a34a;
+  flex-shrink: 0;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: rgba(22, 163, 74, 0.3);
+    animation: ${ripple} 1.4s ease-out infinite;
+  }
+`;
+
+const LiveText = styled.span`
+  font-size: 0.77rem;
+  font-weight: 600;
   color: #16a34a;
-  animation: ${checkPop} 0.4s ease forwards;
+`;
+
+/* Confirmed state */
+const SuccessRing = styled.div`
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: ${checkPop} 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards,
+             ${glow} 2s ease-in-out infinite 0.6s;
+`;
+
+const SuccessCheck = styled.div`
+  font-size: 2.4rem;
+  color: #16a34a;
+  font-weight: 900;
+  line-height: 1;
+`;
+
+const AmountDisplay = styled.div`
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1a3318;
+  letter-spacing: -1px;
+`;
+
+const RedirectBar = styled.div`
+  width: 100%;
+  height: 3px;
+  background: #e8f0e8;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 2px;
+`;
+
+const RedirectFill = styled.div`
+  height: 100%;
+  background: linear-gradient(90deg, #2f5a2a, #16a34a);
+  border-radius: 999px;
+  animation: ${fillBar} 2.4s linear forwards;
+`;
+
+const RedirectNote = styled.div`
+  font-size: 0.75rem;
+  color: #b0c8b0;
+  font-weight: 500;
+`;
+
+/* Confetti */
+const ConfettiWrap = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 28px;
+`;
+
+const ConfettiPiece = styled.div`
+  position: absolute;
+  top: -12px;
+  left: ${({ $left }) => $left}%;
+  width: ${({ $size }) => $size}px;
+  height: ${({ $size }) => $size * 1.6}px;
+  background: ${({ $color }) => $color};
+  border-radius: 2px;
+  animation: ${confettiFall} 2.2s ease-in ${({ $delay }) => $delay}s both;
+`;
+
+/* Countdown cancel button */
+const OtpCancel = styled.button`
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.12s;
+
+  &:hover {
+    color: #ef4444;
+  }
+`;
+
+const StkCountdown = styled.div`
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: ${({ $urgent }) => ($urgent ? "#ef4444" : "#7b8f7f")};
+  transition: color 0.3s;
+`;
+
+/* Fixed overlay for card payments — form stays mounted underneath for Stripe */
+const CardProcessingOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: linear-gradient(160deg, #071520 0%, #0b2030 60%, #0f2840 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: ${fadeUp} 0.2s ease;
+`;
+
+const CardSecureBadge = styled.div`
+  font-size: 0.74rem;
+  color: #8ea88e;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: -2px;
 `;
 
 /* ── Empty state ── */
@@ -965,20 +1345,6 @@ const GoBackBtn = styled.button`
   padding: 11px 24px; border-radius: 10px;
   font-size: 0.9rem; font-weight: 700; cursor: pointer;
   &:hover { background: #245026; }
-`;
-
-const StkCountdown = styled.div`
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: ${({ $urgent }) => ($urgent ? "#ef4444" : "#7b8f7f")};
-  margin: 4px 0 8px;
-  transition: color 0.3s;
-`;
-
-const OtpCancel = styled.button`
-  background: none; border: none; color: #9ca3af;
-  font-size: 0.82rem; cursor: pointer;
-  &:hover { color: #6b7280; }
 `;
 
 const StkErrorMsg = styled.p`

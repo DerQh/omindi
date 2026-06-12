@@ -51,7 +51,53 @@ const Cart = () => {
     );
   };
 
-  if (isLoading || isLoadingUser) return (
+  if (isLoadingUser) return (
+    <>
+      <Helmet><title>My Cart — AFARMER™</title></Helmet>
+      <AppNavbar />
+      <Page>
+        <Header><SkeletonRound style={{ width: 40, height: 40 }} /></Header>
+        <CartSkeleton>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SkeletonCard key={i}>
+              <SkeletonImg />
+              <SkeletonInfo>
+                <SkeletonLine $w="60%" $h="16px" />
+                <SkeletonLine $w="35%" $h="13px" />
+                <SkeletonLine $w="45%" $h="13px" />
+              </SkeletonInfo>
+            </SkeletonCard>
+          ))}
+        </CartSkeleton>
+      </Page>
+    </>
+  );
+
+  if (!user) return (
+    <>
+      <Helmet><title>My Cart — AFARMER™</title></Helmet>
+      <AppNavbar />
+      <Page>
+        <Header><RoundBack onClick={() => navigate(-1)}>←</RoundBack></Header>
+        <EmptyWrap>
+          <EmptyIcon>🔐</EmptyIcon>
+          <EmptyTitle>Sign in to see your cart</EmptyTitle>
+          <EmptyDesc>Your cart is saved to your account. Log in to view or manage your items.</EmptyDesc>
+          <BrowseBtn onClick={() => navigate("/login")} style={{ marginBottom: 12 }}>
+            Sign In
+          </BrowseBtn>
+          <BrowseBtn
+            onClick={() => navigate("/list")}
+            style={{ background: "white", color: "#2f5a2a", border: "2px solid #cde5cf" }}
+          >
+            Browse Listings
+          </BrowseBtn>
+        </EmptyWrap>
+      </Page>
+    </>
+  );
+
+  if (isLoading) return (
     <>
       <Helmet><title>My Cart — AFARMER™</title></Helmet>
       <AppNavbar />

@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// ✅ Custom hook to be used in all componetns
+// ✅ Custom hook to be used in all components
 export const useAuth = () => {
-  return useContext(AuthContext);
+  return useContext(AuthContext) ?? {};
 };

@@ -607,12 +607,12 @@
       <div class="toc">
         <h3>Table of Contents</h3>
         <ol>
-          <li><a href="#beta" style="color:#4e9643;font-weight:800">🌾 Beta Tester Checklist</a></li>
-      <li><a href="#stack">Tech Stack</a></li>
+          <li><a href="#stack">Tech Stack</a></li>
           <li><a href="#env">Environment Variables</a></li>
           <li><a href="#credentials">Third-Party Credentials</a></li>
-          <li><a href="#db">Database Schema (19 Tables)</a></li>
+          <li><a href="#db">Database Schema (19 Tables + M-Pesa Columns)</a></li>
           <li><a href="#storage">Storage Buckets</a></li>
+          <li><a href="#edge-functions">Supabase Edge Functions</a></li>
           <li><a href="#routes">Application Routes</a></li>
           <li><a href="#hooks">Hooks / Data Layer</a></li>
           <li><a href="#context">Context Providers</a></li>
@@ -621,11 +621,18 @@
           <li><a href="#rls">RLS Policies (Reviews)</a></li>
           <li><a href="#rpcs">Database RPCs</a></li>
           <li><a href="#folder">Folder Structure</a></li>
+          <li><a href="#deps">Dependencies</a></li>
+          <li><a href="#erd">Entity Relationship Diagram</a></li>
+          <li><a href="#split">App vs Web</a></li>
+          <li><a href="#comp-hooks">Component → Hook Map</a></li>
+          <li><a href="#biz-rules">Business Rules</a></li>
+          <li><a href="#deploy">Deployment Pipeline</a></li>
+          <li><a href="#realtime">Supabase Realtime</a></li>
+          <li><a href="#pages">Page Reference</a></li>
           <li><a href="#colors">Color &amp; Design Tokens</a></li>
           <li><a href="#todos">Known TODOs &amp; Limitations</a></li>
           <li><a href="#sql">SQL Commands — Click to Copy</a></li>
           <li><a href="#suggestions">Suggestions &amp; Next Steps</a></li>
-      
         </ol>
       </div>
 
@@ -659,6 +666,26 @@
         <div class="stack-item">
           <div class="label">File Storage</div>
           <div class="val">Supabase Storage</div>
+        </div>
+        <div class="stack-item">
+          <div class="label">Card Payments</div>
+          <div class="val">Stripe (react-stripe-js)</div>
+        </div>
+        <div class="stack-item">
+          <div class="label">M-Pesa Payments</div>
+          <div class="val">Safaricom Daraja API (Edge Functions)</div>
+        </div>
+        <div class="stack-item">
+          <div class="label">Order Emails</div>
+          <div class="val">Resend (Edge Function)</div>
+        </div>
+        <div class="stack-item">
+          <div class="label">Toast Notifications</div>
+          <div class="val">Custom ToastContext (in-app)</div>
+        </div>
+        <div class="stack-item">
+          <div class="label">SEO / Page Titles</div>
+          <div class="val">react-helmet-async + SEO.jsx</div>
         </div>
         <div class="stack-item">
           <div class="label">Contact Form</div>
@@ -696,13 +723,18 @@
           <td>Supabase Dashboard → Settings → API → anon public key</td>
           <td><span class="badge req">Yes</span></td>
         </tr>
+        <tr>
+          <td>VITE_STRIPE_PUBLISHABLE_KEY</td>
+          <td>Stripe Dashboard → Developers → API keys → Publishable key (pk_live_… or pk_test_…)</td>
+          <td><span class="badge req">Yes</span></td>
+        </tr>
       </table>
       <p class="section-note">
-        <strong>Vercel deployment:</strong> Add these same keys under
+        <strong>Vercel deployment:</strong> Add the above keys under
         <strong>Vercel → Project → Settings → Environment Variables</strong>.
-        The vercel.json rewrite rule (<code
-          >"source":"/(.*)" → "/index.html"</code
-        >) is already configured for React Router SPA routing.
+        The vercel.json rewrite rule (<code>"source":"/(.*)" → "/index.html"</code>) is already configured for React Router SPA routing.<br/><br/>
+        <strong>Supabase Edge Function secrets</strong> (set in Supabase Dashboard → Edge Functions → Secrets — NOT in .env):
+        <code>STRIPE_SECRET_KEY</code>, <code>RESEND_API_KEY</code>, <code>MPESA_CONSUMER_KEY</code>, <code>MPESA_CONSUMER_SECRET</code>, <code>MPESA_SHORTCODE</code>, <code>MPESA_PASSKEY</code>, <code>MPESA_CALLBACK_URL</code>.
       </p>
 
       <!-- ── Third-Party Credentials ── -->
@@ -734,6 +766,24 @@
           <td>Project: <strong>omindi</strong></td>
           <td>Hosting + auto-deploy on git push</td>
           <td>vercel.com/dashboard</td>
+        </tr>
+        <tr>
+          <td>Stripe</td>
+          <td>Publishable key: <strong>pk_test_51Tg…</strong><br/>Secret key stored in Supabase secrets</td>
+          <td>Card (Visa/Mastercard) payment processing via Edge Function create-payment-intent</td>
+          <td>dashboard.stripe.com</td>
+        </tr>
+        <tr>
+          <td>Resend</td>
+          <td>API key stored in Supabase secrets as <strong>RESEND_API_KEY</strong></td>
+          <td>Transactional order confirmation emails (3,000/month free tier). Reply-to: difffred@gmail.com</td>
+          <td>resend.com/dashboard</td>
+        </tr>
+        <tr>
+          <td>Safaricom Daraja</td>
+          <td>Consumer key, secret, shortcode, passkey stored in Supabase secrets</td>
+          <td>M-Pesa STK Push payments — sends payment prompt to customer phone</td>
+          <td>developer.safaricom.co.ke</td>
         </tr>
       </table>
 
@@ -944,7 +994,7 @@
         <tr>
           <td>status</td>
           <td>text</td>
-          <td>"pending" | "processing" | "delivered" | "cancelled"</td>
+          <td>"pending" | "processing" | "confirmed" | "delivered" | "cancelled" | "payment_failed"</td>
         </tr>
         <tr>
           <td>admin_note</td>
@@ -952,11 +1002,35 @@
           <td>Admin dispute notes</td>
         </tr>
         <tr>
+          <td>mpesa_checkout_id</td>
+          <td>text</td>
+          <td>Safaricom STK push CheckoutRequestID — used to match callback</td>
+        </tr>
+        <tr>
+          <td>mpesa_receipt</td>
+          <td>text</td>
+          <td>M-Pesa transaction receipt code (set when payment succeeds)</td>
+        </tr>
+        <tr>
+          <td>mpesa_result_desc</td>
+          <td>text</td>
+          <td>Safaricom result description (populated on failure for display)</td>
+        </tr>
+        <tr>
+          <td>paid_at</td>
+          <td>timestamptz</td>
+          <td>Timestamp when payment was confirmed (M-Pesa or Stripe)</td>
+        </tr>
+        <tr>
           <td>created_at</td>
           <td>timestamptz</td>
           <td>Default now()</td>
         </tr>
       </table>
+      <p class="section-note">
+        <strong>Status flow:</strong> pending → confirmed (payment success) or payment_failed (payment failed) → processing → delivered / cancelled.<br/>
+        <strong>Set by:</strong> M-Pesa status is updated by the <code>mpesa-callback</code> Edge Function. Stripe status is updated inside <code>Checkout.jsx</code> after <code>stripe.confirmCardPayment</code> succeeds.
+      </p>
 
       <h3>order_items</h3>
       <p>
@@ -1542,8 +1616,52 @@
         </tr>
       </table>
 
+      <!-- ── Edge Functions ── -->
+      <h2 id="edge-functions">4. Supabase Edge Functions</h2>
+      <p class="section-note">
+        All functions live in <code>supabase/functions/</code>. Deploy with <code>supabase functions deploy &lt;name&gt;</code>. Secrets are set in Supabase Dashboard → Edge Functions → Secrets (never in .env).
+      </p>
+      <table>
+        <tr>
+          <th>Function</th>
+          <th>Trigger</th>
+          <th>Purpose</th>
+          <th>Key Secrets Used</th>
+        </tr>
+        <tr>
+          <td><strong>mpesa-stk-push</strong></td>
+          <td>Called from <code>useMpesaPay</code> hook on checkout</td>
+          <td>Obtains Daraja OAuth token, builds STK push payload, sends payment prompt to customer's phone. Saves <code>mpesa_checkout_id</code> to order row.</td>
+          <td>MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_SHORTCODE, MPESA_PASSKEY, MPESA_CALLBACK_URL</td>
+        </tr>
+        <tr>
+          <td><strong>mpesa-callback</strong></td>
+          <td>Safaricom Daraja HTTPS callback (public endpoint)</td>
+          <td>Receives payment result from Safaricom. On success: sets order status to <em>confirmed</em>, saves <code>mpesa_receipt</code> and <code>paid_at</code>. On failure: sets status to <em>payment_failed</em>, saves <code>mpesa_result_desc</code>.</td>
+          <td>SUPABASE_SERVICE_ROLE_KEY</td>
+        </tr>
+        <tr>
+          <td><strong>mpesa-stk-query</strong></td>
+          <td>Called from <code>usePollOrderStatus</code> as a fallback after callback timeout</td>
+          <td>Queries Safaricom Daraja for the status of a specific STK push request (by CheckoutRequestID). Used when the callback hasn't arrived after a few seconds.</td>
+          <td>MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_SHORTCODE, MPESA_PASSKEY</td>
+        </tr>
+        <tr>
+          <td><strong>create-payment-intent</strong></td>
+          <td>Called from <code>Checkout.jsx</code> when payment method = "card"</td>
+          <td>Creates a Stripe PaymentIntent for the order amount (in KES × 100 = smallest currency unit). Returns <code>clientSecret</code> to the browser, which then calls <code>stripe.confirmCardPayment</code> — card data never touches our servers.</td>
+          <td>STRIPE_SECRET_KEY</td>
+        </tr>
+        <tr>
+          <td><strong>send-order-email</strong></td>
+          <td>Called from <code>Checkout.jsx</code> on successful payment (M-Pesa or Stripe)</td>
+          <td>Fetches order + items from DB, renders an HTML email, sends via Resend API to the buyer's email. Reply-to is difffred@gmail.com.</td>
+          <td>RESEND_API_KEY, SUPABASE_SERVICE_ROLE_KEY</td>
+        </tr>
+      </table>
+
       <!-- ── Routes ── -->
-      <h2 id="routes">4. Application Routes</h2>
+      <h2 id="routes">5. Application Routes</h2>
 
       <h3>Public Web Routes</h3>
       <div class="route-grid">
@@ -1589,11 +1707,19 @@
         </div>
         <div class="route-card">
           <div class="path">/forfarms</div>
-          <div class="comp">ForFarms</div>
+          <div class="comp">ForFarms — marketing page for sellers/farmers</div>
+        </div>
+        <div class="route-card">
+          <div class="path">/forbuyers</div>
+          <div class="comp">ForBuyers — marketing page for buyers</div>
+        </div>
+        <div class="route-card">
+          <div class="path">/for-farmersmarket</div>
+          <div class="comp">ForMarketers — market managers page</div>
         </div>
         <div class="route-card">
           <div class="path">/for farmersmarket</div>
-          <div class="comp">ForMarketers</div>
+          <div class="comp">→ Redirects to /forbuyers (legacy URL, space preserved for backwards compat)</div>
         </div>
         <div class="route-card">
           <div class="path">/wholesale</div>
@@ -1606,6 +1732,14 @@
         <div class="route-card">
           <div class="path">/localsourcing</div>
           <div class="comp">LocalSourcing</div>
+        </div>
+        <div class="route-card">
+          <div class="path">/terms</div>
+          <div class="comp">TermsOfService — linked from footer + Checkout</div>
+        </div>
+        <div class="route-card">
+          <div class="path">/privacy-policy</div>
+          <div class="comp">PrivacyPolicy — linked from footer + Checkout</div>
         </div>
       </div>
 
@@ -1868,6 +2002,14 @@
           <div class="name">useAdmin / useAdminReviews</div>
           <div class="desc">Admin stats, moderation, broadcast</div>
         </div>
+        <div class="hook-card">
+          <div class="name">useMpesaPay</div>
+          <div class="desc">Trigger M-Pesa STK Push via Edge Function — returns CheckoutRequestID</div>
+        </div>
+        <div class="hook-card">
+          <div class="name">usePollOrderStatus(order_id)</div>
+          <div class="desc">Poll orders table every 3s for status change after STK push. Calls onConfirmed / onFailed callbacks</div>
+        </div>
       </div>
 
       <!-- ── Context ── -->
@@ -1884,9 +2026,14 @@
           <td>Supabase auth session, current user</td>
         </tr>
         <tr>
+          <td>ToastContext / ToastProvider</td>
+          <td>context/ToastContext.jsx (mounted in main.jsx)</td>
+          <td>Global in-app toast notification system. Call <code>useToast()</code> to get a <code>toast(message, type)</code> function. Types: success / error / info. Auto-dismisses after 3.2s.</td>
+        </tr>
+        <tr>
           <td>CartContext</td>
           <td>context/CartContext.jsx</td>
-          <td>Cart state (currently unused — migrated to React Query)</td>
+          <td>Legacy — cart now fully managed by React Query. Can be deleted safely.</td>
         </tr>
         <tr>
           <td>ListingContext</td>
@@ -1896,7 +2043,12 @@
         <tr>
           <td>QueryClientProvider</td>
           <td>App.jsx</td>
-          <td>TanStack Query global client</td>
+          <td>TanStack Query global client. staleTime: 3 min, gcTime: 10 min set globally.</td>
+        </tr>
+        <tr>
+          <td>HelmetProvider</td>
+          <td>App.jsx</td>
+          <td>react-helmet-async provider — enables per-page &lt;title&gt; and meta tags via SEO.jsx</td>
         </tr>
       </table>
 
@@ -2030,13 +2182,13 @@
       <!-- ── Data Flow ── -->
       <h2 id="data-flow">10. Data Flow — Key Journeys</h2>
 
-      <h3>Cart → Order → Payment</h3>
+      <h3>Cart → Order → Payment (M-Pesa STK Push)</h3>
       <table>
         <tr>
           <th>Step</th>
           <th>Action</th>
           <th>Tables touched</th>
-          <th>Hook</th>
+          <th>Where</th>
         </tr>
         <tr>
           <td>1</td>
@@ -2046,13 +2198,13 @@
         </tr>
         <tr>
           <td>2</td>
-          <td>Buyer goes to /checkout, fills delivery + phone</td>
+          <td>Buyer goes to /checkout, selects M-Pesa, fills phone + delivery address</td>
           <td>—</td>
-          <td>—</td>
+          <td>Checkout.jsx</td>
         </tr>
         <tr>
           <td>3</td>
-          <td>Order placed</td>
+          <td>Order placed (status: pending)</td>
           <td>orders INSERT</td>
           <td>useCreateOrder</td>
         </tr>
@@ -2064,27 +2216,79 @@
         </tr>
         <tr>
           <td>5</td>
-          <td>Payment initiated</td>
-          <td>transactions INSERT (status: pending)</td>
-          <td>useTransactions</td>
+          <td>M-Pesa STK Push triggered — push prompt sent to buyer's phone</td>
+          <td>orders UPDATE (mpesa_checkout_id)</td>
+          <td>useMpesaPay → mpesa-stk-push Edge Function</td>
         </tr>
         <tr>
           <td>6</td>
-          <td>Admin approves / fails payment</td>
-          <td>transactions UPDATE (status: approved/failed)</td>
-          <td>useAdmin</td>
+          <td>Buyer approves on phone → Safaricom calls callback URL</td>
+          <td>orders UPDATE (status: confirmed, mpesa_receipt, paid_at)</td>
+          <td>mpesa-callback Edge Function</td>
+        </tr>
+        <tr>
+          <td>6b</td>
+          <td>If callback delayed → STK query fallback checks status</td>
+          <td>orders UPDATE (same as step 6)</td>
+          <td>mpesa-stk-query Edge Function</td>
         </tr>
         <tr>
           <td>7</td>
-          <td>Cart cleared after order</td>
-          <td>cart DELETE (all rows for user)</td>
-          <td>useCart</td>
+          <td>Order confirmation email sent</td>
+          <td>—</td>
+          <td>send-order-email Edge Function (via Resend)</td>
         </tr>
         <tr>
           <td>8</td>
+          <td>Cart cleared</td>
+          <td>cart DELETE (all rows for user)</td>
+          <td>useCart / Checkout.jsx</td>
+        </tr>
+        <tr>
+          <td>9</td>
           <td>Seller notified</td>
           <td>notifications INSERT (type: order)</td>
           <td>useOrders onSuccess</td>
+        </tr>
+      </table>
+
+      <h3>Cart → Order → Payment (Stripe Card)</h3>
+      <table>
+        <tr>
+          <th>Step</th>
+          <th>Action</th>
+          <th>Tables touched</th>
+          <th>Where</th>
+        </tr>
+        <tr>
+          <td>1–4</td>
+          <td>Same as M-Pesa steps 1–4 (cart → order → items)</td>
+          <td>cart, orders, order_items</td>
+          <td>Same hooks</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Buyer enters card details via Stripe CardElement + name on card</td>
+          <td>—</td>
+          <td>Checkout.jsx (Stripe Elements — card data never hits our servers)</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>PaymentIntent created server-side</td>
+          <td>—</td>
+          <td>create-payment-intent Edge Function → returns clientSecret</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>Card payment confirmed by Stripe</td>
+          <td>orders UPDATE (status: confirmed, paid_at: now())</td>
+          <td>Checkout.jsx → stripe.confirmCardPayment</td>
+        </tr>
+        <tr>
+          <td>8–9</td>
+          <td>Email + cart clear + seller notification</td>
+          <td>Same as M-Pesa steps 7–9</td>
+          <td>Same</td>
         </tr>
       </table>
 
@@ -2184,8 +2388,8 @@
         <div class="sql-body">
           <pre>
 src/
-├── App.jsx                        # Router, QueryClientProvider
-├── main.jsx                       # React DOM entry point
+├── App.jsx                        # Router, QueryClientProvider, HelmetProvider, BackToTop
+├── main.jsx                       # React DOM entry + ToastProvider wrapper
 ├── index.css                      # Global base styles
 │
 ├── components/
@@ -2193,9 +2397,10 @@ src/
 │   │   ├── Admin.jsx              # Admin panel (users, listings, orders, reviews)
 │   │   ├── AppHome.jsx            # Home dashboard after login
 │   │   ├── AppNavbar.jsx          # Bottom nav bar for app
+│   │   ├── BackToTop.jsx          # Floating back-to-top button (global)
 │   │   ├── BuyNow.jsx             # Direct buy flow
 │   │   ├── Cart.jsx               # Shopping cart
-│   │   ├── Checkout.jsx           # Checkout + payment
+│   │   ├── Checkout.jsx           # Checkout + M-Pesa STK + Stripe card payments
 │   │   ├── Comments.jsx           # Post comments component
 │   │   ├── Community.jsx          # Community feed
 │   │   ├── ConfirmModule.jsx      # Reusable confirm dialog
@@ -2222,6 +2427,7 @@ src/
 │   │   ├── ProtectedRoutes.jsx    # Auth guard for app routes
 │   │   ├── SalesDashboard.jsx     # Seller sales overview
 │   │   ├── ScrollTop.js           # Scroll-to-top on route change
+│   │   ├── TestHooks.jsx          # Dev-only test page (DEV mode only, /test route)
 │   │   ├── UpcomingEvent.jsx      # Events list
 │   │   ├── Update.jsx             # Post/update composer
 │   │   └── ViewOrder.jsx          # Order detail view
@@ -2231,57 +2437,73 @@ src/
 │       ├── AddShopItem.jsx        # Admin: add shop product
 │       ├── Agritourism.jsx
 │       ├── BodyUpComponent.jsx
-│       ├── ComingSoon.jsx
+│       ├── ComingSoon.jsx         # Unused — not routed
 │       ├── ContactUs.jsx          # Contact form (Formspree)
 │       ├── DropDownMenu.jsx
 │       ├── Error.jsx              # 404 page
 │       ├── FaQ.jsx
 │       ├── Footer.jsx
+│       ├── ForBuyers.jsx          # Marketing page for buyers (/forbuyers)
 │       ├── ForFarms.jsx
-│       ├── ForMarketers.jsx
+│       ├── ForMarketers.jsx       # Market managers page (/for-farmersmarket)
 │       ├── LocalSourcing.jsx
 │       ├── MainBody.jsx           # Landing page
 │       ├── Merchandise.jsx        # Shop item detail
 │       ├── Navbar.jsx             # Web top navigation
 │       ├── News.jsx
 │       ├── Pricing.jsx
+│       ├── PrivacyPolicy.jsx      # Privacy Policy page (/privacy-policy)
 │       ├── ResetPassword.jsx
+│       ├── SEO.jsx                # react-helmet-async wrapper for per-page title/meta
 │       ├── Shop.jsx               # Merchandise grid
 │       ├── SignupLogin.jsx        # Auth page (sign up + login)
+│       ├── TermsOfService.jsx     # Terms of Service page (/terms)
 │       └── Wholesale.jsx
 │
 ├── context/
 │   ├── AuthContext.jsx            # Supabase auth session
-│   ├── CartContext.jsx            # Cart state (legacy — now React Query)
-│   └── ListingContext.jsx         # Shared listing state
+│   ├── CartContext.jsx            # Cart state (legacy — now React Query, safe to delete)
+│   ├── ListingContext.jsx         # Shared listing state
+│   └── ToastContext.jsx           # Global toast notification system
 │
 ├── data/
 │   └── shopProducts.js            # Static merchandise catalogue (6 products)
 │
-└── hooks/                         # All data-fetching and mutation hooks
-    ├── dateFormat.js              # Smart date formatting utility
-    ├── useAdmin.js                # Admin stats, moderation, broadcast
-    ├── useCart.js                 # Cart CRUD
-    ├── useCreateListing.js        # Create listing + image upload
-    ├── useDashboard.js            # Seller dashboard data
-    ├── useDeleteListing.js        # Delete listing
-    ├── useEditListing.js          # Fetch + update single listing
-    ├── useEditProfile.js          # Update profile + avatar upload
-    ├── useFavListings.js          # Bookmark / unbookmark listings
-    ├── useFollows.js              # Follow / unfollow users
-    ├── useListings.js             # All listings
-    ├── useLists.js                # Community post creation
-    ├── useMessages.js             # Conversations + messages
-    ├── useNotification.js         # Notifications fetch + mark read
-    ├── useOrders.js               # Create + fetch orders
-    ├── usePostComment.js          # Post comments
-    ├── usePosts.js                # Community feed + likes
-    ├── useProfile.js              # Fetch any user's profile
-    ├── useReviews.js              # Listing + shop item reviews
-    ├── useShopAdmin.js            # Shop product admin CRUD
-    ├── useTransactions.js         # Payment records
-    ├── useUser.js                 # Current logged-in user
-    └── useUserRatings.js          # Peer user ratings</pre
+├── hooks/                         # All data-fetching and mutation hooks
+│   ├── dateFormat.js              # Smart date formatting utility
+│   ├── useAdmin.js                # Admin stats, moderation, broadcast
+│   ├── useCart.js                 # Cart CRUD
+│   ├── useCreateListing.js        # Create listing + image upload
+│   ├── useDashboard.js            # Seller dashboard data
+│   ├── useDeleteListing.js        # Delete listing
+│   ├── useEditListing.js          # Fetch + update single listing
+│   ├── useEditProfile.js          # Update profile + avatar upload
+│   ├── useFavListings.js          # Bookmark / unbookmark listings
+│   ├── useFollows.js              # Follow / unfollow users
+│   ├── useListings.js             # All listings
+│   ├── useLists.js                # Community post creation
+│   ├── useMessages.js             # Conversations + messages
+│   ├── useMpesa.js                # M-Pesa STK Push + order status polling
+│   ├── useNotification.js         # Notifications fetch + mark read
+│   ├── useOrders.js               # Create + fetch orders
+│   ├── usePostComment.js          # Post comments
+│   ├── usePosts.js                # Community feed + likes
+│   ├── useProfile.js              # Fetch any user's profile
+│   ├── useReviews.js              # Listing + shop item reviews
+│   ├── useShopAdmin.js            # Shop product admin CRUD
+│   ├── useTransactions.js         # Payment records
+│   ├── useUser.js                 # Current logged-in user
+│   └── useUserRatings.js          # Peer user ratings
+│
+└── supabase/
+    ├── mpesa_columns.sql           # Migration: adds M-Pesa columns to orders table
+    ├── reviews_setup.sql           # Reviews table RLS + indexes
+    └── functions/
+        ├── create-payment-intent/  # Stripe PaymentIntent creation
+        ├── mpesa-callback/         # Safaricom Daraja callback handler
+        ├── mpesa-stk-push/         # M-Pesa STK Push initiator
+        ├── mpesa-stk-query/        # M-Pesa status query (fallback)
+        └── send-order-email/       # Transactional order email via Resend</pre
           >
         </div>
       </div>
@@ -2413,91 +2635,103 @@ src/
 
       <!-- ── TODOs ── -->
       <h2 id="todos">13. Known TODOs &amp; Limitations</h2>
+      <p class="section-note">✅ = resolved since last schema version</p>
       <table>
         <tr>
           <th>Location</th>
           <th>Issue / TODO</th>
+          <th>Status</th>
           <th>Impact</th>
         </tr>
         <tr>
-          <td>Footer.jsx:269</td>
-          <td>
-            Newsletter subscribe form shows success but doesn't actually send
-            anywhere — needs Mailchimp or Supabase Edge Function wired up
-          </td>
+          <td>Footer.jsx</td>
+          <td>Newsletter subscribe form shows success but doesn't actually send anywhere — needs Mailchimp or Supabase Edge Function wired up</td>
+          <td>Open</td>
           <td>Medium — users think they subscribed but aren't captured</td>
         </tr>
         <tr>
-          <td>ListingDetail.jsx</td>
-          <td>
-            "Edit Listing" button shows alert("coming soon!") instead of
-            navigating to /edit-listing/:id
-          </td>
-          <td>Low — edit works via /edit-listing route directly</td>
-        </tr>
-        <tr>
           <td>ComingSoon.jsx</td>
-          <td>
-            ComingSoon page exists but isn't routed to any path — unused
-            component
-          </td>
-          <td>Low</td>
+          <td>ComingSoon page exists but isn't routed to any path — unused component</td>
+          <td>Open</td>
+          <td>Low — safe to delete</td>
         </tr>
         <tr>
           <td>App.jsx</td>
-          <td>
-            Route "/for farmersmarket" contains a space — should be
-            "/for-farmersmarket"
-          </td>
-          <td>Low — space is URL-encoded, works but not clean</td>
+          <td>Route "/for farmersmarket" (with space) now redirects to /forbuyers. True ForMarketers is at /for-farmersmarket.</td>
+          <td>✅ Fixed</td>
+          <td>Low — routes work correctly</td>
         </tr>
         <tr>
           <td>CartContext.jsx</td>
-          <td>
-            Legacy CartContext exists but is commented out in App.jsx — cart now
-            fully managed by React Query
-          </td>
+          <td>Legacy CartContext exists — cart now fully managed by React Query</td>
+          <td>Open</td>
           <td>None — can safely delete CartContext.jsx</td>
         </tr>
         <tr>
-          <td>TestHooks.jsx / TestPage.jsx</td>
-          <td>
-            Test components exposed on /test route in production — should be
-            removed or guarded
-          </td>
-          <td>Low security risk — remove before public launch</td>
+          <td>TestHooks.jsx</td>
+          <td>/test route now only exposed in DEV mode via import.meta.env.DEV guard</td>
+          <td>✅ Fixed</td>
+          <td>No longer a security risk</td>
+        </tr>
+        <tr>
+          <td>M-Pesa STK Push</td>
+          <td>M-Pesa STK Push fully implemented via Edge Functions (mpesa-stk-push, mpesa-callback, mpesa-stk-query)</td>
+          <td>✅ Done</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Stripe card payments</td>
+          <td>Stripe card payments (Visa/Mastercard) integrated via create-payment-intent Edge Function + Stripe Elements</td>
+          <td>✅ Done</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>react-helmet-async + SEO</td>
+          <td>Per-page title/meta now managed by SEO.jsx + HelmetProvider</td>
+          <td>✅ Done</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>React Query staleTime</td>
+          <td>Global staleTime: 3 min, gcTime: 10 min configured in QueryClient</td>
+          <td>✅ Done</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Stripe publishable key</td>
+          <td>Stripe publishable key is currently hardcoded in Checkout.jsx — should move to VITE_STRIPE_PUBLISHABLE_KEY env var</td>
+          <td>Open</td>
+          <td>Low — test key, but env var is best practice before going live</td>
         </tr>
         <tr>
           <td>shop_products (DB) vs shopProducts.js (static)</td>
-          <td>
-            Two sources of truth for shop items — IDs can collide (both start at
-            1). Static products can't be managed from Admin panel
-          </td>
+          <td>Two sources of truth for shop items — IDs can collide (both start at 1). Static products can't be managed from Admin panel</td>
+          <td>Open</td>
           <td>Medium — migrate static products to DB to unify</td>
         </tr>
         <tr>
           <td>Storage buckets</td>
-          <td>
-            RLS not confirmed on storage buckets — anyone with the URL can
-            access uploaded files
-          </td>
+          <td>RLS not confirmed on storage buckets — anyone with the URL can access uploaded files</td>
+          <td>Open</td>
           <td>Medium — enable bucket RLS in Supabase Storage settings</td>
         </tr>
         <tr>
           <td>Messages realtime</td>
-          <td>
-            Messages page polls on mount but doesn't use Supabase Realtime — new
-            messages require page refresh
-          </td>
+          <td>Messages page polls on mount but doesn't use Supabase Realtime — new messages require page refresh</td>
+          <td>Open</td>
           <td>Medium — add .on('postgres_changes') subscription</td>
         </tr>
         <tr>
           <td>useCanReview hook</td>
-          <td>
-            Hook exists to gate reviews to buyers with delivered orders — but
-            form in ListingDetail doesn't use it, so anyone logged in can review
-          </td>
+          <td>Hook exists to gate reviews to buyers with delivered orders — but form in ListingDetail doesn't use it, so anyone logged in can review</td>
+          <td>Open</td>
           <td>Low — intentional for now, enable when order flow is solid</td>
+        </tr>
+        <tr>
+          <td>orders.status CHECK constraint</td>
+          <td>DB CHECK constraint still lists only ('pending','processing','delivered','cancelled') — needs updating to include 'confirmed' and 'payment_failed'</td>
+          <td>Open — run migration</td>
+          <td>High — constraint will reject M-Pesa/Stripe callbacks until fixed</td>
         </tr>
       </table>
 
@@ -2513,10 +2747,12 @@ src/
         <tr><td>@supabase/supabase-js</td><td>^2.105.4</td><td>Database, Auth, Storage — entire backend</td></tr>
         <tr><td>@tanstack/react-query</td><td>^5.100.10</td><td>Server state management — all data fetching, caching, mutations</td></tr>
         <tr><td>styled-components</td><td>^6.4.1</td><td>CSS-in-JS styling for all components</td></tr>
+        <tr><td>@stripe/stripe-js</td><td>^9.8.0</td><td>Stripe.js loader — card payment tokenization</td></tr>
+        <tr><td>@stripe/react-stripe-js</td><td>^6.6.0</td><td>React Stripe Elements (CardElement, useStripe, useElements)</td></tr>
         <tr><td>chart.js</td><td>^4.5.1</td><td>Chart library (admin/sales dashboards)</td></tr>
         <tr><td>react-chartjs-2</td><td>^5.3.1</td><td>React wrapper for Chart.js</td></tr>
         <tr><td>recharts</td><td>^2.15.4</td><td>Alternative chart library (some dashboard views)</td></tr>
-        <tr><td>react-helmet-async</td><td>^3.0.0</td><td>Page &lt;title&gt; and meta tags per route — SEO</td></tr>
+        <tr><td>react-helmet-async</td><td>^3.0.0</td><td>Page &lt;title&gt; and meta tags per route via SEO.jsx — active and in use</td></tr>
       </table>
       <h3>Development</h3>
       <table>
@@ -2594,7 +2830,7 @@ reviews.shop_item_id (text)         ← loose ref to shop product ID (no FK)</pr
         <tr><td>Admin.jsx</td><td>useUser, useIsAdmin, useAdminStats, useAdminUsers, useAdminListings, useAdminOrders, useAdminReviews, useAdminDeleteReview, useAdminBroadcast, useShopAdmin, formatSmartDate</td></tr>
         <tr><td>AppNavbar.jsx</td><td>useUser, useAllCartItems, useIsAdmin, useUnreadConversationsCount, useUnreadCount</td></tr>
         <tr><td>Cart.jsx</td><td>useUser, useCartItems</td></tr>
-        <tr><td>Checkout.jsx</td><td>useAddOrder, useAddOrderItems, useCartItemsAllDelete, useCreateTransaction, useApproveTransaction, useFailTransaction, useNotifyOrder</td></tr>
+        <tr><td>Checkout.jsx</td><td>useAddOrder, useAddOrderItems, useCartItemsAllDelete, useCreateTransaction, useMpesaPay, usePollOrderStatus, useNotifyOrder — plus Stripe Elements (useStripe, useElements, CardElement)</td></tr>
         <tr><td>Community.jsx</td><td>usePosts, useToggleLike, useLikeStatus, formatSmartDate</td></tr>
         <tr><td>Dashboard.jsx</td><td>useUser, useDashboard, formatSmartDate</td></tr>
         <tr><td>EditListing.jsx</td><td>useListing, useEditListing</td></tr>
@@ -2700,7 +2936,10 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
         <tr><td>News</td><td>/news</td><td>Blog-style articles and platform updates</td></tr>
         <tr><td>Pricing</td><td>/pricing</td><td>Free vs paid plan comparison</td></tr>
         <tr><td>For Farms</td><td>/forfarms</td><td>Marketing page targeting farmers/sellers</td></tr>
-        <tr><td>For Marketers</td><td>/for farmersmarket</td><td>Marketing page targeting market managers</td></tr>
+        <tr><td>For Buyers</td><td>/forbuyers</td><td>Marketing page targeting produce buyers</td></tr>
+        <tr><td>For Marketers</td><td>/for-farmersmarket</td><td>Marketing page targeting market managers</td></tr>
+        <tr><td>Terms of Service</td><td>/terms</td><td>Legal terms — linked from footer and Checkout payment disclaimer</td></tr>
+        <tr><td>Privacy Policy</td><td>/privacy-policy</td><td>Privacy policy — linked from footer and Checkout payment disclaimer</td></tr>
         <tr><td>Wholesale</td><td>/wholesale</td><td>B2B wholesale buying/selling explanation</td></tr>
         <tr><td>Agritourism</td><td>/agritourism</td><td>Farm tourism event listings info</td></tr>
         <tr><td>Local Sourcing</td><td>/localsourcing</td><td>Info for healthcare/institutional buyers</td></tr>
@@ -2835,16 +3074,20 @@ CREATE POLICY "listings_delete_own"  ON public.listings FOR DELETE TO authentica
         <div class="sql-body">
           <pre>
 CREATE TABLE IF NOT EXISTS public.orders (
-  id               bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  user_id          uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
-  total_cost       numeric NOT NULL,
-  payment_method   text,
-  delivery_address text,
-  mobile_no        text,
-  status           text NOT NULL DEFAULT 'pending'
-                   CHECK (status IN ('pending','processing','delivered','cancelled')),
-  admin_note       text,
-  created_at       timestamptz NOT NULL DEFAULT now()
+  id                  bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id             uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  total_cost          numeric NOT NULL,
+  payment_method      text,
+  delivery_address    text,
+  mobile_no           text,
+  status              text NOT NULL DEFAULT 'pending'
+                      CHECK (status IN ('pending','processing','confirmed','delivered','cancelled','payment_failed')),
+  admin_note          text,
+  mpesa_checkout_id   text,
+  mpesa_receipt       text,
+  mpesa_result_desc   text,
+  paid_at             timestamptz,
+  created_at          timestamptz NOT NULL DEFAULT now()
 );
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "orders_select_own" ON public.orders FOR SELECT TO authenticated USING (auth.uid() = user_id);
@@ -3252,6 +3495,27 @@ $$;</pre
       </div>
 
 
+      <!-- ── M-Pesa migration ── -->
+      <div class="sql-block" id="sql-mpesa-migration">
+        <div class="sql-header">
+          <span class="sql-title">-- orders: add M-Pesa columns + fix status constraint (migration)</span>
+          <button class="copy-btn" onclick="copySql('sql-mpesa-migration')">Copy</button>
+        </div>
+        <div class="sql-body"><pre>-- Run this if your orders table was created WITHOUT the M-Pesa columns.
+-- Safe to run multiple times (IF NOT EXISTS / IF EXISTS guards).
+
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS mpesa_checkout_id  text;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS mpesa_receipt       text;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS mpesa_result_desc   text;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS paid_at             timestamptz;
+
+-- Drop the old status CHECK and replace with one that includes the new statuses.
+ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_status_check;
+ALTER TABLE public.orders
+  ADD CONSTRAINT orders_status_check
+  CHECK (status IN ('pending','processing','confirmed','delivered','cancelled','payment_failed'));</pre></div>
+      </div>
+
       <!-- ── Additional SQL ── -->
       <h3 style="margin-top:32px;color:#6fcf6f">— Additional SQL (run after base tables)</h3>
 
@@ -3361,119 +3625,119 @@ CREATE POLICY "shop_products_upload" ON storage.objects FOR INSERT TO authentica
       </script>
 
       <!-- ── Suggestions ── -->
-      <h2 id="suggestions">9. Suggestions &amp; Next Steps</h2>
+      <h2 id="suggestions">Next Steps &amp; Suggestions</h2>
+      <p class="section-note">✅ = already done &nbsp;|&nbsp; Open = still pending</p>
       <table>
         <tr>
           <th>#</th>
           <th>Area</th>
           <th>Suggestion</th>
+          <th>Status</th>
           <th>Priority</th>
         </tr>
         <tr>
           <td>1</td>
           <td>Auth</td>
-          <td>
-            Add a Supabase trigger to auto-create a profiles row on user sign-up
-            (prevents orphan sessions)
-          </td>
-          <td>High</td>
+          <td>Auto-create profiles row on user sign-up (prevents orphan sessions)</td>
+          <td>✅ Done — handle_new_user() trigger in place</td>
+          <td>—</td>
         </tr>
         <tr>
           <td>2</td>
-          <td>Orders</td>
-          <td>
-            Add M-Pesa STK Push integration via a Supabase Edge Function to
-            automate payment confirmation
-          </td>
-          <td>High</td>
+          <td>Payments</td>
+          <td>M-Pesa STK Push via Supabase Edge Function for automated payment confirmation</td>
+          <td>✅ Done — mpesa-stk-push + mpesa-callback + mpesa-stk-query</td>
+          <td>—</td>
         </tr>
         <tr>
           <td>3</td>
-          <td>Reviews</td>
-          <td>
-            Add RLS to listings table (only seller can update their own listing)
-          </td>
-          <td>High</td>
+          <td>Payments</td>
+          <td>Stripe card (Visa/Mastercard) payments</td>
+          <td>✅ Done — create-payment-intent Edge Function + Stripe Elements in Checkout</td>
+          <td>—</td>
         </tr>
         <tr>
           <td>4</td>
-          <td>Storage</td>
-          <td>
-            Enable RLS on storage buckets (currently open) — restrict uploads to
-            authenticated users
-          </td>
-          <td>High</td>
+          <td>SEO</td>
+          <td>Per-page title and meta tags</td>
+          <td>✅ Done — react-helmet-async + SEO.jsx active</td>
+          <td>—</td>
         </tr>
         <tr>
           <td>5</td>
-          <td>Realtime</td>
-          <td>
-            Enable Supabase Realtime on messages and notifications tables for
-            live updates without polling
-          </td>
-          <td>Medium</td>
+          <td>Performance</td>
+          <td>Global React Query staleTime to reduce network calls</td>
+          <td>✅ Done — staleTime: 3 min, gcTime: 10 min in QueryClient</td>
+          <td>—</td>
         </tr>
         <tr>
           <td>6</td>
-          <td>Search</td>
-          <td>
-            Add full-text search on listings (PostgreSQL tsvector) to power a
-            search bar
-          </td>
-          <td>Medium</td>
+          <td>DB Migration</td>
+          <td>Run the orders status constraint migration — add 'confirmed' and 'payment_failed' to the CHECK constraint and add M-Pesa columns</td>
+          <td>Open — SQL block above ready to copy-paste into Supabase SQL Editor</td>
+          <td>🔴 High — M-Pesa/Stripe callbacks will fail without this</td>
         </tr>
         <tr>
           <td>7</td>
-          <td>Newsletter</td>
-          <td>
-            Footer newsletter form currently has a TODO — wire to Mailchimp or a
-            newsletters table in Supabase
-          </td>
-          <td>Medium</td>
+          <td>Config</td>
+          <td>Move Stripe publishable key from hardcoded in Checkout.jsx to VITE_STRIPE_PUBLISHABLE_KEY env var</td>
+          <td>Open</td>
+          <td>Medium — required before switching to live Stripe keys</td>
         </tr>
         <tr>
           <td>8</td>
-          <td>Routes</td>
-          <td>
-            Fix the route path "/for farmersmarket" (contains a space) — should
-            be "/for-farmersmarket"
-          </td>
-          <td>Low</td>
+          <td>Storage</td>
+          <td>Enable RLS on storage buckets (currently open) — restrict uploads to authenticated users</td>
+          <td>Open</td>
+          <td>High — SQL block in SQL section ready to use</td>
         </tr>
         <tr>
           <td>9</td>
-          <td>Shop</td>
-          <td>
-            Unify static shopProducts.js and DB shop_products to avoid ID
-            collision — use a single source
-          </td>
+          <td>Realtime</td>
+          <td>Enable Supabase Realtime on messages and notifications for live updates without polling</td>
+          <td>Open</td>
           <td>Medium</td>
         </tr>
         <tr>
           <td>10</td>
-          <td>Performance</td>
-          <td>
-            Add staleTime to React Query (e.g. 60s) on read-heavy queries like
-            useListings to reduce network calls
-          </td>
-          <td>Low</td>
+          <td>Search</td>
+          <td>Full-text search on listings (PostgreSQL tsvector + search_listings RPC)</td>
+          <td>Open — SQL block already included in SQL section</td>
+          <td>Medium</td>
         </tr>
         <tr>
           <td>11</td>
-          <td>SEO</td>
-          <td>
-            Add react-helmet-async for page titles and meta tags (currently
-            every page has the same title)
-          </td>
-          <td>Low</td>
+          <td>Newsletter</td>
+          <td>Footer newsletter form — wire to newsletter_subscribers table or Mailchimp</td>
+          <td>Open — newsletter_subscribers table SQL block included</td>
+          <td>Medium</td>
         </tr>
         <tr>
           <td>12</td>
+          <td>Shop</td>
+          <td>Unify static shopProducts.js and DB shop_products to avoid ID collision — single source of truth</td>
+          <td>Open</td>
+          <td>Medium</td>
+        </tr>
+        <tr>
+          <td>13</td>
+          <td>Messages</td>
+          <td>Add Supabase Realtime subscription to Messages page so new messages appear without refresh</td>
+          <td>Open</td>
+          <td>High (UX)</td>
+        </tr>
+        <tr>
+          <td>14</td>
+          <td>Stripe</td>
+          <td>Switch from test Stripe keys (pk_test_…) to live keys when ready to accept real payments. Update Vercel env vars.</td>
+          <td>Open</td>
+          <td>High before go-live</td>
+        </tr>
+        <tr>
+          <td>15</td>
           <td>Backup</td>
-          <td>
-            Enable automated Supabase daily DB backups (available on Pro plan)
-            or export via pg_dump weekly
-          </td>
+          <td>Enable automated Supabase daily DB backups (Pro plan) or pg_dump weekly</td>
+          <td>Open</td>
           <td>High</td>
         </tr>
       </table>
