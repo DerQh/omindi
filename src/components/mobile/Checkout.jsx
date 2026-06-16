@@ -224,7 +224,6 @@ const CheckoutInner = () => {
         });
       }
     }
-    mutateDeleteAllOrders({ user_id: user?.id });
     return orderIds;
   };
 
@@ -239,8 +238,10 @@ const CheckoutInner = () => {
       clearInterval(poll);
       clearInterval(countdown);
       if (pendingTxnId) await approveTransaction(pendingTxnId).then(null, () => {});
+      mutateDeleteAllOrders({ user_id: user?.id });
       setPayStep("confirmed");
       setTimeout(() => navigate("/order-confirmation", {
+        replace: true,
         state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: [stkOrderId], phone, purchaseDate: new Date().toISOString(), txnId: pendingTxnId },
       }), 2000);
     };
@@ -366,10 +367,11 @@ const CheckoutInner = () => {
         if (stripeError) throw new Error(stripeError.message);
         if (paymentIntent.status !== "succeeded") throw new Error("Payment was not completed");
 
-        // 3. Payment confirmed — persist order in DB then show confirmation overlay
+        // 3. Payment confirmed — persist order in DB, clear cart, then show confirmation overlay
         setIsCardProcessing(false);
         setPayStep("confirmed");
         const orderIds = await placeOrder();
+        mutateDeleteAllOrders({ user_id: user?.id });
         if (txnId) {
           await approveTransaction(txnId).then(null, () => {});
           if (orderIds[0]) {
@@ -377,6 +379,7 @@ const CheckoutInner = () => {
           }
         }
         setTimeout(() => navigate("/order-confirmation", {
+          replace: true,
           state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: orderIds, phone, purchaseDate: new Date().toISOString(), txnId },
         }), 2500);
       } catch (err) {
@@ -387,6 +390,7 @@ const CheckoutInner = () => {
     } else {
       // Cash — approve immediately (no waiting)
       const orderIds = await placeOrder();
+      mutateDeleteAllOrders({ user_id: user?.id });
       if (txnId) {
         await approveTransaction(txnId).then(null, () => {});
         if (orderIds[0]) {
@@ -394,6 +398,7 @@ const CheckoutInner = () => {
         }
       }
       navigate("/order-confirmation", {
+        replace: true,
         state: { orderGroupedBySeller, totalCost, paymentMethod, address, orderId: orderIds, phone, purchaseDate: new Date().toISOString(), txnId },
       });
     }

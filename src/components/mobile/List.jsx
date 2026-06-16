@@ -5,7 +5,6 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useListings, useSearchListings } from "../../hooks/useListings";
 import { useQueryClient } from "@tanstack/react-query";
-import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ListingCardTest } from "./ListingCard";
 import { useUser } from "../../hooks/useUser";
 import { useSavedSearches, useSaveSearch, useDeleteSavedSearch } from "../../hooks/useSavedSearches";
@@ -101,22 +100,6 @@ const List = () => {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-
-  // Group filtered items into rows for the virtualizer
-  const rows = useMemo(() => {
-    const r = [];
-    for (let i = 0; i < filteredAndSorted.length; i += cols) {
-      r.push(filteredAndSorted.slice(i, i + cols));
-    }
-    return r;
-  }, [filteredAndSorted, cols]);
-
-  const rowVirtualizer = useWindowVirtualizer({
-    count: rows.length,
-    estimateSize: () => 420,
-    overscan: 5,
-    scrollMargin: gridRef.current?.offsetTop ?? 0,
-  });
 
   // Close autocomplete when clicking outside search box
   useEffect(() => {
@@ -367,28 +350,17 @@ const List = () => {
                 ))}
               </Grid>
             ) : filteredAndSorted.length > 0 ? (
-              <VirtualGrid
-                style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
-              >
-                {rowVirtualizer.getVirtualItems().map((vRow) => (
-                  <VirtualRow
-                    key={vRow.key}
-                    data-index={vRow.index}
-                    ref={rowVirtualizer.measureElement}
-                    style={{ transform: `translateY(${vRow.start - rowVirtualizer.options.scrollMargin}px)`, gridTemplateColumns: `repeat(${cols}, 1fr)` }}
-                  >
-                    {rows[vRow.index].map((item, i) => (
-                      <ListingCardTest
-                        key={item.id}
-                        listingItem={item}
-                        handleCardClick={handleCardClick}
-                        user_id={user_id}
-                        index={vRow.index * cols + i}
-                      />
-                    ))}
-                  </VirtualRow>
+              <Grid $cols={cols}>
+                {filteredAndSorted.map((item, i) => (
+                  <ListingCardTest
+                    key={item.id}
+                    listingItem={item}
+                    handleCardClick={handleCardClick}
+                    user_id={user_id}
+                    index={i}
+                  />
                 ))}
-              </VirtualGrid>
+              </Grid>
             ) : (
               <EmptyState>
                 <EmptyIcon>🌾</EmptyIcon>
@@ -833,20 +805,6 @@ const Grid = styled.div`
   gap: 20px;
 `;
 
-const VirtualGrid = styled.div`
-  position: relative;
-  width: 100%;
-`;
-
-const VirtualRow = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  display: grid;
-  gap: 20px;
-  padding-bottom: 20px;
-`;
 
 const EmptyState = styled.div`
   text-align: center;

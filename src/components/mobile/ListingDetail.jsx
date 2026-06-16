@@ -122,6 +122,14 @@ const ListingDetail = () => {
 
   useEffect(() => {
     if (!listing?.id) return;
+    window.scrollTo({ top: 0, behavior: "instant" });
+    setQuantity(1);
+    setActiveTab("description");
+    setActiveThumb(0);
+    setCartMsg({ text: "", error: false });
+    setHoverStar(0);
+    setReviewRating(0);
+    setReviewComment("");
     supabase.rpc("increment_listing_views", { listing_id: listing.id }).then(null, () => {});
   }, [listing?.id]);
 
