@@ -15,6 +15,9 @@ import { useStartConversation } from "../../hooks/useMessages";
 import { useProfile } from "../../hooks/useProfile";
 import { supabase } from "../../../supabase";
 import { useListingReviews, useAddReview, useHasReviewed, useSellerRating } from "../../hooks/useReviews";
+import { useIsOnWaitlist, useWaitlistCount, useJoinWaitlist, useLeaveWaitlist } from "../../hooks/useWaitlist";
+import { useCreateRecurringOrder } from "../../hooks/useRecurringOrders";
+import { useLanguage } from "../../context/LanguageContext";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -49,6 +52,7 @@ const ListingDetail = () => {
   const queryClient = useQueryClient();
   const location = useLocation();
   const { id } = useParams();
+  const { t } = useLanguage();
 
   const stateListng = location.state?.listing;
   const { data: fetchedListing, isLoading: isFetchingListing } = useListing(
@@ -72,11 +76,23 @@ const ListingDetail = () => {
   const [reviewRating, setReviewRating]   = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewError, setReviewError]     = useState("");
+  const [reviewImage, setReviewImage]     = useState(null);
+  const [reviewImagePreview, setReviewImagePreview] = useState(null);
   const [quantity, setQuantity]           = useState(1);
   const [activeTab, setActiveTab]         = useState("description");
   const [activeThumb, setActiveThumb]     = useState(0);
   const [cartMsg, setCartMsg]             = useState({ text: "", error: false });
   const [hoverStar, setHoverStar]         = useState(0);
+
+  const { data: isOnWaitlist }   = useIsOnWaitlist(user?.id, listing?.id);
+  const { data: waitlistCount }  = useWaitlistCount(listing?.id);
+  const { mutate: joinWaitlist,  isPending: joiningWaitlist  } = useJoinWaitlist();
+  const { mutate: leaveWaitlist, isPending: leavingWaitlist  } = useLeaveWaitlist();
+  const { mutate: createRecurring, isPending: creatingRecurring } = useCreateRecurringOrder();
+  const [showRecurringModal, setShowRecurringModal] = useState(false);
+  const [recurringFreq, setRecurringFreq] = useState("weekly");
+  const [recurringQty, setRecurringQty]   = useState(1);
+  const [recurringDone, setRecurringDone] = useState(false);
 
   const { data: isFavourited } = useFavoriteCheck({ user_id: user?.id, listing_id: listing?.id });
   const { mutate: addFav }     = useCreateFavorite();
@@ -212,6 +228,54 @@ const ListingDetail = () => {
         />
       )}
 
+      {/* Recurring order modal */}
+      {showRecurringModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowRecurringModal(false); }}>
+          <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 520 }}>
+            <p style={{ margin: "0 0 4px", fontSize: "1.05rem", fontWeight: 800, color: "#1a2e1a" }}>🔄 Set Recurring Order</p>
+            <p style={{ margin: "0 0 20px", fontSize: "0.83rem", color: "#7b8f7f" }}>Get {listing.title} delivered automatically.</p>
+            {recurringDone ? (
+              <div style={{ textAlign: "center", padding: "20px 0" }}>
+                <div style={{ fontSize: "2rem", marginBottom: 10 }}>✅</div>
+                <p style={{ fontWeight: 700, color: "#2f5a2a" }}>Recurring order set!</p>
+                <p style={{ fontSize: "0.83rem", color: "#7b8f7f" }}>You can manage it under Dashboard → Settings → Recurring Orders.</p>
+                <button onClick={() => setShowRecurringModal(false)} style={{ marginTop: 14, background: "#2f5a2a", color: "white", border: "none", borderRadius: 10, padding: "10px 22px", fontWeight: 700, cursor: "pointer" }}>Done</button>
+              </div>
+            ) : (
+              <>
+                <label style={{ fontSize: "0.78rem", fontWeight: 700, color: "#7b8f7f", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 6 }}>Frequency</label>
+                <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+                  {[["weekly","Weekly"],["biweekly","Every 2 weeks"],["monthly","Monthly"]].map(([val,lbl]) => (
+                    <button key={val} type="button"
+                      onClick={() => setRecurringFreq(val)}
+                      style={{ flex: 1, padding: "9px 6px", borderRadius: 10, border: `1.5px solid ${recurringFreq === val ? "#2f5a2a" : "#e5e7eb"}`, background: recurringFreq === val ? "#eef7ee" : "white", color: recurringFreq === val ? "#2f5a2a" : "#556652", fontSize: "0.8rem", fontWeight: 700, cursor: "pointer" }}>
+                      {lbl}
+                    </button>
+                  ))}
+                </div>
+                <label style={{ fontSize: "0.78rem", fontWeight: 700, color: "#7b8f7f", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 6 }}>Quantity ({listing.unit})</label>
+                <input type="number" min="1" value={recurringQty} onChange={(e) => setRecurringQty(Number(e.target.value))}
+                  style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", border: "1.5px solid #e5e7eb", borderRadius: 10, fontSize: "1rem", marginBottom: 20, fontFamily: "inherit" }} />
+                <button
+                  disabled={creatingRecurring}
+                  onClick={() => {
+                    createRecurring({
+                      user_id: user.id,
+                      listing_id: listing.id,
+                      quantity: recurringQty,
+                      frequency: recurringFreq,
+                    }, { onSuccess: () => setRecurringDone(true) });
+                  }}
+                  style={{ width: "100%", background: "#2f5a2a", color: "white", border: "none", padding: "13px", borderRadius: 12, fontSize: "0.95rem", fontWeight: 700, cursor: "pointer" }}>
+                  {creatingRecurring ? "Saving…" : "Confirm Recurring Order"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <AppNavbar />
 
       <Page>
@@ -274,6 +338,18 @@ const ListingDetail = () => {
             {/* Right: product summary */}
             <Summary>
               {listing.category && <CategoryChip>{listing.category}</CategoryChip>}
+
+              {/* Quality badges */}
+              {listing.badges?.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+                  {listing.badges.map((b) => (
+                    <span key={b} style={{ fontSize: "0.72rem", fontWeight: 700, padding: "3px 10px", borderRadius: 999, background: "#eef7ee", color: "#2f5a2a", border: "1px solid #cde5cf" }}>
+                      ✓ {b}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <ProductTitle>{listing.title}</ProductTitle>
 
               <RatingRow>
@@ -287,7 +363,42 @@ const ListingDetail = () => {
                 {listing.unit ? ` / ${listing.unit}` : ""}
               </Price>
 
-              {listing.available === false && <AvailBadge>Out of Stock</AvailBadge>}
+              {listing.available === false && <AvailBadge>{t.outOfStock}</AvailBadge>}
+
+              {/* Bulk pricing tiers */}
+              {listing.price_tiers?.length > 0 && (
+                <div style={{ background: "#eef7ee", borderRadius: 12, padding: "12px 16px", marginTop: 10, marginBottom: 4 }}>
+                  <p style={{ margin: "0 0 8px", fontSize: "0.73rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#2f5a2a" }}>Bulk Pricing</p>
+                  {listing.price_tiers.map((tier, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: 4 }}>
+                      <span style={{ color: "#556652" }}>{tier.min_qty}+ {listing.unit}</span>
+                      <span style={{ fontWeight: 700, color: "#1a2e1a" }}>Kes {tier.price} / {listing.unit}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Waitlist for out-of-stock listings */}
+              {listing.available === false && !isSeller && user && (
+                <div style={{ background: "#fff8e5", border: "1px solid #fde68a", borderRadius: 12, padding: "12px 16px", marginTop: 10 }}>
+                  <p style={{ margin: "0 0 8px", fontSize: "0.85rem", color: "#92400e" }}>
+                    {waitlistCount > 0 ? `${waitlistCount} buyer${waitlistCount !== 1 ? "s" : ""} waiting for this item.` : "Join the waitlist to get notified when this is back in stock."}
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (isOnWaitlist) {
+                        leaveWaitlist({ user_id: user.id, listing_id: listing.id });
+                      } else {
+                        joinWaitlist({ user_id: user.id, listing_id: listing.id });
+                      }
+                    }}
+                    disabled={joiningWaitlist || leavingWaitlist}
+                    style={{ background: isOnWaitlist ? "#fdf0f0" : "#d97706", color: isOnWaitlist ? "#a32d2d" : "white", border: "none", borderRadius: 9, padding: "9px 18px", fontSize: "0.85rem", fontWeight: 700, cursor: "pointer" }}
+                  >
+                    {joiningWaitlist || leavingWaitlist ? "…" : isOnWaitlist ? t.onWaitlistLeave : t.notifyWhenAvailable}
+                  </button>
+                </div>
+              )}
 
               <HRule />
 
@@ -351,14 +462,20 @@ const ListingDetail = () => {
                 ) : (
                   <>
                     <AddBtn onClick={handleGreenBtn} disabled={isPending}>
-                      {isPending ? "Adding…" : isItemInCart ? "View Cart" : "Buy Now"}
+                      {isPending ? "…" : isItemInCart ? t.viewCart : t.buyNow}
                     </AddBtn>
                     <CtaSecRow>
                       <WishBtn onClick={handleOrangeBtn} disabled={isPending}>
-                        {isItemInCart ? "✓ In Cart" : "Add to Cart"}
+                        {isItemInCart ? t.inCart : t.addToCart}
                       </WishBtn>
                       <InquiryBtn onClick={handleInquire} disabled={isStarting}>
                         {isStarting ? "Opening…" : "Inquiry"}
+                      </InquiryBtn>
+                      <InquiryBtn
+                        onClick={() => { setShowRecurringModal(true); setRecurringDone(false); }}
+                        style={{ background: "#eef7ee", color: "#2f5a2a" }}
+                      >
+                        🔄 {t.recurring}
                       </InquiryBtn>
                     </CtaSecRow>
                   </>
@@ -465,7 +582,7 @@ const ListingDetail = () => {
                         <tr>
                           <td>Availability</td>
                           <td>
-                            {listing.available === false ? "Out of Stock" : "In Stock"}
+                            {listing.available === false ? t.outOfStock : t.inStock}
                           </td>
                         </tr>
                       </tbody>
@@ -528,12 +645,12 @@ const ListingDetail = () => {
                     })()}
 
                     {!isSeller && hasReviewed && (
-                      <AlreadyReviewed>✓ You've reviewed this listing</AlreadyReviewed>
+                      <AlreadyReviewed>{t.alreadyReviewed}</AlreadyReviewed>
                     )}
 
                     {!isSeller && user && !hasReviewed && (
                       <ReviewForm>
-                        <ReviewLabel>Rate this listing</ReviewLabel>
+                        <ReviewLabel>{t.rateThisListing}</ReviewLabel>
                         <StarBtnRow>
                           {[1, 2, 3, 4, 5].map((n) => (
                             <StarBtn
@@ -548,30 +665,61 @@ const ListingDetail = () => {
                           ))}
                         </StarBtnRow>
                         <ReviewInput
-                          placeholder="Share your experience…"
+                          placeholder={t.shareExperience}
                           value={reviewComment}
                           onChange={(e) => setReviewComment(e.target.value)}
                           rows={3}
                         />
+
+                        {/* Review photo upload */}
+                        {reviewImagePreview ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "10px 0" }}>
+                            <img src={reviewImagePreview} alt="review" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 10, border: "1.5px solid #e8f5e9" }} />
+                            <button type="button" onClick={() => { setReviewImage(null); setReviewImagePreview(null); }} style={{ background: "none", border: "none", color: "#ef4444", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer" }}>Remove photo</button>
+                          </div>
+                        ) : (
+                          <label style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10, marginTop: 6, cursor: "pointer", fontSize: "0.82rem", fontWeight: 600, color: "#2f5a2a" }}>
+                            <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => {
+                              const f = e.target.files[0];
+                              if (!f) return;
+                              setReviewImage(f);
+                              setReviewImagePreview(URL.createObjectURL(f));
+                            }} />
+                            📷 {t.addPhoto}
+                          </label>
+                        )}
+
                         {reviewError && (
                           <ReviewErrorMsg>{reviewError}</ReviewErrorMsg>
                         )}
                         <SubmitReviewBtn
                           disabled={reviewRating === 0 || submittingReview}
-                          onClick={() => {
+                          onClick={async () => {
                             setReviewError("");
+                            let imageUrl = null;
+                            if (reviewImage) {
+                              const { data: { user: authUser } } = await supabase.auth.getUser();
+                              const path = `reviews/${authUser.id}/${Date.now()}-${reviewImage.name}`;
+                              const { error: upErr } = await supabase.storage.from("listing-images").upload(path, reviewImage);
+                              if (!upErr) {
+                                imageUrl = supabase.storage.from("listing-images").getPublicUrl(path).data.publicUrl;
+                              }
+                            }
                             addReview(
                               {
                                 listing_id: listing.id,
                                 seller_id: listing.seller_id,
                                 rating: reviewRating,
                                 comment: reviewComment,
+                                image_url: imageUrl,
                               },
                               {
                                 onSuccess: () => {
                                   setReviewRating(0);
                                   setReviewComment("");
                                   setHoverStar(0);
+                                  setReviewImage(null);
+                                  setReviewImagePreview(null);
                                 },
                                 onError: (err) => {
                                   setReviewError(err.message ?? "Could not submit review. Please try again.");
@@ -580,7 +728,7 @@ const ListingDetail = () => {
                             );
                           }}
                         >
-                          {submittingReview ? "Submitting…" : "Submit Review"}
+                          {submittingReview ? t.submitting : t.submitReview}
                         </SubmitReviewBtn>
                       </ReviewForm>
                     )}
@@ -588,7 +736,7 @@ const ListingDetail = () => {
                     {reviews.length === 0 ? (
                       <NoReviews>
                         <NoReviewsIcon>🌱</NoReviewsIcon>
-                        No reviews yet — be the first to review this listing.
+                        {t.noReviews}
                       </NoReviews>
                     ) : (
                       reviews.map((r) => (
@@ -612,6 +760,9 @@ const ListingDetail = () => {
                               </ReviewStars>
                             </ReviewHeader>
                             {r.comment && <ReviewText>{r.comment}</ReviewText>}
+                            {r.image_url && (
+                              <img src={r.image_url} alt="review photo" loading="lazy" style={{ width: "100%", maxWidth: 200, borderRadius: 10, marginTop: 8, border: "1.5px solid #e8f5e9" }} />
+                            )}
                             <ReviewDate>
                               {new Date(r.created_at).toLocaleDateString("en-KE", {
                                 month: "short",

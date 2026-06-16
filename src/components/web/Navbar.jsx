@@ -35,7 +35,8 @@ const NAV_ITEMS = [
   {
     label: "Local Sourcing",
     children: [
-      { label: "Wholesalers", path: "/wholesale" },
+      { label: "Wholesalers",       path: "/wholesale" },
+      { label: "Seasonal Calendar", path: "/seasonal-calendar" },
     ],
   },
   {
@@ -74,6 +75,7 @@ const Inner = styled.div`
   gap: 16px;
 
   @media (max-width: 768px) { padding: 0 20px; }
+  @media (max-width: 380px) { padding: 0 12px; gap: 10px; }
 `;
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
@@ -308,10 +310,13 @@ const Bar = styled.span`
 
 const MobileDrawer = styled.div`
   display: none;
-  overflow: hidden;
   border-top: 1px solid #d7ead7;
   background: #e5f4ff;
   animation: ${slideDown} 0.3s ease;
+  max-height: calc(100dvh - 68px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 
   @media (max-width: 960px) {
     display: ${({ $open }) => ($open ? "block" : "none")};

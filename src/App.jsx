@@ -65,7 +65,10 @@ const EditListing     = lazy(() => import("./components/mobile/EditListing").the
 const SalesDashboard  = lazy(() => import("./components/mobile/SalesDashboard"));
 const Admin           = lazy(() => import("./components/mobile/Admin"));
 const MyOrders        = lazy(() => import("./components/mobile/MyOrders"));
-const TestHooks       = lazy(() => import("./components/mobile/TestHooks").then((m) => ({ default: m.TestHooks })));
+const TestHooks         = lazy(() => import("./components/mobile/TestHooks").then((m) => ({ default: m.TestHooks })));
+const Referral          = lazy(() => import("./components/mobile/Referral"));
+const RecurringOrders   = lazy(() => import("./components/mobile/RecurringOrders"));
+const SeasonalCalendar  = lazy(() => import("./components/web/SeasonalCalendar"));
 
 // ─── Loading fallback ─────────────────────────────────────────────────────────
 const PageLoader = () => (
@@ -120,6 +123,8 @@ function App() {
                   <Route path="/edit-profile"      element={<EditProfile />} />
                   <Route path="/admin"             element={<Admin />} />
                   <Route path="/my-orders"         element={<MyOrders />} />
+                  <Route path="/referral"          element={<Referral />} />
+                  <Route path="/recurring-orders"  element={<RecurringOrders />} />
                 </Route>
 
                 {/* ── Public web routes ── */}
@@ -145,6 +150,7 @@ function App() {
                 <Route path="/shop/item/:id"     element={<Merchandise />} />
                 <Route path="/terms"             element={<TermsOfService />} />
                 <Route path="/privacy-policy"    element={<PrivacyPolicy />} />
+                <Route path="/seasonal-calendar" element={<SeasonalCalendar />} />
                 <Route path="*"                  element={<ErrorDisplay />} />
               </Routes>
             </Suspense>

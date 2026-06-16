@@ -2,6 +2,7 @@ import { useState } from "react";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
+import PushNotificationPrompt from "./PushNotificationPrompt";
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -33,6 +34,7 @@ export default function AppHome() {
   return (
     <Container>
       <AppNavbar />
+      <PushNotificationPrompt />
 
       <MapLayer>
         {/* ── Map ── */}

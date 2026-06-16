@@ -17,6 +17,8 @@ export function useCreateListing() {
       unit,
       phone,
       available = true,
+      badges = [],
+      price_tiers = [],
     }) => {
       const {
         data: { user },
@@ -76,6 +78,8 @@ export function useCreateListing() {
           seller_image_url,
           seller_name:
             user?.user_metadata?.full_name || user?.user_metadata?.username,
+          badges:      badges ?? [],
+          price_tiers: price_tiers ?? [],
         })
         .select(); // 🔥 THIS IS IMPORTANT FOR DEBUGGING
 

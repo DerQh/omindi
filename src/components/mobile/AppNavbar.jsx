@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import LanguageSwitcher from "./LanguageSwitcher";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import { useUser } from "../../hooks/useUser";
@@ -7,6 +8,7 @@ import { useAllCartItems } from "../../hooks/useCart";
 import { useIsAdmin } from "../../hooks/useShopAdmin";
 import { useUnreadConversationsCount } from "../../hooks/useMessages";
 import { useUnreadCount } from "../../hooks/useNotification";
+import { useLanguage } from "../../context/LanguageContext";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -298,32 +300,7 @@ const MenuIcon = styled.span`
   opacity: 0.75;
 `;
 
-// ─── Nav data ─────────────────────────────────────────────────────────────────
-
-const DESKTOP_LINKS = [
-  { label: "Browse", icon: "", path: "/list" },
-  { label: "Messages", icon: "", path: "/messages" },
-  { label: "Notifications", icon: "", path: "/notifications" },
-  { label: "Following", icon: "", path: "/following" },
-  { label: "My Store", icon: "", path: "/dashboard" },
-  { label: "Shop", icon: "", path: "/shop" },
-];
-
-const DESKTOP_MENU_ITEMS = [
-  { label: "View Profile", icon: "", path: "/profile" },
-  { label: "Community", icon: "", path: "/community" },
-];
-
-const MOBILE_MENU_ITEMS = [
-  { label: "View Profile", icon: "", path: "/profile" },
-  { label: "My Orders", icon: "", path: "/my-orders" },
-  { label: "Messages", icon: "", path: "/messages" },
-  { label: "Following", icon: "", path: "/following" },
-  { label: "Notifications", icon: "", path: "/notifications" },
-  { label: "My Store", icon: "", path: "/dashboard" },
-  { label: "Community", icon: "", path: "/community" },
-  { label: "Shop", icon: "", path: "/shop" },
-];
+// ─── Nav data (built inside component so they react to language changes) ──────
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -332,6 +309,7 @@ export default function AppNavbar() {
   const location = useLocation();
   const { logout } = useAuth();
   const { data: userData } = useUser();
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef(null);
 
@@ -349,8 +327,33 @@ export default function AppNavbar() {
   const email = userData?.email ?? "";
   const image_url = userData?.profile?.avatar_url;
 
+  const DESKTOP_LINKS = [
+    { label: t.browse,        icon: "", path: "/list" },
+    { label: t.messages,      icon: "", path: "/messages" },
+    { label: t.notifications, icon: "", path: "/notifications" },
+    { label: t.following,     icon: "", path: "/following" },
+    { label: t.myStore,       icon: "", path: "/dashboard" },
+    { label: t.shop,          icon: "", path: "/shop" },
+  ];
+
   const isDesktop = window.innerWidth > 768;
-  const baseItems = isDesktop ? DESKTOP_MENU_ITEMS : MOBILE_MENU_ITEMS;
+  const desktopMenuBase = [
+    { label: t.viewProfile, icon: "", path: "/profile" },
+    { label: t.community,   icon: "", path: "/community" },
+  ];
+  const mobileMenuBase = [
+    { label: t.viewProfile,     icon: "", path: "/profile" },
+    { label: t.myOrders,        icon: "", path: "/my-orders" },
+    { label: t.messages,        icon: "", path: "/messages" },
+    { label: t.following,       icon: "", path: "/following" },
+    { label: t.notifications,   icon: "", path: "/notifications" },
+    { label: t.myStore,         icon: "", path: "/dashboard" },
+    { label: t.recurringOrders, icon: "🔄", path: "/recurring-orders" },
+    { label: t.referral,        icon: "🎁", path: "/referral" },
+    { label: t.community,       icon: "", path: "/community" },
+    { label: t.shop,            icon: "", path: "/shop" },
+  ];
+  const baseItems = isDesktop ? desktopMenuBase : mobileMenuBase;
   const menuItems = isAdminUser
     ? [...baseItems, { label: "Admin Panel", icon: "⚙️", path: "/admin" }]
     : baseItems;
@@ -420,6 +423,7 @@ export default function AppNavbar() {
 
         {/* Cart + avatar */}
         <RightSide>
+          <LanguageSwitcher />
           <IconBtn onClick={() => navigate("/cart")} aria-label="Cart">
             🛒
             {cartCount > 0 && <Badge>{cartCount}</Badge>}
@@ -468,7 +472,7 @@ export default function AppNavbar() {
 
                 <MenuItem $danger onClick={handleSignOut}>
                   <MenuIcon></MenuIcon>
-                  Sign Out
+                  {t.signOut}
                 </MenuItem>
               </DropdownWrap>
             )}

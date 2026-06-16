@@ -8,6 +8,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ListingCardTest } from "./ListingCard";
 import { useUser } from "../../hooks/useUser";
+import { useSavedSearches, useSaveSearch, useDeleteSavedSearch } from "../../hooks/useSavedSearches";
+import { useLanguage } from "../../context/LanguageContext";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(12px); }
@@ -21,6 +23,7 @@ const SORT_OPTIONS = [
 ];
 
 const List = () => {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -34,6 +37,11 @@ const List = () => {
   const queryClient = useQueryClient();
   const { data: user } = useUser();
   const user_id = user?.id;
+
+  const [showSavedPanel, setShowSavedPanel] = useState(false);
+  const { data: savedSearches = [] }  = useSavedSearches(user_id);
+  const { mutate: saveSearch }        = useSaveSearch();
+  const { mutate: deleteSavedSearch } = useDeleteSavedSearch();
 
   const { data: allData, isLoading, error, refetch } = useListings();
   const { data: searchData, isFetching: isSearching } =
@@ -228,7 +236,7 @@ const List = () => {
             <SearchWrap ref={searchRef}>
               <SearchInput
                 type="text"
-                placeholder="Search by name, category, or location…"
+                placeholder={t.searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -294,15 +302,56 @@ const List = () => {
           <BodyInner ref={gridRef}>
             <ResultsMeta>
               <ResultsCount>
-                Total Listings {filteredAndSorted.length}
-                {/* {filteredAndSorted.length !== 1 ? "s" : ""} */}
+                {t.totalListings} {filteredAndSorted.length}
                 {activeCategory !== "All" ? ` in ${activeCategory}` : ""}
                 {searchTerm ? ` for "${searchTerm}"` : ""}
               </ResultsCount>
-              <AddListingBtn onClick={() => navigate("/newlist")}>
-                + Add Listing
-              </AddListingBtn>
+              <div style={{ display: "flex", gap: 8 }}>
+                {user_id && (searchTerm || activeCategory !== "All") && (
+                  <SaveSearchBtn
+                    onClick={() =>
+                      saveSearch({ user_id, label: searchTerm || activeCategory, query: searchTerm, category: activeCategory !== "All" ? activeCategory : "" })
+                    }
+                    title={t.saveSearch}
+                  >
+                    🔖 {t.saveSearch}
+                  </SaveSearchBtn>
+                )}
+                {user_id && savedSearches.length > 0 && (
+                  <SaveSearchBtn onClick={() => setShowSavedPanel((p) => !p)} title={t.savedSearchesTitle}>
+                    📂 {t.savedSearches} ({savedSearches.length})
+                  </SaveSearchBtn>
+                )}
+                <AddListingBtn onClick={() => navigate("/newlist")}>
+                  {t.addListing}
+                </AddListingBtn>
+              </div>
             </ResultsMeta>
+
+            {/* Saved searches panel */}
+            {showSavedPanel && savedSearches.length > 0 && (
+              <SavedPanel>
+                <SavedPanelTitle>{t.savedSearchesTitle}</SavedPanelTitle>
+                {savedSearches.map((s) => (
+                  <SavedRow key={s.id}>
+                    <SavedLabel
+                      onClick={() => {
+                        if (s.query) setSearchTerm(s.query);
+                        if (s.category) setActiveCategory(s.category || "All");
+                        setShowSavedPanel(false);
+                      }}
+                    >
+                      🔍 {s.label}
+                      {s.category && s.category !== "All" && <span style={{ color: "#7b8f7f", fontWeight: 500 }}> · {s.category}</span>}
+                    </SavedLabel>
+                    <SavedDeleteBtn
+                      onClick={() => deleteSavedSearch({ id: s.id, user_id })}
+                      title="Remove"
+                    >✕</SavedDeleteBtn>
+                  </SavedRow>
+                ))}
+              </SavedPanel>
+            )}
 
             {isLoading ? (
               <Grid $cols={cols}>
@@ -343,7 +392,7 @@ const List = () => {
             ) : (
               <EmptyState>
                 <EmptyIcon>🌾</EmptyIcon>
-                <EmptyTitle>No listings found</EmptyTitle>
+                <EmptyTitle>{t.noListingsFound}</EmptyTitle>
                 <EmptyDesc>
                   {hasFilters
                     ? "Try adjusting your search or filters."
@@ -371,6 +420,70 @@ const List = () => {
 export default List;
 
 // ─── Styled components ────────────────────────────────────────────────────────
+
+const SaveSearchBtn = styled.button`
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1.5px solid #d7edd9;
+  background: white;
+  color: #2f5a2a;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  &:hover { background: #eef7ee; }
+`;
+
+const SavedPanel = styled.div`
+  background: white;
+  border: 1.5px solid #d7edd9;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  animation: ${fadeUp} 0.2s ease;
+`;
+
+const SavedPanelTitle = styled.p`
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7b8f7f;
+`;
+
+const SavedRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f7ee;
+  &:last-child { border-bottom: none; }
+`;
+
+const SavedLabel = styled.button`
+  flex: 1;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: #1a2e1a;
+  cursor: pointer;
+  padding: 0;
+  &:hover { text-decoration: underline; }
+`;
+
+const SavedDeleteBtn = styled.button`
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 6px;
+  &:hover { color: #ef4444; }
+`;
 
 const shimmer = keyframes`
   0%   { background-position: -600px 0; }

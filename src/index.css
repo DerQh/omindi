@@ -1,3 +1,9 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   font-family: "Dosis", sans-serif;
   padding: 0;
@@ -11,12 +17,20 @@
 }
 
 body {
-  margin: 0 auto;
+  margin: 0;
+  overflow-x: hidden;
 }
 
 a {
   text-decoration: none;
   color: inherit;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 input,
@@ -28,9 +42,9 @@ select {
 html,
 body,
 #root {
-  /* height: 100dvh; */
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+  max-width: 100%;
 }
-

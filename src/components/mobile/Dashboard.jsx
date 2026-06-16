@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styled, { keyframes, css } from "styled-components";
 import AppNavbar from "./AppNavbar";
 import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../../supabase";
 import {
   useSellerListings,
   useSellerOrders,
@@ -17,6 +18,7 @@ import {
   Tooltip, ResponsiveContainer,
 } from "recharts";
 import { formatSmartDate } from "../../hooks/dateFormat";
+import { useLanguage } from "../../context/LanguageContext";
 
 // ─── TOKENS ──────────────────────────────────────────────────────────────────
 const C = {
@@ -841,6 +843,136 @@ const AvailPill = styled.span`
   border: 1px solid ${({ $available }) => ($available ? "#cde5cf" : "#f5c2c2")};
 `;
 
+// ─── EXPORT BUTTON ───────────────────────────────────────────────────────────
+const ExportBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: white;
+  color: ${C.green};
+  border: 1.5px solid ${C.greenMid};
+  border-radius: 11px;
+  padding: 9px 18px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:hover { background: ${C.mint}; }
+`;
+
+// ─── SETTINGS TAB STYLES ─────────────────────────────────────────────────────
+const SettingsCard = styled.div`
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 20px rgba(0,0,0,0.07);
+  padding: 24px;
+  margin-bottom: 16px;
+`;
+
+const SettingsTitle = styled.p`
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: ${C.text};
+`;
+
+const SettingsSub = styled.p`
+  margin: 0 0 18px;
+  font-size: 0.82rem;
+  color: ${C.textMuted};
+`;
+
+const HolidayToggleRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+`;
+
+const Toggle = styled.button`
+  width: 50px;
+  height: 28px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  background: ${({ $on }) => ($on ? C.green : C.border)};
+  transition: background 0.2s;
+  flex-shrink: 0;
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: white;
+    top: 3px;
+    left: ${({ $on }) => ($on ? "25px" : "3px")};
+    transition: left 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+`;
+
+const SettingsInput = styled.input`
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1.5px solid ${C.border};
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: ${C.text};
+  background: ${C.bg};
+  outline: none;
+  font-family: inherit;
+  margin-bottom: 12px;
+  transition: border-color 0.15s;
+  &:focus { border-color: ${C.green}; background: white; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+`;
+
+const SaveSettingsBtn = styled.button`
+  background: ${C.green};
+  color: white;
+  border: none;
+  padding: 11px 24px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover { background: ${C.forest}; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+`;
+
+const SuccessBanner = styled.div`
+  background: ${C.mint};
+  border: 1px solid #a8d5ac;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: ${C.green};
+  margin-top: 10px;
+`;
+
+const HolidayActiveBanner = styled.div`
+  background: #fff8e5;
+  border: 1.5px solid #fde68a;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: #92400e;
+  font-weight: 600;
+`;
+
+
 // ─── MISC ────────────────────────────────────────────────────────────────────
 const EmptyState = styled.div`
   text-align: center;
@@ -889,6 +1021,7 @@ const ALL_STATUSES = [
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const seller_id = user?.id;
 
   const [activeTab, setActiveTab] = useState("orders");
@@ -897,6 +1030,13 @@ const Dashboard = () => {
 
   const { data: stats } = useDashboardStats(seller_id);
   const { data: profile, isLoading: loadingProfile } = useProfile(seller_id);
+
+  // Holiday mode state — initialised to defaults; updated below once profile loads
+  const [holidayOn, setHolidayOn]         = useState(false);
+  const [holidayUntil, setHolidayUntil]   = useState("");
+  const [holidayMsg, setHolidayMsg]       = useState("");
+  const [savingHoliday, setSavingHoliday] = useState(false);
+  const [holidaySaved, setHolidaySaved]   = useState(false);
 
   // Profile completion check
   const profileFields = [
@@ -955,6 +1095,52 @@ const Dashboard = () => {
   const handleStatusUpdate = (order_id, status) =>
     updateStatus({ order_id, status });
 
+  // Syncs holiday state from loaded profile on first render
+  if (profile && !savingHoliday && !holidaySaved) {
+    if (profile.on_holiday !== undefined && profile.on_holiday !== holidayOn && !holidaySaved)
+      setHolidayOn(profile.on_holiday);
+  }
+
+  const saveHolidayMode = async () => {
+    setSavingHoliday(true);
+    await supabase
+      .from("profiles")
+      .update({
+        on_holiday: holidayOn,
+        holiday_until: holidayUntil || null,
+        holiday_message: holidayMsg || null,
+      })
+      .eq("id", seller_id);
+    setSavingHoliday(false);
+    setHolidaySaved(true);
+    setTimeout(() => setHolidaySaved(false), 3000);
+  };
+
+  // Exports all orders to a CSV file and triggers a browser download.
+  const exportOrdersCSV = () => {
+    const rows = [
+      ["Order ID", "Date", "Status", "Items", "Total (KES)", "Delivery Address", "Phone", "Payment"],
+      ...orders.map((o) => [
+        o.id.slice(0, 8).toUpperCase(),
+        new Date(o.created_at).toLocaleDateString("en-KE"),
+        o.status,
+        o.items?.map((i) => `${i.listings?.title} x${i.quantity}`).join(" | "),
+        o.total_cost,
+        o.delivery_address,
+        o.mobile_no,
+        paymentLabels[o.payment_method] ?? o.payment_method,
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `afarmer-orders-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Returns the available action buttons for a given order status.
   const nextActions = (status) => {
     switch (status) {
@@ -998,11 +1184,29 @@ const Dashboard = () => {
         {/* TOP BAR */}
         <TopBar>
           <TitleGroup>
-            <Eyebrow>Store Management</Eyebrow>
+            <Eyebrow>{t.storeManagement}</Eyebrow>
             <PageSub>Manage your listings and fulfil incoming orders.</PageSub>
           </TitleGroup>
-          {/* <AddBtn onClick={() => navigate("/newlist")}>+ New Listing</AddBtn> */}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {orders.length > 0 && (
+              <ExportBtn onClick={exportOrdersCSV}>
+                {t.exportCSV}
+              </ExportBtn>
+            )}
+          </div>
         </TopBar>
+
+        {/* HOLIDAY MODE ACTIVE BANNER */}
+        {profile?.on_holiday && (
+          <HolidayActiveBanner>
+            <span style={{ fontSize: "1.2rem" }}>🌴</span>
+            <div>
+              <strong>Holiday mode is ON.</strong> Your listings are hidden from buyers.
+              {profile.holiday_until && ` Back on ${new Date(profile.holiday_until).toLocaleDateString("en-KE", { day: "numeric", month: "long" })}.`}
+              {profile.holiday_message && <> — "{profile.holiday_message}"</>}
+            </div>
+          </HolidayActiveBanner>
+        )}
 
         {/* PROFILE COMPLETION BANNER */}
         {!loadingProfile && missingFields.length > 0 && (
@@ -1084,7 +1288,7 @@ const Dashboard = () => {
             $active={activeTab === "orders"}
             onClick={() => setActiveTab("orders")}
           >
-            Orders
+            {t.orders}
             {orders.length > 0 && (
               <TabBadge $active={activeTab === "orders"}>
                 {orders.length}
@@ -1100,12 +1304,18 @@ const Dashboard = () => {
             $active={activeTab === "listings"}
             onClick={() => setActiveTab("listings")}
           >
-            Listings
+            {t.listings}
             {listings.length > 0 && (
               <TabBadge $active={activeTab === "listings"}>
                 {listings.length}
               </TabBadge>
             )}
+          </Tab>
+          <Tab
+            $active={activeTab === "settings"}
+            onClick={() => setActiveTab("settings")}
+          >
+            {t.settings}
           </Tab>
         </TabRow>
 
@@ -1380,6 +1590,80 @@ const Dashboard = () => {
               </ListingGrid>
             )}
           </Card>
+        )}
+        {/* ── SETTINGS TAB ──────────────────────────────────────────── */}
+        {activeTab === "settings" && (
+          <>
+            {/* Holiday Mode */}
+            <SettingsCard>
+              <SettingsTitle>🌴 Holiday Mode</SettingsTitle>
+              <SettingsSub>
+                Turn this on when you're away. Your listings will be hidden from buyers until you return.
+              </SettingsSub>
+
+              <HolidayToggleRow>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: "0.9rem", color: C.text, marginBottom: 2 }}>
+                    {holidayOn ? "Holiday mode is ON" : "Holiday mode is OFF"}
+                  </div>
+                  <div style={{ fontSize: "0.78rem", color: C.textMuted }}>
+                    {holidayOn ? "Your listings are hidden from buyers." : "Your listings are visible to buyers."}
+                  </div>
+                </div>
+                <Toggle $on={holidayOn} onClick={() => { setHolidayOn((p) => !p); setHolidaySaved(false); }} />
+              </HolidayToggleRow>
+
+              {holidayOn && (
+                <>
+                  <label style={{ fontSize: "0.78rem", fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 6 }}>
+                    Back on (optional)
+                  </label>
+                  <SettingsInput
+                    type="date"
+                    value={holidayUntil}
+                    onChange={(e) => { setHolidayUntil(e.target.value); setHolidaySaved(false); }}
+                    min={new Date().toISOString().split("T")[0]}
+                  />
+                  <label style={{ fontSize: "0.78rem", fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 6 }}>
+                    Message to buyers (optional)
+                  </label>
+                  <SettingsInput
+                    type="text"
+                    placeholder='e.g. "Back on 20 July. Orders welcome in advance."'
+                    value={holidayMsg}
+                    onChange={(e) => { setHolidayMsg(e.target.value); setHolidaySaved(false); }}
+                  />
+                </>
+              )}
+
+              <SaveSettingsBtn disabled={savingHoliday} onClick={saveHolidayMode}>
+                {savingHoliday ? "Saving…" : "Save Changes"}
+              </SaveSettingsBtn>
+              {holidaySaved && <SuccessBanner>✓ Holiday settings saved.</SuccessBanner>}
+            </SettingsCard>
+
+            {/* Export Orders */}
+            <SettingsCard>
+              <SettingsTitle>📊 Export Orders</SettingsTitle>
+              <SettingsSub>
+                Download all your orders as a CSV file for record-keeping or accounting.
+              </SettingsSub>
+              <ExportBtn onClick={exportOrdersCSV} disabled={orders.length === 0}>
+                ↓ Download Orders CSV {orders.length > 0 ? `(${orders.length} orders)` : "(no orders yet)"}
+              </ExportBtn>
+            </SettingsCard>
+
+            {/* Quick links */}
+            <SettingsCard>
+              <SettingsTitle>⚙️ Account</SettingsTitle>
+              <SettingsSub>Manage your profile and preferences.</SettingsSub>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <SaveSettingsBtn onClick={() => navigate("/edit-profile")}>Edit Profile</SaveSettingsBtn>
+                <ExportBtn onClick={() => navigate("/referral")}>Invite Friends →</ExportBtn>
+                <ExportBtn onClick={() => navigate("/recurring-orders")}>Recurring Orders</ExportBtn>
+              </div>
+            </SettingsCard>
+          </>
         )}
       </Wrapper>
     </Page>

@@ -9,6 +9,19 @@ const fadeUp = keyframes`
   to   { opacity: 1; transform: translateY(0); }
 `;
 
+const QUALITY_BADGES = [
+  "Organic",
+  "Free-Range",
+  "Pesticide-Free",
+  "Naturally Grown",
+  "Certified",
+  "Handpicked",
+  "Locally Grown",
+  "Non-GMO",
+  "Heirloom",
+  "Fresh Daily",
+];
+
 const CATEGORIES = [
   "Vegetables",
   "Fruits",
@@ -54,6 +67,8 @@ const NewListing = () => {
   const [phone, setPhone] = useState("");
   const [available, setAvailable] = useState(true);
   const [dragOver, setDragOver] = useState(false);
+  const [badges, setBadges] = useState([]);
+  const [priceTiers, setPriceTiers] = useState([]);
 
   const handleBack = () => navigate(-1);
 
@@ -87,6 +102,8 @@ const NewListing = () => {
         unit: resolvedUnit,
         phone,
         available,
+        badges,
+        price_tiers: priceTiers.filter((t) => t.min_qty && t.price),
       },
       { onSuccess: () => setSubmitted(true) },
     );
@@ -277,6 +294,86 @@ const NewListing = () => {
                   value={minimumOrder}
                   onChange={(e) => setMinimumOrder(e.target.value)}
                 />
+              </Field>
+
+              {/* Bulk pricing tiers */}
+              <Field>
+                <FieldLabel>
+                  Bulk Pricing (optional)
+                  <span style={{ fontWeight: 500, fontSize: "0.75rem", color: "#9ca3af" }}>Lower price for larger orders</span>
+                </FieldLabel>
+                {priceTiers.map((tier, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                    <FieldInput
+                      type="number"
+                      min="1"
+                      placeholder="Min qty"
+                      value={tier.min_qty}
+                      style={{ flex: 1 }}
+                      onChange={(e) => {
+                        const t = [...priceTiers];
+                        t[i] = { ...t[i], min_qty: e.target.value };
+                        setPriceTiers(t);
+                      }}
+                    />
+                    <FieldInput
+                      type="number"
+                      min="0"
+                      placeholder="Price (Kes)"
+                      value={tier.price}
+                      style={{ flex: 1 }}
+                      onChange={(e) => {
+                        const t = [...priceTiers];
+                        t[i] = { ...t[i], price: e.target.value };
+                        setPriceTiers(t);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setPriceTiers(priceTiers.filter((_, j) => j !== i))}
+                      style={{ background: "none", border: "none", color: "#ef4444", fontSize: "1.1rem", cursor: "pointer", padding: "0 4px" }}
+                    >✕</button>
+                  </div>
+                ))}
+                {priceTiers.length < 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setPriceTiers([...priceTiers, { min_qty: "", price: "" }])}
+                    style={{ background: "none", border: "1.5px dashed #cde5cf", borderRadius: 10, padding: "8px 16px", fontSize: "0.82rem", color: "#2f5a2a", fontWeight: 700, cursor: "pointer", width: "100%" }}
+                  >
+                    + Add bulk tier
+                  </button>
+                )}
+                <FieldHint>e.g. 10 kg at Kes 70, 50 kg at Kes 55</FieldHint>
+              </Field>
+            </Section>
+
+            {/* ── Section: Quality Badges ── */}
+            <Section>
+              <SectionLabel>Quality Badges</SectionLabel>
+              <Field>
+                <FieldLabel>Select all that apply</FieldLabel>
+                <ChipGrid>
+                  {QUALITY_BADGES.map((b) => (
+                    <Chip
+                      key={b}
+                      type="button"
+                      $active={badges.includes(b)}
+                      onClick={() =>
+                        setBadges(
+                          badges.includes(b)
+                            ? badges.filter((x) => x !== b)
+                            : [...badges, b],
+                        )
+                      }
+                    >
+                      {b}
+                    </Chip>
+                  ))}
+                </ChipGrid>
+                <FieldHint style={{ marginTop: 8 }}>
+                  Badges appear on your listing and help buyers find certified produce.
+                </FieldHint>
               </Field>
             </Section>
 

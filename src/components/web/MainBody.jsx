@@ -32,10 +32,12 @@ const Page = styled.div`
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
 const Hero = styled.section`
-  /* background: linear-gradient(135deg, #0f2210 0%, #1e3d1a 35%, #2f5a2a 70%, #3d7a35 100%); */
   padding: 80px 32px 100px;
   position: relative;
   overflow: hidden;
+
+  @media (max-width: 900px) { padding: 60px 20px 72px; }
+  @media (max-width: 480px) { padding: 40px 16px 52px; }
 `;
 
 const HeroDecor = styled.div`
@@ -201,9 +203,8 @@ const StatsInner = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 
-  @media (max-width: 700px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  @media (max-width: 700px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 380px) { padding: 0 12px; }
 `;
 
 const StatItem = styled.div`
