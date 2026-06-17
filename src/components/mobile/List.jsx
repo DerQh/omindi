@@ -21,6 +21,8 @@ const SORT_OPTIONS = [
   { value: "price_desc", label: "Price: High → Low" },
 ];
 
+const PAGE_SIZE = 12;
+
 const List = () => {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
@@ -36,6 +38,9 @@ const List = () => {
   const queryClient = useQueryClient();
   const { data: user } = useUser();
   const user_id = user?.id;
+
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef(null);
 
   const [showSavedPanel, setShowSavedPanel] = useState(false);
   const { data: savedSearches = [] }  = useSavedSearches(user_id);
@@ -83,10 +88,27 @@ const List = () => {
     return result;
   }, [dataMain, searchTerm, activeCategory, sortBy]);
 
-  // Scroll to top when filters change
+  // Reset pagination + scroll when filters change
   useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [searchTerm, activeCategory, sortBy]);
+
+  // Infinite scroll: load next batch when sentinel enters viewport
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((c) => Math.min(c + PAGE_SIZE, filteredAndSorted.length));
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [filteredAndSorted.length]);
 
 
   // Responsive column count based on grid container width
@@ -350,17 +372,28 @@ const List = () => {
                 ))}
               </Grid>
             ) : filteredAndSorted.length > 0 ? (
-              <Grid $cols={cols}>
-                {filteredAndSorted.map((item, i) => (
-                  <ListingCardTest
-                    key={item.id}
-                    listingItem={item}
-                    handleCardClick={handleCardClick}
-                    user_id={user_id}
-                    index={i}
-                  />
-                ))}
-              </Grid>
+              <>
+                <Grid $cols={cols}>
+                  {filteredAndSorted.slice(0, visibleCount).map((item, i) => (
+                    <ListingCardTest
+                      key={item.id}
+                      listingItem={item}
+                      handleCardClick={handleCardClick}
+                      user_id={user_id}
+                      index={i}
+                    />
+                  ))}
+                </Grid>
+                {visibleCount < filteredAndSorted.length ? (
+                  <SentinelRow ref={sentinelRef}>
+                    <LoadingDot /><LoadingDot /><LoadingDot />
+                  </SentinelRow>
+                ) : (
+                  <EndOfList>
+                    Showing all {filteredAndSorted.length} listing{filteredAndSorted.length !== 1 ? "s" : ""}
+                  </EndOfList>
+                )}
+              </>
             ) : (
               <EmptyState>
                 <EmptyIcon>🌾</EmptyIcon>
@@ -392,6 +425,37 @@ const List = () => {
 export default List;
 
 // ─── Styled components ────────────────────────────────────────────────────────
+
+const bounce = keyframes`
+  0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+  40%            { transform: scale(1);   opacity: 1; }
+`;
+
+const SentinelRow = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 0 40px;
+`;
+
+const LoadingDot = styled.span`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4a7c45;
+  animation: ${bounce} 1.2s infinite ease-in-out;
+  &:nth-child(1) { animation-delay: 0s; }
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.4s; }
+`;
+
+const EndOfList = styled.p`
+  text-align: center;
+  color: #9aab9a;
+  font-size: 0.78rem;
+  padding: 20px 0 40px;
+`;
 
 const SaveSearchBtn = styled.button`
   padding: 6px 14px;
