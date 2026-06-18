@@ -1,5 +1,6 @@
 import styled, { keyframes, css } from "styled-components";
 import { formatSmartDate } from "../../hooks/dateFormat";
+import { formatPrice } from "../../utils";
 import {
   useCreateFavorite,
   useFavoriteCheck,
@@ -71,7 +72,7 @@ function ListingCardTestBase({ listingItem, handleCardClick, user_id, index }) {
       {/* ── Body ── */}
       <Body>
         <Price>
-          Kes {listingItem.price}
+          Kes {formatPrice(listingItem.price)}
           {listingItem.unit ? ` / ${listingItem.unit}` : ""}
         </Price>
 

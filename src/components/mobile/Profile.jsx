@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
+import { formatPrice } from "../../utils";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
@@ -672,7 +673,7 @@ const Profile = () => {
                   >
                     <ListingImageWrap>
                       <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" />
-                      <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
+                      <PriceBadge>Kes {formatPrice(item.price)}/{item.unit}</PriceBadge>
 
                       {/* Floating edit / delete icons — stop propagation so card click doesn't fire */}
                       {confirmDeleteId !== item.id && (
@@ -758,7 +759,7 @@ const Profile = () => {
                   >
                     <ListingImageWrap>
                       <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" />
-                      <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
+                      <PriceBadge>Kes {formatPrice(item.price)}/{item.unit}</PriceBadge>
                       <CardIconRow onClick={(e) => e.stopPropagation()}>
                         <CardIconBtn
                           $danger

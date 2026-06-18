@@ -9,6 +9,7 @@ import { ListingCardTest } from "./ListingCard";
 import { useUser } from "../../hooks/useUser";
 import { useSavedSearches, useSaveSearch, useDeleteSavedSearch } from "../../hooks/useSavedSearches";
 import { useLanguage } from "../../context/LanguageContext";
+import { formatPrice } from "../../utils";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(12px); }
@@ -291,7 +292,7 @@ const List = () => {
                       <div>
                         <AutocompleteTitle>{s.title}</AutocompleteTitle>
                         <AutocompleteMeta>
-                          {s.category} · Kes {s.price}
+                          {s.category} · Kes {formatPrice(s.price)}
                         </AutocompleteMeta>
                       </div>
                     </AutocompleteItem>

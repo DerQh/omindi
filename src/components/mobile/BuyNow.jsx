@@ -1,5 +1,6 @@
 import { useContext, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { formatPrice } from "../../utils";
 import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
 
@@ -258,7 +259,7 @@ const BuyNow = () => {
 
             <ProductName>{listing.name}</ProductName>
             <SectionLabel>Unit Price</SectionLabel>
-            <SectionText>{listing.price}</SectionText>
+            <SectionText>Kes {formatPrice(listing.price)}</SectionText>
 
             <SummaryGrid>
               <SummaryItem>
@@ -291,7 +292,7 @@ const BuyNow = () => {
               </div>
               <div>
                 <SectionLabel>Total estimate</SectionLabel>
-                <SectionText>{listing.price}</SectionText>
+                <SectionText>Kes {formatPrice((listing.price ?? 0) * quantity)}</SectionText>
               </div>
             </QuantityRow>
 

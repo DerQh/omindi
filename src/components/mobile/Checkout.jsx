@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { formatPrice } from "../../utils";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes, css } from "styled-components";
 import { loadStripe } from "@stripe/stripe-js";
@@ -559,9 +560,9 @@ const CheckoutInner = () => {
                       <OrderImg src={item.listings?.image_url} alt={item.listings?.title} />
                       <OrderMeta>
                         <OrderName>{item.listings?.title}</OrderName>
-                        <OrderSub>Kes {item.listings?.price} × {item.quantity}</OrderSub>
+                        <OrderSub>Kes {formatPrice(item.listings?.price)} × {item.quantity}</OrderSub>
                       </OrderMeta>
-                      <OrderLineTotal>Kes {((item.listings?.price ?? 0) * (item.quantity ?? 1)).toLocaleString()}</OrderLineTotal>
+                      <OrderLineTotal>Kes {formatPrice((item.listings?.price ?? 0) * (item.quantity ?? 1))}</OrderLineTotal>
                     </OrderRow>
                   ))}
                 </ItemsCard>

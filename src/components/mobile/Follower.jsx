@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { formatPrice } from "../../utils";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes, css } from "styled-components";
 import { useProfile } from "../../hooks/useProfile";
@@ -543,7 +544,7 @@ const Follower = () => {
                 >
                   <ProductImageWrap>
                     {item.image_url && <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" />}
-                    <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
+                    <PriceBadge>Kes {formatPrice(item.price)}/{item.unit}</PriceBadge>
                   </ProductImageWrap>
                   <ProductBody>
                     <ProductName>{item.title}</ProductName>

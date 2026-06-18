@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
+import { formatPrice } from "../../utils";
 import styled, { keyframes, css } from "styled-components";
 import AppNavbar from "./AppNavbar";
 import LoadingComponent from "./Loading";
@@ -427,7 +428,7 @@ const Admin = () => {
 
               <PreviewTitle>{reviewListing.title}</PreviewTitle>
               <PreviewPrice>
-                Kes {reviewListing.price}
+                Kes {formatPrice(reviewListing.price)}
                 {reviewListing.unit ? ` / ${reviewListing.unit}` : ""}
               </PreviewPrice>
 
@@ -1290,7 +1291,7 @@ const Admin = () => {
                               </TD>
                               <TD>
                                 <PriceText>
-                                  Kes {l.price}
+                                  Kes {formatPrice(l.price)}
                                   {l.unit ? ` / ${l.unit}` : ""}
                                 </PriceText>
                               </TD>
@@ -1918,7 +1919,7 @@ const Admin = () => {
                               </TD>
                               <TD>
                                 <PriceText>
-                                  Kes {l.price}
+                                  Kes {formatPrice(l.price)}
                                   {l.unit ? ` / ${l.unit}` : ""}
                                 </PriceText>
                               </TD>

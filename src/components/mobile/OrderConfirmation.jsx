@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { formatPrice } from "../../utils";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes, createGlobalStyle } from "styled-components";
 
@@ -212,7 +213,7 @@ const OrderConfirmation = () => {
                     <ItemMeta>
                       <ItemName>{item.listings?.title}</ItemName>
                       <ItemSub>
-                        Kes {item.listings?.price}
+                        Kes {formatPrice(item.listings?.price)}
                         {item.listings?.unit
                           ? ` / ${item.listings.unit}`
                           : ""}{" "}
@@ -220,10 +221,7 @@ const OrderConfirmation = () => {
                       </ItemSub>
                     </ItemMeta>
                     <ItemTotal>
-                      Kes{" "}
-                      {(
-                        (item.listings?.price ?? 0) * item.quantity
-                      ).toLocaleString()}
+                      Kes {formatPrice((item.listings?.price ?? 0) * item.quantity)}
                     </ItemTotal>
                   </ItemRow>
                 ))}
@@ -361,10 +359,7 @@ const OrderConfirmation = () => {
                         </ReceiptItemName>
                         <ReceiptItemQty>×{item.quantity}</ReceiptItemQty>
                         <ReceiptItemPrice>
-                          Kes{" "}
-                          {(
-                            item.listings?.price * item.quantity
-                          ).toLocaleString()}
+                          Kes {formatPrice((item.listings?.price ?? 0) * item.quantity)}
                         </ReceiptItemPrice>
                       </ReceiptLine>
                     ))}

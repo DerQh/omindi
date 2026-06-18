@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AppNavbar from "./AppNavbar";
+import { formatPrice } from "../../utils";
 import styled, { keyframes, css } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -853,7 +854,7 @@ const Following = () => {
                   >
                     <FavCover>
                       {item.image_url && <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" />}
-                      <PriceBadge>Kes {item.price}/{item.unit}</PriceBadge>
+                      <PriceBadge>Kes {formatPrice(item.price)}/{item.unit}</PriceBadge>
                       <HeartBtn onClick={(e) => handleRemoveFav(e, item.id)}>❤️</HeartBtn>
                     </FavCover>
                     <FavBody>

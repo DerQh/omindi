@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { formatPrice } from "../../utils";
 import { useListing } from "../../hooks/useEditListing";
 import { useListings } from "../../hooks/useListings";
 import AppNavbar from "./AppNavbar";
@@ -367,7 +368,7 @@ const ListingDetail = () => {
               </RatingRow>
 
               <Price>
-                Kes {listing.price}
+                Kes {formatPrice(listing.price)}
                 {listing.unit ? ` / ${listing.unit}` : ""}
               </Price>
 
@@ -380,7 +381,7 @@ const ListingDetail = () => {
                   {listing.price_tiers.map((tier, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: 4 }}>
                       <span style={{ color: "#556652" }}>{tier.min_qty}+ {listing.unit}</span>
-                      <span style={{ fontWeight: 700, color: "#1a2e1a" }}>Kes {tier.price} / {listing.unit}</span>
+                      <span style={{ fontWeight: 700, color: "#1a2e1a" }}>Kes {formatPrice(tier.price)} / {listing.unit}</span>
                     </div>
                   ))}
                 </div>
@@ -502,7 +503,7 @@ const ListingDetail = () => {
                 <ShareBtn
                   onClick={() => {
                     const url = `${window.location.origin}/listing/${listing.id}`;
-                    const text = `Check out ${listing.title} on AFARMER™ — Kes ${listing.price}${listing.unit ? ` / ${listing.unit}` : ""}${listing.location ? ` · ${listing.location}` : ""}.\n${url}`;
+                    const text = `Check out ${listing.title} on AFARMER™ — Kes ${formatPrice(listing.price)}${listing.unit ? ` / ${listing.unit}` : ""}${listing.location ? ` · ${listing.location}` : ""}.\n${url}`;
                     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
                   }}
                 >
@@ -808,7 +809,7 @@ const ListingDetail = () => {
                       {l.category && <RelatedCategory>{l.category}</RelatedCategory>}
                       <RelatedName>{l.title}</RelatedName>
                       <RelatedPrice>
-                        Kes {l.price}
+                        Kes {formatPrice(l.price)}
                         {l.unit ? ` / ${l.unit}` : ""}
                       </RelatedPrice>
                     </RelatedBody>

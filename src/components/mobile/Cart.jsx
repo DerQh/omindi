@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
+import { formatPrice } from "../../utils";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes, css } from "styled-components";
 import {
@@ -187,7 +188,7 @@ const Cart = () => {
                         <ItemUnitPrice>
                           Price per {item.listings?.unit ?? "unit"}:{" "}
                           <strong>
-                            Kes {item.listings?.price?.toLocaleString()}
+                            Kes {formatPrice(item.listings?.price)}
                           </strong>
                         </ItemUnitPrice>
                         <ItemBottomRow>
@@ -212,10 +213,7 @@ const Cart = () => {
                             </QtyBtn>
                           </QtyControl>
                           <ItemTotal>
-                            Kes{" "}
-                            {(
-                              (item.listings?.price ?? 0) * (item.quantity ?? 1)
-                            ).toLocaleString()}
+                            Kes {formatPrice((item.listings?.price ?? 0) * (item.quantity ?? 1))}
                           </ItemTotal>
                         </ItemBottomRow>
                       </ItemContent>
