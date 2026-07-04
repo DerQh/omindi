@@ -9,6 +9,7 @@ import { useIsAdmin } from "../../hooks/useShopAdmin";
 import { useUnreadConversationsCount } from "../../hooks/useMessages";
 import { useUnreadCount } from "../../hooks/useNotification";
 import { useLanguage } from "../../context/LanguageContext";
+import { RefreshCw, Gift, Settings, ShoppingCart } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -348,14 +349,14 @@ export default function AppNavbar() {
     { label: t.following,       icon: "", path: "/following" },
     { label: t.notifications,   icon: "", path: "/notifications" },
     { label: t.myStore,         icon: "", path: "/dashboard" },
-    { label: t.recurringOrders, icon: "🔄", path: "/recurring-orders" },
-    { label: t.referral,        icon: "🎁", path: "/referral" },
+    { label: t.recurringOrders, Icon: RefreshCw, path: "/recurring-orders" },
+    { label: t.referral,        Icon: Gift,      path: "/referral" },
     { label: t.community,       icon: "", path: "/community" },
     { label: t.shop,            icon: "", path: "/shop" },
   ];
   const baseItems = isDesktop ? desktopMenuBase : mobileMenuBase;
   const menuItems = isAdminUser
-    ? [...baseItems, { label: "Admin Panel", icon: "⚙️", path: "/admin" }]
+    ? [...baseItems, { label: "Admin Panel", Icon: Settings, path: "/admin" }]
     : baseItems;
 
   useEffect(() => {
@@ -416,7 +417,7 @@ export default function AppNavbar() {
               onClick={() => navigate("/admin")}
               $admin
             >
-              ⚙️ Admin
+              <Settings size={14} /> Admin
             </NavLink>
           )}
         </DesktopLinks>
@@ -425,7 +426,7 @@ export default function AppNavbar() {
         <RightSide>
           <LanguageSwitcher />
           <IconBtn onClick={() => navigate("/cart")} aria-label="Cart">
-            🛒
+            <ShoppingCart size={22} />
             {cartCount > 0 && <Badge>{cartCount}</Badge>}
           </IconBtn>
 
@@ -457,7 +458,7 @@ export default function AppNavbar() {
                   const badge = getBadge(item.path);
                   return (
                     <MenuItem key={item.path} onClick={() => go(item.path)}>
-                      <MenuIcon>{item.icon}</MenuIcon>
+                      <MenuIcon>{item.Icon && <item.Icon size={16} />}</MenuIcon>
                       {item.label}
                       {badge && (
                         <NavBadge style={{ marginLeft: "auto" }}>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useCreateListing } from "../../hooks/useCreateListing";
+import { Clock, X, Camera } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(14px); }
@@ -115,7 +116,7 @@ const NewListing = () => {
         <AppNavbar />
         <PendingPage>
           <PendingCard>
-            <PendingIcon>🕐</PendingIcon>
+            <PendingIcon><Clock size={32} color="#4a7c45" /></PendingIcon>
             <PendingTitle>Listing Submitted!</PendingTitle>
             <PendingMessage>
               Your listing is currently <strong>under review</strong> by our team.
@@ -332,7 +333,7 @@ const NewListing = () => {
                       type="button"
                       onClick={() => setPriceTiers(priceTiers.filter((_, j) => j !== i))}
                       style={{ background: "none", border: "none", color: "#ef4444", fontSize: "1.1rem", cursor: "pointer", padding: "0 4px" }}
-                    >✕</button>
+                    ><X size={14} /></button>
                   </div>
                 ))}
                 {priceTiers.length < 3 && (
@@ -448,7 +449,7 @@ const NewListing = () => {
                   onDrop={handleDrop}
                   onClick={() => document.getElementById("imageUpload").click()}
                 >
-                  <DropIcon>📷</DropIcon>
+                  <DropIcon><Camera size={28} color="#4a7c45" /></DropIcon>
                   <DropText>Tap to upload a photo</DropText>
                   <DropHint>or drag and drop · JPG, PNG, WEBP</DropHint>
                 </DropZone>

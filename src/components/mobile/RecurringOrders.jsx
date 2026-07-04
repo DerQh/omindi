@@ -9,6 +9,7 @@ import {
   useDeleteRecurringOrder,
 } from "../../hooks/useRecurringOrders";
 import { formatSmartDate } from "../../hooks/dateFormat";
+import { RefreshCw, Package, X, Play } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(14px); }
@@ -39,7 +40,7 @@ export default function RecurringOrders() {
 
         <Body>
           <Intro>
-            <IntroIcon>🔄</IntroIcon>
+            <IntroIcon><RefreshCw size={32} color="#4a7c45" /></IntroIcon>
             <IntroText>
               Set up weekly, bi-weekly, or monthly orders from your favourite sellers.
               You'll be reminded when the next order is due.
@@ -53,7 +54,7 @@ export default function RecurringOrders() {
             </>
           ) : orders.length === 0 ? (
             <EmptyState>
-              <EmptyIcon>📦</EmptyIcon>
+              <EmptyIcon><Package size={36} color="#4a7c45" /></EmptyIcon>
               <EmptyTitle>No recurring orders yet</EmptyTitle>
               <EmptyDesc>
                 Browse listings and tap "Set Recurring Order" on any listing to get started.
@@ -109,7 +110,7 @@ export default function RecurringOrders() {
                           disabled={removing}
                           title="Delete"
                         >
-                          ✕
+                          <X size={14} />
                         </ActionBtn>
                       </OrderActions>
                     </OrderCard>
@@ -150,7 +151,7 @@ export default function RecurringOrders() {
                           }}
                           disabled={removing}
                         >
-                          ✕
+                          <X size={14} />
                         </ActionBtn>
                       </OrderActions>
                     </OrderCard>

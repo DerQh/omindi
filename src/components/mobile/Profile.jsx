@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { formatPrice } from "../../utils";
+import { Check, MapPin, Pencil, Trash2, Leaf, Heart, Star, Map } from "lucide-react";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
@@ -577,10 +578,10 @@ const Profile = () => {
 
           <NameRow>
             <FarmName>{farmName}</FarmName>
-            {isComplete && <CompleteBadge>✓</CompleteBadge>}
+            {isComplete && <CompleteBadge><Check size={12} /></CompleteBadge>}
           </NameRow>
 
-          {location && <LocationRow>📍 {location}</LocationRow>}
+          {location && <LocationRow><MapPin size={13} style={{marginRight:4,verticalAlign:"middle"}} />{location}</LocationRow>}
 
           <BioText>
             {description ||
@@ -589,7 +590,7 @@ const Profile = () => {
 
           <ActionRow>
             <PrimaryBtn onClick={() => navigate("/edit-profile")}>
-              ✏️ Edit Profile
+              <Pencil size={13} style={{marginRight:5}} /> Edit Profile
             </PrimaryBtn>
             <PrimaryBtn
               onClick={() => navigate("/newlist")}
@@ -644,7 +645,7 @@ const Profile = () => {
             </StatItem>
             <StatItem>
               <StatNumber style={{ fontSize: "0.88rem" }}>
-                {ratingData?.count ? `⭐ ${ratingData.avg}` : "–"}
+                {ratingData?.count ? <><Star size={12} fill="#f59e0b" stroke="#f59e0b" style={{marginRight:3}} />{ratingData.avg}</> : "–"}
               </StatNumber>
               <StatLabel>Rating ({ratingData?.count ?? 0})</StatLabel>
             </StatItem>
@@ -682,14 +683,14 @@ const Profile = () => {
                             title="Edit listing"
                             onClick={() => navigate(`/edit-listing/${item.id}`)}
                           >
-                            ✏️
+                            <Pencil size={14} />
                           </CardIconBtn>
                           <CardIconBtn
                             $danger
                             title="Delete listing"
                             onClick={() => setConfirmDeleteId(item.id)}
                           >
-                            🗑
+                            <Trash2 size={14} />
                           </CardIconBtn>
                         </CardIconRow>
                       )}
@@ -719,7 +720,7 @@ const Profile = () => {
               </ListingGrid>
             ) : (
               <EmptyState>
-                <EmptyIcon>🌱</EmptyIcon>
+                <EmptyIcon><Leaf size={36} color="#4a7c45" /></EmptyIcon>
                 <EmptyTitle>No listings yet</EmptyTitle>
                 <EmptyDesc>
                   Post your first product so buyers can find you.
@@ -744,7 +745,7 @@ const Profile = () => {
 
             {favoriteListings.length === 0 ? (
               <EmptyState>
-                <EmptyIcon>🤍</EmptyIcon>
+                <EmptyIcon><Heart size={36} color="#4a7c45" /></EmptyIcon>
                 <EmptyTitle>No saved listings</EmptyTitle>
                 <EmptyDesc>
                   Tap the heart on any listing to save it here.
@@ -766,7 +767,7 @@ const Profile = () => {
                           title="Remove from saved"
                           onClick={() => removeFavorite({ user_id: user?.id, listing_id: item.id })}
                         >
-                          🤍
+                          <Heart size={16} />
                         </CardIconBtn>
                       </CardIconRow>
                     </ListingImageWrap>
@@ -792,7 +793,7 @@ const Profile = () => {
 
             {sellerReviews.length === 0 ? (
               <EmptyState>
-                <EmptyIcon>⭐</EmptyIcon>
+                <EmptyIcon><Star size={36} color="#4a7c45" /></EmptyIcon>
                 <EmptyTitle>No reviews yet</EmptyTitle>
                 <EmptyDesc>Reviews from buyers will appear here.</EmptyDesc>
               </EmptyState>
@@ -811,7 +812,7 @@ const Profile = () => {
                     <ReviewBody>
                       <ReviewTop>
                         <ReviewName>{r.profiles?.full_name || r.profiles?.farm_name || "Buyer"}</ReviewName>
-                        <ReviewStars>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</ReviewStars>
+                        <ReviewStars>{Array.from({length:5},(_,i)=><Star key={i} size={12} fill={i<r.rating?"#f59e0b":"none"} stroke="#f59e0b" />)}</ReviewStars>
                       </ReviewTop>
                       {r.listings?.title && <ReviewListing>on {r.listings.title}</ReviewListing>}
                       {r.comment && <ReviewComment>{r.comment}</ReviewComment>}
@@ -828,7 +829,7 @@ const Profile = () => {
         <Section>
           <SectionCard>
             <SectionHeader>
-              <SectionTitle>📍 Location</SectionTitle>
+              <SectionTitle><MapPin size={15} style={{marginRight:5,verticalAlign:"middle"}} />Location</SectionTitle>
             </SectionHeader>
 
             {location ? (
@@ -842,7 +843,7 @@ const Profile = () => {
               </MapFrame>
             ) : (
               <MapPlaceholder>
-                <span style={{ fontSize: "2rem" }}>🗺️</span>
+                <Map size={36} color="#4a7c45" />
                 <span>No location set — add one in Edit Profile</span>
               </MapPlaceholder>
             )}

@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
+import { MapPin, MessageCircle, ShoppingCart, Bell, Leaf, Package, Check } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -750,32 +751,32 @@ const HOW_ITEMS = [
 
 const FEATURES = [
   {
-    icon: "📍",
+    Icon: MapPin,
     title: "Map-based Discovery",
     desc: "Find farms and fresh produce near you on an interactive map.",
   },
   {
-    icon: "💬",
+    Icon: MessageCircle,
     title: "Direct Messaging",
     desc: "Chat with sellers and buyers without leaving the app.",
   },
   {
-    icon: "🛒",
+    Icon: ShoppingCart,
     title: "Seamless Checkout",
     desc: "Order from multiple sellers in one checkout with M-Pesa support.",
   },
   {
-    icon: "🔔",
+    Icon: Bell,
     title: "Real-time Notifications",
     desc: "Stay updated on orders, messages, and price drops instantly.",
   },
   {
-    icon: "🌿",
+    Icon: Leaf,
     title: "Verified Sellers",
     desc: "All sellers are vetted to ensure product quality and reliability.",
   },
   {
-    icon: "📦",
+    Icon: Package,
     title: "Order Tracking",
     desc: "Track every order from confirmation through to delivery.",
   },
@@ -926,7 +927,7 @@ function Body() {
           <FeatureGrid>
             {FEATURES.map((f, i) => (
               <FeatureCard key={f.title} $i={i}>
-                <FeatureIconBox>{f.icon}</FeatureIconBox>
+                <FeatureIconBox><f.Icon size={24} /></FeatureIconBox>
                 <FeatureText>
                   <FeatureTitle>{f.title}</FeatureTitle>
                   <FeatureDesc>{f.desc}</FeatureDesc>
@@ -967,7 +968,7 @@ function Body() {
           <FormCard>
             {submitted ? (
               <SuccessMsg>
-                ✓ Thank you! We'll be in touch within 1–2 business days.
+                <Check size={14} style={{marginRight:4}} />Thank you! We'll be in touch within 1–2 business days.
               </SuccessMsg>
             ) : (
               <form onSubmit={handleSubmit}>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { supabase } from "../../../supabase";
+import { CheckCircle2, AlertTriangle } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(14px); }
@@ -149,7 +150,7 @@ function ResetPassword() {
         <Card>
           <Logo>AFARMER™</Logo>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "3rem", marginBottom: 12 }}>✅</div>
+            <div style={{ marginBottom: 12 }}><CheckCircle2 size={48} color="#16a34a" /></div>
             <Title>Password updated!</Title>
             <Sub>Redirecting you to sign in…</Sub>
           </div>
@@ -188,7 +189,7 @@ function ResetPassword() {
               $error={!!error}
               required
             />
-            {error && <ErrorMsg>⚠ {error}</ErrorMsg>}
+            {error && <ErrorMsg><AlertTriangle size={13} style={{marginRight:4,verticalAlign:"middle"}} />{error}</ErrorMsg>}
           </Field>
           <Btn type="submit" disabled={loading}>
             {loading ? "Updating…" : "Update Password"}

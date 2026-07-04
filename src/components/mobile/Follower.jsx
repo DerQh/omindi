@@ -10,6 +10,7 @@ import { useStartConversation } from "../../hooks/useMessages";
 import { useAuth } from "../../context/AuthContext";
 import LoadingComponent from "./Loading";
 import { useUserRating, useMyRating, useRateUser } from "../../hooks/useUserRatings";
+import { Star as StarIcon } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -511,7 +512,7 @@ const Follower = () => {
                   }
                   disabled={isRating}
                 >
-                  ★
+                  <StarIcon size={18} fill={star <= (hovered || myRating || 0) ? "#f59e0b" : "none"} stroke="#f59e0b" />
                 </Star>
               ))}
             </Stars>

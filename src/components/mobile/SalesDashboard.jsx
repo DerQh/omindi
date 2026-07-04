@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Wallet, Package, Hourglass, Leaf, BarChart2, ShoppingCart, Calendar } from "lucide-react";
 import styled, { keyframes, css } from "styled-components";
 import AppNavbar from "./AppNavbar";
 import {
@@ -599,49 +600,49 @@ const SalesDashboard = () => {
         {/* STAT CARDS */}
         <StatsGrid>
           <StatCard $color={C.green} $delay="0s">
-            <StatIcon $bg={C.mint} $color={C.green}>💰</StatIcon>
+            <StatIcon $bg={C.mint} $color={C.green}><Wallet size={20} /></StatIcon>
             <StatLabel>Total Revenue</StatLabel>
             <StatValue>Kes {(stats?.totalRevenue ?? 0).toLocaleString()}</StatValue>
             <StatTag $up>↑ All time</StatTag>
           </StatCard>
 
           <StatCard $color={C.blue} $delay="0.07s">
-            <StatIcon $bg={C.blueLight} $color={C.blue}>📦</StatIcon>
+            <StatIcon $bg={C.blueLight} $color={C.blue}><Package size={20} /></StatIcon>
             <StatLabel>Total Orders</StatLabel>
             <StatValue>{orders.length}</StatValue>
             <StatTag $up>↑ All time</StatTag>
           </StatCard>
 
           <StatCard $color={C.gold} $delay="0.14s">
-            <StatIcon $bg={C.goldLight} $color={C.gold}>⏳</StatIcon>
+            <StatIcon $bg={C.goldLight} $color={C.gold}><Hourglass size={20} /></StatIcon>
             <StatLabel>Pending</StatLabel>
             <StatValue>{stats?.pendingOrders ?? 0}</StatValue>
             <StatTag>Needs action</StatTag>
           </StatCard>
 
           <StatCard $color={C.purple} $delay="0.21s">
-            <StatIcon $bg={C.purpleLight} $color={C.purple}>🌿</StatIcon>
+            <StatIcon $bg={C.purpleLight} $color={C.purple}><Leaf size={20} /></StatIcon>
             <StatLabel>Active Listings</StatLabel>
             <StatValue>{stats?.totalListings ?? 0}</StatValue>
             <StatTag $up>↑ Live</StatTag>
           </StatCard>
 
           <StatCard $color={C.greenMid} $delay="0.28s">
-            <StatIcon $bg={C.mint} $color={C.greenMid}>📊</StatIcon>
+            <StatIcon $bg={C.mint} $color={C.greenMid}><BarChart2 size={20} /></StatIcon>
             <StatLabel>Avg Order Value</StatLabel>
             <StatValue>Kes {(stats?.avgOrderValue ?? 0).toLocaleString()}</StatValue>
             <StatTag $up>Per order</StatTag>
           </StatCard>
 
           <StatCard $color={C.blue} $delay="0.35s">
-            <StatIcon $bg={C.blueLight} $color={C.blue}>🛒</StatIcon>
+            <StatIcon $bg={C.blueLight} $color={C.blue}><ShoppingCart size={20} /></StatIcon>
             <StatLabel>Items Sold</StatLabel>
             <StatValue>{stats?.totalItemsSold ?? 0}</StatValue>
             <StatTag $up>All time</StatTag>
           </StatCard>
 
           <StatCard $color={C.gold} $delay="0.42s">
-            <StatIcon $bg={C.goldLight} $color={C.gold}>📅</StatIcon>
+            <StatIcon $bg={C.goldLight} $color={C.gold}><Calendar size={20} /></StatIcon>
             <StatLabel>Today's Orders</StatLabel>
             <StatValue>{stats?.todayOrders ?? 0}</StatValue>
             <StatTag $up={stats?.todayOrders > 0}>

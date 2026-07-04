@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import { Leaf, Handshake, MapPin, Lightbulb } from "lucide-react";
 import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import Navbar from "./Navbar";
@@ -453,10 +454,10 @@ const PILLARS = [
 ];
 
 const VALUES = [
-  { icon: "🌱", title: "Sustainability",  text: "We champion farming methods that protect the land for future generations." },
-  { icon: "🤝", title: "Trust",           text: "Every transaction on our platform is built on transparency and accountability." },
-  { icon: "📍", title: "Local First",     text: "We believe local produce means fresher food, shorter supply chains, and stronger economies." },
-  { icon: "💡", title: "Innovation",      text: "We use modern technology to solve age-old challenges in African agriculture." },
+  { Icon: Leaf,      title: "Sustainability",  text: "We champion farming methods that protect the land for future generations." },
+  { Icon: Handshake, title: "Trust",           text: "Every transaction on our platform is built on transparency and accountability." },
+  { Icon: MapPin,    title: "Local First",     text: "We believe local produce means fresher food, shorter supply chains, and stronger economies." },
+  { Icon: Lightbulb, title: "Innovation",      text: "We use modern technology to solve age-old challenges in African agriculture." },
 ];
 
 const AboutUs = () => {
@@ -590,7 +591,7 @@ const AboutUs = () => {
           <ValuesGrid>
             {VALUES.map((v) => (
               <ValueCard key={v.title}>
-                <ValueIcon>{v.icon}</ValueIcon>
+                <ValueIcon>{v.Icon && <v.Icon size={24} />}</ValueIcon>
                 <ValueTitle>{v.title}</ValueTitle>
                 <ValueText>{v.text}</ValueText>
               </ValueCard>

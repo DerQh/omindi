@@ -7,6 +7,7 @@ import { formatSmartDate } from "../../hooks/dateFormat";
 import LoadingComponent from "./Loading";
 import { CommentsComponent } from "./Comments";
 import { useFetchPostComments } from "../../hooks/usePostComment";
+import { Search, MessageCircle } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(12px); }
@@ -66,7 +67,7 @@ const Post = () => {
         <AppNavbar />
         <Page>
           <NotFound>
-            <NotFoundIcon>🔍</NotFoundIcon>
+            <NotFoundIcon><Search size={36} color="#4a7c45" /></NotFoundIcon>
             <NotFoundTitle>Post not found</NotFoundTitle>
             <BackBtn onClick={() => navigate(-1)}>Go back</BackBtn>
           </NotFound>
@@ -207,7 +208,7 @@ const Post = () => {
 
             {visibleComments.length === 0 ? (
               <EmptyComments>
-                <span>💬</span>
+                <MessageCircle size={28} color="#9ca3af" />
                 <p>No comments yet. Be the first!</p>
               </EmptyComments>
             ) : (

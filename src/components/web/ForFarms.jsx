@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import { Leaf, Calendar, MessageCircle, MapPin, RefreshCw, Users } from "lucide-react";
 import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
@@ -33,32 +34,32 @@ const STEPS = [
 
 const FEATURES = [
   {
-    icon: "🌿",
+    Icon: Leaf,
     title: "Free to Start",
     text: "No upfront costs. Create your profile and list up to 3 products at no charge. Upgrade to unlimited listings for just Kes 10/month when you're ready to scale.",
   },
   {
-    icon: "📅",
+    Icon: Calendar,
     title: "Event Listings",
     text: "Promote farm tours, U-pick days, workshops, plant sales, and any agriculture-related event. Reach local customers actively looking for experiences like yours.",
   },
   {
-    icon: "💬",
+    Icon: MessageCircle,
     title: "In-App Messaging",
     text: "Communicate with buyers safely inside the platform. No need to share personal numbers — coordinate transactions, answer questions, and build relationships.",
   },
   {
-    icon: "📍",
+    Icon: MapPin,
     title: "Local Discovery",
     text: "Buyers search by keyword and location. Your listings surface to the right audience — people nearby who are actively looking for locally grown food.",
   },
   {
-    icon: "🔄",
+    Icon: RefreshCw,
     title: "Always Up to Date",
     text: "Swap, update, or remove listings whenever you like. Running out of tomatoes? Mark it sold. New crop ready? Add it in minutes.",
   },
   {
-    icon: "👥",
+    Icon: Users,
     title: "Build a Following",
     text: "Buyers can follow your farm and get notified when you post new listings. Turn one-time customers into regulars without any marketing spend.",
   },
@@ -135,7 +136,7 @@ const ForFarms = () => {
           <FeaturesGrid>
             {FEATURES.map((f) => (
               <FeatureCard key={f.title}>
-                <FeatureIcon>{f.icon}</FeatureIcon>
+                <FeatureIcon>{f.Icon && <f.Icon size={24} />}</FeatureIcon>
                 <FeatureTitle>{f.title}</FeatureTitle>
                 <FeatureText>{f.text}</FeatureText>
               </FeatureCard>

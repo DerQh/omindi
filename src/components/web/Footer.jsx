@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { supabase } from "../../../supabase";
+import { Check } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -296,7 +297,7 @@ export default function FooterContainer() {
 
           <NewsLabel>Stay in the loop</NewsLabel>
           {subscribed ? (
-            <SubSuccess>✓ You're subscribed — thank you!</SubSuccess>
+            <SubSuccess><Check size={14} style={{marginRight:5,verticalAlign:"middle"}} />You're subscribed — thank you!</SubSuccess>
           ) : (
             <InputRow onSubmit={handleSubscribe}>
               <EmailInput

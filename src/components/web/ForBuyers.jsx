@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import { Leaf, Banknote, MapPin, MessageCircle, Heart } from "lucide-react";
 import SEO from "./SEO";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -32,27 +33,27 @@ const STEPS = [
 
 const FEATURES = [
   {
-    icon: "🥬",
+    Icon: Leaf,
     title: "Fresh from the Source",
     text: "Buy directly from the farmers who grew it. No cold-storage middlemen, no long supply chains — just fresh produce straight to your door or your hands.",
   },
   {
-    icon: "💸",
+    Icon: Banknote,
     title: "Better Prices, Always",
     text: "Because you're buying directly, you skip the markup. Farmers earn more and you pay less — a win for everyone in the chain.",
   },
   {
-    icon: "📍",
+    Icon: MapPin,
     title: "Hyperlocal Discovery",
     text: "Find farms and sellers within your county or city. Support your neighbours, reduce food miles, and know exactly where your food comes from.",
   },
   {
-    icon: "💬",
+    Icon: MessageCircle,
     title: "Direct Messaging",
     text: "Chat with sellers safely inside the app. Ask about harvest dates, organic practices, bulk pricing, and more without sharing your personal number.",
   },
   {
-    icon: "❤️",
+    Icon: Heart,
     title: "Follow Your Favourites",
     text: "Follow the farms you love and get notified the moment they post new listings. Never miss your favourite farmer's tomato season again.",
   },
@@ -136,7 +137,7 @@ const ForBuyers = () => {
           <FeaturesGrid>
             {FEATURES.map((f) => (
               <FeatureCard key={f.title}>
-                <FeatureIcon>{f.icon}</FeatureIcon>
+                <FeatureIcon>{f.Icon ? <f.Icon size={24} /> : f.icon}</FeatureIcon>
                 <FeatureTitle>{f.title}</FeatureTitle>
                 <FeatureText>{f.text}</FeatureText>
               </FeatureCard>

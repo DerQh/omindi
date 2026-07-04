@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { ClipboardList, CheckCircle2, Truck, Package, AlertTriangle, XCircle, Check } from "lucide-react";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useOrderId } from "../../hooks/useOrders";
@@ -30,10 +31,10 @@ const statusConfig = {
 
 // Icon shown in each step dot
 const stepIcons = {
-  pending: "📋",
-  confirmed: "✅",
-  delivering: "🚚",
-  delivered: "📦",
+  pending: <ClipboardList size={14} />,
+  confirmed: <CheckCircle2 size={14} />,
+  delivering: <Truck size={14} />,
+  delivered: <Package size={14} />,
 };
 
 const paymentLabels = {
@@ -597,7 +598,7 @@ const ViewOrder = () => {
             <BackBtn onClick={() => navigate(-1)}>←</BackBtn>
           </Hero>
           <ErrorWrap>
-            <ErrorIcon>⚠️</ErrorIcon>
+            <ErrorIcon><AlertTriangle size={36} color="#d97706" /></ErrorIcon>
             <ErrorTitle>Couldn't load order</ErrorTitle>
             <ErrorDesc>
               There was a problem fetching this order. Please try again.
@@ -628,7 +629,7 @@ const ViewOrder = () => {
           {/* ── Cancelled banner ── */}
           {isCancelled && (
             <CancelledBanner>
-              <CancelledIcon>❌</CancelledIcon>
+              <CancelledIcon><XCircle size={28} color="#dc2626" /></CancelledIcon>
               <CancelledText>
                 <CancelledTitle>Order Cancelled</CancelledTitle>
                 <CancelledDesc>
@@ -653,7 +654,7 @@ const ViewOrder = () => {
                     return (
                       <StepCol key={step} $done={done || current}>
                         <StepDot $done={done} $current={current}>
-                          {done ? "✓" : stepIcons[step]}
+                          {done ? <Check size={14} /> : stepIcons[step]}
                         </StepDot>
                         <StepLabel $done={done} $current={current}>
                           {step}

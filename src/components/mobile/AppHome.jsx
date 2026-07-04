@@ -3,6 +3,7 @@ import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import PushNotificationPrompt from "./PushNotificationPrompt";
+import { X } from "lucide-react";
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -68,7 +69,7 @@ export default function AppHome() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
-            {query && <ClearBtn onClick={() => setQuery("")}>✕</ClearBtn>}
+            {query && <ClearBtn onClick={() => setQuery("")}><X size={14} /></ClearBtn>}
             <SearchBtn onClick={handleSearch}>Search</SearchBtn>
           </SearchInner>
 

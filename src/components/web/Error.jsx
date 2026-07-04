@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
+import { Wheat } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(16px); }
@@ -16,7 +17,7 @@ function ErrorDisplay() {
   return (
     <Page>
       <Card>
-        <Illustration>🌾</Illustration>
+        <Illustration><Wheat size={64} color="#4a7c45" /></Illustration>
         <Code>404</Code>
         <Title>Page Not Found</Title>
         <Desc>

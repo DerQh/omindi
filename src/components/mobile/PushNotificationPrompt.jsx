@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
+import { Bell, X, Check } from "lucide-react";
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -58,14 +59,14 @@ export default function PushNotificationPrompt() {
 
   return (
     <Banner>
-      <BannerIcon>🔔</BannerIcon>
+      <BannerIcon><Bell size={24} color="#4a7c45" /></BannerIcon>
       <BannerContent>
         <BannerTitle>Stay in the loop</BannerTitle>
         <BannerDesc>
           {status === "requesting"
             ? "Waiting for your permission…"
             : status === "granted"
-            ? "✓ Notifications enabled!"
+            ? <><Check size={13} style={{marginRight:3}} />Notifications enabled!</>
             : status === "denied"
             ? "You can enable notifications in browser settings."
             : "Get instant alerts for orders, messages, and price drops."}
@@ -80,7 +81,7 @@ export default function PushNotificationPrompt() {
         )}
         {status === "requesting" && <Spinner />}
         {(status === "granted" || status === "denied") && (
-          <DismissBtn onClick={() => setShow(false)}>✕</DismissBtn>
+          <DismissBtn onClick={() => setShow(false)}><X size={16} /></DismissBtn>
         )}
       </BannerActions>
     </Banner>

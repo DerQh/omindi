@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../../supabase";
+import { Leaf, Lock, MapPin, Mail, PartyPopper, AlertTriangle } from "lucide-react";
 
 // ─── Eye icons for the password toggle ───────────────────────────────────────
 
@@ -590,17 +591,17 @@ const BackToHome = styled(Link)`
 
 const TRUST = [
   {
-    icon: "🌿",
+    Icon: Leaf,
     title: "Connect directly with farmers",
     desc: "No middlemen — buy and sell fresh produce at fair prices.",
   },
   {
-    icon: "🔒",
+    Icon: Lock,
     title: "Your data is secure",
     desc: "We use industry-standard encryption to protect your account.",
   },
   {
-    icon: "📍",
+    Icon: MapPin,
     title: "Local and nationwide",
     desc: "Find farms within your area or source from across Kenya.",
   },
@@ -724,7 +725,7 @@ function SignupLogin() {
             </FormHeader>
             {forgotSent ? (
               <div style={{ textAlign: "center", padding: "24px 0" }}>
-                <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>📧</div>
+                <div style={{ marginBottom: 12 }}><Mail size={40} color="#4a7c45" /></div>
                 <p
                   style={{ fontWeight: 700, color: "#1a3318", marginBottom: 8 }}
                 >
@@ -810,7 +811,7 @@ function SignupLogin() {
           <TrustList>
             {TRUST.map((t) => (
               <TrustItem key={t.title}>
-                <TrustIcon>{t.icon}</TrustIcon>
+                <TrustIcon><t.Icon size={22} /></TrustIcon>
                 <TrustText>
                   <TrustTitle>{t.title}</TrustTitle>
                   <TrustDesc>{t.desc}</TrustDesc>
@@ -839,7 +840,7 @@ function SignupLogin() {
           {signupSuccess ? (
             // Success state — replaces the form after a successful signup
             <SuccessCard>
-              <SuccessIcon>🎉</SuccessIcon>
+              <SuccessIcon><PartyPopper size={40} color="#4a7c45" /></SuccessIcon>
               <SuccessTitle>Account created!</SuccessTitle>
               <SuccessDesc>
                 Check your email to confirm your account, then sign in to start
@@ -888,7 +889,7 @@ function SignupLogin() {
               </ModeTabs>
 
               {/* Global error banner */}
-              {errors.submit && <ErrorBanner>⚠️ {errors.submit}</ErrorBanner>}
+              {errors.submit && <ErrorBanner><AlertTriangle size={14} style={{marginRight:6,verticalAlign:"middle"}} />{errors.submit}</ErrorBanner>}
 
               <form onSubmit={handleSubmit}>
                 {/* Full name — signup only */}
@@ -906,7 +907,7 @@ function SignupLogin() {
                       required
                     />
                     {errors.username && (
-                      <FieldError>⚠ {errors.username}</FieldError>
+                      <FieldError><AlertTriangle size={12} style={{marginRight:4,verticalAlign:"middle"}} />{errors.username}</FieldError>
                     )}
                   </Field>
                 )}
@@ -924,7 +925,7 @@ function SignupLogin() {
                     $hasError={!!errors.email}
                     required
                   />
-                  {errors.email && <FieldError>⚠ {errors.email}</FieldError>}
+                  {errors.email && <FieldError><AlertTriangle size={12} style={{marginRight:4,verticalAlign:"middle"}} />{errors.email}</FieldError>}
                 </Field>
 
                 {/* Password */}
@@ -955,7 +956,7 @@ function SignupLogin() {
                     </ToggleBtn>
                   </InputWrap>
                   {errors.password && (
-                    <FieldError>⚠ {errors.password}</FieldError>
+                    <FieldError><AlertTriangle size={12} style={{marginRight:4,verticalAlign:"middle"}} />{errors.password}</FieldError>
                   )}
                 </Field>
 
@@ -990,7 +991,7 @@ function SignupLogin() {
                       </ToggleBtn>
                     </InputWrap>
                     {errors.confirmPassword && (
-                      <FieldError>⚠ {errors.confirmPassword}</FieldError>
+                      <FieldError><AlertTriangle size={12} style={{marginRight:4,verticalAlign:"middle"}} />{errors.confirmPassword}</FieldError>
                     )}
                   </Field>
                 )}

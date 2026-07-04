@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styled, { keyframes } from "styled-components";
+import { Star, CloudRain } from "lucide-react";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 import SEO from "./SEO";
@@ -112,7 +113,7 @@ export default function SeasonalCalendar() {
             return (
               <ProduceCard key={p.name} $peak={isPeak}>
                 <ProduceStatus $peak={isPeak}>
-                  {isPeak ? "★ Peak" : "Good"}
+                  {isPeak ? <><Star size={12} fill="#f59e0b" stroke="#f59e0b" style={{marginRight:3}}/> Peak</> : "Good"}
                 </ProduceStatus>
                 <ProduceName>{p.name}</ProduceName>
                 <ProduceCat>{p.category}</ProduceCat>
@@ -126,7 +127,7 @@ export default function SeasonalCalendar() {
 
         {inSeason.length === 0 && (
           <EmptyState>
-            <span>🌧️</span>
+            <span><CloudRain size={18} /></span>
             <p>No {activeCategory !== "All" ? activeCategory.toLowerCase() : "produce"} available in {MONTH_FULL[selectedMonth]}.</p>
           </EmptyState>
         )}

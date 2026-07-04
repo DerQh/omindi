@@ -5,6 +5,7 @@ import AppNavbar from "./AppNavbar";
 import styled, { keyframes, css } from "styled-components";
 import { usePosts, useToggleLike, useLikeStatus } from "../../hooks/usePosts";
 import { formatSmartDate } from "../../hooks/dateFormat";
+import { Leaf } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(14px); }
@@ -245,7 +246,7 @@ const Community = () => {
             ))
           ) : filtered.length === 0 ? (
             <EmptyState>
-              <EmptyIcon>🌿</EmptyIcon>
+              <EmptyIcon><Leaf size={36} color="#4a7c45" /></EmptyIcon>
               <EmptyTitle>No posts yet</EmptyTitle>
               <EmptyText>
                 {activeType === "All"

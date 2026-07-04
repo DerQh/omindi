@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { formatPrice } from "../../utils";
+import { Smartphone, CreditCard, Banknote, Lock, ShoppingCart, Check, Truck } from "lucide-react";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes, css } from "styled-components";
 import { loadStripe } from "@stripe/stripe-js";
@@ -110,7 +111,7 @@ const PAYMENT_METHODS = [
     value: "mpesa",
     label: "M-Pesa",
     sub: "Lipa Na M-Pesa · STK Push",
-    icon: "📱",
+    Icon: Smartphone,
     color: "#16a34a",
     bg: "#f0fdf4",
     border: "#86efac",
@@ -119,7 +120,7 @@ const PAYMENT_METHODS = [
     value: "card",
     label: "Card",
     sub: "Visa / Mastercard",
-    icon: "💳",
+    Icon: CreditCard,
     color: "#1d4ed8",
     bg: "#eff6ff",
     border: "#93c5fd",
@@ -128,7 +129,7 @@ const PAYMENT_METHODS = [
     value: "cash",
     label: "Cash on Delivery",
     sub: "Pay when your order arrives",
-    icon: "💵",
+    Icon: Banknote,
     color: "#374151",
     bg: "#f9fafb",
     border: "#d1d5db",
@@ -454,7 +455,7 @@ const CheckoutInner = () => {
                 <CountdownNum $urgent={stkSecondsLeft <= 15}>{stkSecondsLeft}</CountdownNum>
               </CountdownRing>
 
-              <VibratePhone>📲</VibratePhone>
+              <VibratePhone><Smartphone size={36} color="#16a34a" /></VibratePhone>
 
               <PayModalTitle>Check Your Phone</PayModalTitle>
               <PayModalSub>
@@ -492,7 +493,7 @@ const CheckoutInner = () => {
                 ))}
               </ConfettiWrap>
               <SuccessRing>
-                <SuccessCheck>✓</SuccessCheck>
+                <SuccessCheck><Check size={28} color="white" /></SuccessCheck>
               </SuccessRing>
               <PayModalTitle style={{ fontSize: "1.4rem" }}>Payment Confirmed!</PayModalTitle>
               {totalCost && (
@@ -518,7 +519,7 @@ const CheckoutInner = () => {
         <AppNavbar />
         <EmptyWrap>
           <EmptyCard>
-            <span>🛒</span>
+            <ShoppingCart size={32} color="#4a7c45" />
             <p>No items ready for checkout.</p>
             <GoBackBtn onClick={() => navigate("/list")}>Browse Listings</GoBackBtn>
           </EmptyCard>
@@ -595,7 +596,7 @@ const CheckoutInner = () => {
                       $border={m.border}
                       onClick={() => { setPaymentMethod(m.value); setErrors({}); }}
                     >
-                      <PayIconWrap $bg={m.bg} $color={m.color}>{m.icon}</PayIconWrap>
+                      <PayIconWrap $bg={m.bg} $color={m.color}>{m.Icon && <m.Icon size={20} />}</PayIconWrap>
                       <PayText>
                         <PayLabel>{m.label}</PayLabel>
                         <PaySub>{m.sub}</PaySub>
@@ -614,7 +615,7 @@ const CheckoutInner = () => {
                 {/* M-Pesa extra: phone pre-filled from delivery */}
                 {paymentMethod === "mpesa" && (
                   <MpesaNote>
-                    📲 An STK push will be sent to your mobile number after you confirm.
+                    <Smartphone size={14} style={{marginRight:6,verticalAlign:"middle"}} /> An STK push will be sent to your mobile number after you confirm.
                   </MpesaNote>
                 )}
 
@@ -651,7 +652,7 @@ const CheckoutInner = () => {
                       </StripeCardWrapper>
                       {cardElementError && <FieldError>{cardElementError}</FieldError>}
                     </Field>
-                    <CardDisclaimer>🔒 Powered by Stripe · Card details never touch our servers.</CardDisclaimer>
+                    <CardDisclaimer><Lock size={12} style={{marginRight:4,verticalAlign:"middle"}} /> Powered by Stripe · Card details never touch our servers.</CardDisclaimer>
                   </CardFields>
                 )}
               </FormCard>
@@ -700,9 +701,9 @@ const CheckoutInner = () => {
                 <StkErrorMsg>{stkError}</StkErrorMsg>
               )}
               <ConfirmBtn onClick={handleCheckout} disabled={isPendingOrder || isCardProcessing}>
-                {paymentMethod === "mpesa" && "📱 "}
-                {paymentMethod === "card"  && "💳 "}
-                {paymentMethod === "cash"  && "💵 "}
+                {paymentMethod === "mpesa" && <Smartphone size={16} style={{marginRight:6,verticalAlign:"middle"}} />}
+                {paymentMethod === "card"  && <CreditCard size={16} style={{marginRight:6,verticalAlign:"middle"}} />}
+                {paymentMethod === "cash"  && <Banknote size={16} style={{marginRight:6,verticalAlign:"middle"}} />}
                 {isPendingOrder
                   ? "Placing order…"
                   : `Pay Kes ${totalCost?.toLocaleString()}`}
@@ -728,7 +729,7 @@ const CheckoutInner = () => {
               <ProcessStep>Authorising with your bank</ProcessStep>
               <ProcessStep>Confirming payment</ProcessStep>
             </ProcessingSteps>
-            <CardSecureBadge>🔒 Secured by Stripe · End-to-end encrypted</CardSecureBadge>
+            <CardSecureBadge><Lock size={12} style={{marginRight:4,verticalAlign:"middle"}} /> Secured by Stripe · End-to-end encrypted</CardSecureBadge>
           </PayModal>
         </CardProcessingOverlay>
       )}

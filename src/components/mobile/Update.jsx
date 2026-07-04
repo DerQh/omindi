@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useCreatePost } from "../../hooks/usePosts";
+import { Leaf, X, Image } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -386,7 +387,7 @@ const Update = () => {
         {submitted ? (
           <PendingWrap>
             <PendingCard>
-              <PendingIcon>🌱</PendingIcon>
+              <PendingIcon><Leaf size={40} color="#4a7c45" /></PendingIcon>
               <PendingTitle>Post submitted!</PendingTitle>
               <PendingMsg>
                 Your post is pending admin approval and will appear in the community feed once reviewed.
@@ -459,11 +460,11 @@ const Update = () => {
               {preview ? (
                 <ImagePreview>
                   <img src={preview} alt="preview" />
-                  <RemoveImageBtn onClick={handleRemoveImage}>✕</RemoveImageBtn>
+                  <RemoveImageBtn onClick={handleRemoveImage}><X size={14} /></RemoveImageBtn>
                 </ImagePreview>
               ) : (
                 <ImagePlaceholder>
-                  <span>🖼️</span>
+                  <Image size={32} color="#9ca3af" />
                   <p>Tap to add a photo</p>
                 </ImagePlaceholder>
               )}

@@ -2,6 +2,7 @@ import AppNavbar from "./AppNavbar";
 import styled from "styled-components";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Star } from "lucide-react";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -152,9 +153,9 @@ const initialFollowers = [
 
 const renderStars = (rating) => {
   const rounded = Math.round(rating);
-  return Array.from({ length: 5 }, (_, i) => (i < rounded ? "★" : "☆")).join(
-    " ",
-  );
+  return Array.from({ length: 5 }, (_, i) => (
+    <Star key={i} size={12} fill={i < rounded ? "#f59e0b" : "none"} stroke="#f59e0b" />
+  ));
 };
 
 const Followers = () => {

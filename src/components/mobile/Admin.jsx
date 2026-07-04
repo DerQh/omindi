@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { formatPrice } from "../../utils";
+import { BarChart2, Users, Leaf, Package, AlertTriangle, Star, FileText, Hourglass, Megaphone, Lock, X, MapPin, Phone, Ban, CheckCircle2, Check, Clock } from "lucide-react";
 import styled, { keyframes, css } from "styled-components";
 import AppNavbar from "./AppNavbar";
 import LoadingComponent from "./Loading";
@@ -49,15 +50,15 @@ import { formatSmartDate } from "../../hooks/dateFormat";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const NAV = [
-  { id: "overview", label: "Overview", icon: "📊" },
-  { id: "users", label: "Users", icon: "👥" },
-  { id: "listings", label: "Listings", icon: "🌿" },
-  { id: "orders", label: "Orders", icon: "📦" },
-  { id: "disputes", label: "Disputes", icon: "⚠️" },
-  { id: "reviews", label: "Reviews", icon: "⭐" },
-  { id: "posts", label: "Posts", icon: "📝" },
-  { id: "pendingListings", label: "Pending", icon: "⏳" },
-  { id: "broadcast", label: "Broadcast", icon: "📢" },
+  { id: "overview", label: "Overview", Icon: BarChart2 },
+  { id: "users", label: "Users", Icon: Users },
+  { id: "listings", label: "Listings", Icon: Leaf },
+  { id: "orders", label: "Orders", Icon: Package },
+  { id: "disputes", label: "Disputes", Icon: AlertTriangle },
+  { id: "reviews", label: "Reviews", Icon: Star },
+  { id: "posts", label: "Posts", Icon: FileText },
+  { id: "pendingListings", label: "Pending", Icon: Hourglass },
+  { id: "broadcast", label: "Broadcast", Icon: Megaphone },
 ];
 
 const PERIODS = [
@@ -349,7 +350,7 @@ const Admin = () => {
         <AppNavbar />
         <AccessWrap>
           <AccessCard>
-            <AccessIcon>🔒</AccessIcon>
+            <AccessIcon><Lock size={36} color="#4a7c45" /></AccessIcon>
             <AccessTitle>Admin access required</AccessTitle>
             <AccessSub>You don't have permission to view this page.</AccessSub>
             <AccessBtn onClick={() => navigate("/mobile")}>Go Home</AccessBtn>
@@ -407,7 +408,7 @@ const Admin = () => {
         <PreviewOverlay onClick={() => setReviewListing(null)}>
           <PreviewModal onClick={(e) => e.stopPropagation()}>
             <PreviewClose onClick={() => setReviewListing(null)}>
-              ✕
+              <X size={16} />
             </PreviewClose>
 
             <PreviewImage
@@ -461,15 +462,15 @@ const Admin = () => {
 
               <PreviewChipRow>
                 {reviewListing.location && (
-                  <PreviewChip>📍 {reviewListing.location}</PreviewChip>
+                  <PreviewChip><MapPin size={12} style={{marginRight:3}} />{reviewListing.location}</PreviewChip>
                 )}
                 {reviewListing.minimumOrder && (
                   <PreviewChip>
-                    📦 Min order: {reviewListing.minimumOrder}
+                    <Package size={12} style={{marginRight:3}} />Min order: {reviewListing.minimumOrder}
                   </PreviewChip>
                 )}
                 {reviewListing.phone && (
-                  <PreviewChip>📞 {reviewListing.phone}</PreviewChip>
+                  <PreviewChip><Phone size={12} style={{marginRight:3}} />{reviewListing.phone}</PreviewChip>
                 )}
                 {reviewListing.available === false && (
                   <PreviewChip
@@ -528,7 +529,7 @@ const Admin = () => {
           }}
         >
           <RejectReasonModal onClick={(e) => e.stopPropagation()}>
-            <RejectModalIcon>🚫</RejectModalIcon>
+            <RejectModalIcon><Ban size={36} color="#dc2626" /></RejectModalIcon>
             <RejectModalTitle>Reject Listing</RejectModalTitle>
             <RejectModalSub>
               "{rejectModal.title}" by {rejectModal.seller_name || "Unknown"}
@@ -641,76 +642,19 @@ const Admin = () => {
                 {/* Stat cards */}
                 <StatGrid>
                   {[
-                    {
-                      icon: "👥",
-                      label: "Total Users",
-                      value: stats?.userCount,
-                      color: "#3b82f6",
-                      light: "#eff6ff",
-                    },
-                    {
-                      icon: "🌿",
-                      label: "Active Listings",
-                      value: stats?.listingCount,
-                      color: "#10b981",
-                      light: "#ecfdf5",
-                    },
-                    {
-                      icon: "📦",
-                      label: "Total Orders",
-                      value: stats?.orderCount,
-                      color: "#8b5cf6",
-                      light: "#f5f3ff",
-                    },
-                    {
-                      icon: "💰",
-                      label: "Total Revenue",
-                      value: `Kes ${(stats?.totalRevenue ?? 0).toLocaleString()}`,
-                      color: "#f59e0b",
-                      light: "#fffbeb",
-                      wide: true,
-                    },
-                    {
-                      icon: "📈",
-                      label: "Avg Order Value",
-                      value: `Kes ${avgOrderValue.toLocaleString()}`,
-                      color: "#06b6d4",
-                      light: "#ecfeff",
-                    },
-                    {
-                      icon: "🕐",
-                      label: "Pending",
-                      value: stats?.pendingOrders,
-                      color: "#f97316",
-                      light: "#fff7ed",
-                    },
-                    {
-                      icon: "⚠️",
-                      label: "Disputes",
-                      value: stats?.disputedOrders,
-                      color: "#ec4899",
-                      light: "#fdf2f8",
-                    },
-                    {
-                      icon: "💬",
-                      label: "Inquiries",
-                      value: stats?.totalInquiries,
-                      color: "#06b6d4",
-                      light: "#ecfeff",
-                    },
-                    {
-                      icon: "❤️",
-                      label: "Favourites",
-                      value: stats?.totalFavourites,
-                      color: "#f43f5e",
-                      light: "#fff1f2",
-                    },
+                    { Icon: Users, label: "Total Users", value: stats?.userCount, color: "#3b82f6", light: "#eff6ff" },
+                    { Icon: Leaf, label: "Active Listings", value: stats?.listingCount, color: "#10b981", light: "#ecfdf5" },
+                    { Icon: Package, label: "Total Orders", value: stats?.orderCount, color: "#8b5cf6", light: "#f5f3ff" },
+                    { Icon: BarChart2, label: "Total Revenue", value: `Kes ${(stats?.totalRevenue ?? 0).toLocaleString()}`, color: "#f59e0b", light: "#fffbeb", wide: true },
+                    { Icon: BarChart2, label: "Avg Order Value", value: `Kes ${avgOrderValue.toLocaleString()}`, color: "#06b6d4", light: "#ecfeff" },
+                    { Icon: Clock, label: "Pending", value: stats?.pendingOrders, color: "#f97316", light: "#fff7ed" },
+                    { Icon: AlertTriangle, label: "Disputes", value: stats?.disputedOrders, color: "#ec4899", light: "#fdf2f8" },
+                    { Icon: BarChart2, label: "Inquiries", value: stats?.totalInquiries, color: "#06b6d4", light: "#ecfeff" },
+                    { Icon: Star, label: "Favourites", value: stats?.totalFavourites, color: "#f43f5e", light: "#fff1f2" },
                   ].map((c) => (
                     <StatCard key={c.label} $light={c.light} $wide={c.wide}>
-                      <StatCardIcon
-                        style={{ background: c.light, color: c.color }}
-                      >
-                        {c.icon}
+                      <StatCardIcon style={{ background: c.light, color: c.color }}>
+                        <c.Icon size={20} />
                       </StatCardIcon>
                       <StatCardBody>
                         <StatCardValue style={{ color: c.color }}>
@@ -997,7 +941,7 @@ const Admin = () => {
                 {/* Warning strip shown when all admin seats are filled */}
                 {currentAdminCount >= MAX_ADMINS && (
                   <CapWarning>
-                    ⚠️ Admin limit reached ({MAX_ADMINS}/{MAX_ADMINS}). Revoke
+                    <AlertTriangle size={13} style={{marginRight:4,verticalAlign:"middle"}} />Admin limit reached ({MAX_ADMINS}/{MAX_ADMINS}). Revoke
                     an existing admin before granting access to another user.
                   </CapWarning>
                 )}
@@ -1010,7 +954,7 @@ const Admin = () => {
                       onChange={(e) => setUserSearch(e.target.value)}
                     />
                     {userSearch && (
-                      <ClearBtn onClick={() => setUserSearch("")}>✕</ClearBtn>
+                      <ClearBtn onClick={() => setUserSearch("")}><X size={14} /></ClearBtn>
                     )}
                   </SearchWrap>
                   <CountPill>{filteredUsers.length} users</CountPill>
@@ -1019,7 +963,7 @@ const Admin = () => {
                       $active={showBannedOnly}
                       onClick={() => setShowBannedOnly((v) => !v)}
                     >
-                      🚫 Banned {bannedCount > 0 && `(${bannedCount})`}
+                      <Ban size={13} style={{marginRight:4,verticalAlign:"middle"}} />Banned {bannedCount > 0 && `(${bannedCount})`}
                     </BannedFilterBtn>
                   )}
                   <CsvBtn onClick={() => downloadCSV("users.csv", filteredUsers, [
@@ -1130,7 +1074,7 @@ const Admin = () => {
                                             : "Grant admin"
                                       }
                                     >
-                                      {u.is_admin ? "✓" : "+"}
+                                      {u.is_admin ? <Check size={12} /> : "+"}
                                     </ToggleBtn>
                                   </RoleGroup>
                                 </TD>
@@ -1214,7 +1158,7 @@ const Admin = () => {
                       onChange={(e) => setListSearch(e.target.value)}
                     />
                     {listSearch && (
-                      <ClearBtn onClick={() => setListSearch("")}>✕</ClearBtn>
+                      <ClearBtn onClick={() => setListSearch("")}><X size={14} /></ClearBtn>
                     )}
                   </SearchWrap>
                   <CountPill>{filteredListings.length} listings</CountPill>
@@ -1383,7 +1327,7 @@ const Admin = () => {
                       onChange={(e) => setOrderSearch(e.target.value)}
                     />
                     {orderSearch && (
-                      <ClearBtn onClick={() => setOrderSearch("")}>✕</ClearBtn>
+                      <ClearBtn onClick={() => setOrderSearch("")}><X size={14} /></ClearBtn>
                     )}
                   </SearchWrap>
                   <CountPill>{filteredOrders.length} orders</CountPill>
@@ -1560,7 +1504,7 @@ const Admin = () => {
 
                 {disputedOrders.length === 0 ? (
                   <EmptyCard>
-                    <EmptyIcon>✅</EmptyIcon>
+                    <EmptyIcon><CheckCircle2 size={36} color="#4a7c45" /></EmptyIcon>
                     <EmptyTitle>No active disputes</EmptyTitle>
                     <EmptySub>
                       Orders marked as <em>disputed</em> from the Orders tab
@@ -1570,7 +1514,7 @@ const Admin = () => {
                 ) : (
                   <>
                     <DisputeBanner>
-                      ⚠️ {disputedOrders.length} order
+                      <AlertTriangle size={14} style={{marginRight:4,verticalAlign:"middle"}} />{disputedOrders.length} order
                       {disputedOrders.length !== 1 ? "s" : ""} flagged as
                       disputed — review and resolve below.
                     </DisputeBanner>
@@ -1667,7 +1611,7 @@ const Admin = () => {
                   <LoadMsg>Loading reviews…</LoadMsg>
                 ) : (reviews ?? []).length === 0 ? (
                   <EmptyCard>
-                    <EmptyIcon>⭐</EmptyIcon>
+                    <EmptyIcon><Star size={36} color="#4a7c45" /></EmptyIcon>
                     <EmptyTitle>No reviews yet</EmptyTitle>
                     <EmptySub>
                       Reviews left by buyers on listings appear here.
@@ -1697,12 +1641,12 @@ const Admin = () => {
                               <TD>
                                 <StarRow>
                                   {[1, 2, 3, 4, 5].map((n) => (
-                                    <Star
+                                    <StarDot
                                       key={n}
                                       $filled={n <= (r.rating ?? 0)}
                                     >
-                                      ★
-                                    </Star>
+                                      <Star size={12} fill="#f59e0b" stroke="#f59e0b" />
+                                    </StarDot>
                                   ))}
                                 </StarRow>
                               </TD>
@@ -1750,7 +1694,7 @@ const Admin = () => {
                   <LoadMsg>Loading posts…</LoadMsg>
                 ) : pendingPosts.length === 0 ? (
                   <EmptyCard>
-                    <EmptyIcon>📝</EmptyIcon>
+                    <EmptyIcon><FileText size={36} color="#4a7c45" /></EmptyIcon>
                     <EmptyTitle>No pending posts</EmptyTitle>
                     <EmptySub>All community posts have been reviewed.</EmptySub>
                   </EmptyCard>
@@ -1802,10 +1746,10 @@ const Admin = () => {
 
                         <PostModerationActions>
                           <SmallApproveBtn onClick={() => approvePost(post.id)}>
-                            ✓ Approve
+                            <Check size={13} style={{marginRight:4}} />Approve
                           </SmallApproveBtn>
                           <DangerBtn onClick={() => rejectPost(post.id)}>
-                            ✕ Reject
+                            <X size={13} style={{marginRight:4}} />Reject
                           </DangerBtn>
                         </PostModerationActions>
                       </PostModerationCard>
@@ -1826,7 +1770,7 @@ const Admin = () => {
                   <LoadMsg>Loading pending listings…</LoadMsg>
                 ) : pendingListings.length === 0 ? (
                   <EmptyCard>
-                    <EmptyIcon>✅</EmptyIcon>
+                    <EmptyIcon><CheckCircle2 size={36} color="#4a7c45" /></EmptyIcon>
                     <EmptyTitle>All caught up!</EmptyTitle>
                     <EmptySub>No listings are waiting for approval.</EmptySub>
                   </EmptyCard>
@@ -1847,7 +1791,7 @@ const Admin = () => {
                         />
                         {pendingSearch && (
                           <ClearBtn onClick={() => setPendingSearch("")}>
-                            ✕
+                            <X size={14} />
                           </ClearBtn>
                         )}
                       </SearchWrap>
@@ -1945,10 +1889,10 @@ const Admin = () => {
                                       })
                                     }
                                   >
-                                    ✓
+                                    <Check size={13} />
                                   </SmallApproveBtn>
                                   <DangerBtn onClick={() => setRejectModal(l)}>
-                                    ✕
+                                    <X size={13} />
                                   </DangerBtn>
                                 </InlineActions>
                               </TD>
@@ -1989,7 +1933,7 @@ const Admin = () => {
 
                 {broadcastDone ? (
                   <EmptyCard>
-                    <EmptyIcon>✅</EmptyIcon>
+                    <EmptyIcon><CheckCircle2 size={36} color="#4a7c45" /></EmptyIcon>
                     <EmptyTitle>Notification sent!</EmptyTitle>
                     <EmptySub>
                       Your message was delivered to all users.
@@ -3086,7 +3030,7 @@ const StarRow = styled.div`
   display: flex;
   gap: 2px;
 `;
-const Star = styled.span`
+const StarDot = styled.span`
   font-size: 0.9rem;
   color: ${({ $filled }) => ($filled ? "#f59e0b" : "#e5e7eb")};
 `;

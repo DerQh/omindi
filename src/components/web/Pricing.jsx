@@ -6,6 +6,7 @@ import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { Check, X, Lock } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -175,7 +176,7 @@ const Pricing = () => {
                     {plan.features.map((f, i) => (
                       <FeatureItem key={i} $included={f.included}>
                         <FeatureIcon $included={f.included}>
-                          {f.included ? "✓" : "✕"}
+                          {f.included ? <Check size={14} /> : <X size={14} />}
                         </FeatureIcon>
                         {f.text}
                       </FeatureItem>
@@ -187,7 +188,7 @@ const Pricing = () => {
           </CardsGrid>
 
           <GuaranteeBanner>
-            🔒 No credit card required for the free plan · Cancel anytime ·
+            <Lock size={14} style={{marginRight:6,verticalAlign:"middle"}} />No credit card required for the free plan · Cancel anytime ·
             Trusted by 500+ farmers across Kenya
           </GuaranteeBanner>
         </CardsInner>
@@ -226,8 +227,8 @@ const Pricing = () => {
               ].map((row) => (
                 <CompareTr key={row.label}>
                   <CompareTd $feature>{row.label}</CompareTd>
-                  <CompareTd>{row.free}</CompareTd>
-                  <CompareTd $highlight>{row.pro}</CompareTd>
+                  <CompareTd>{row.free === "✓" ? <Check size={14} /> : row.free}</CompareTd>
+                  <CompareTd $highlight>{row.pro === "✓" ? <Check size={14} /> : row.pro}</CompareTd>
                 </CompareTr>
               ))}
             </tbody>

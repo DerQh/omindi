@@ -5,6 +5,7 @@ import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import { useReferralInfo } from "../../hooks/useReferral";
 import { useLoyaltyHistory } from "../../hooks/useLoyalty";
+import { Handshake, ShoppingCart, Star, Leaf, Gift, Check, Clipboard } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(14px); }
@@ -12,10 +13,10 @@ const fadeUp = keyframes`
 `;
 
 const REWARDS = [
-  { icon: "🤝", label: "Friend signs up with your code", points: "+25 pts (them) +50 pts (you)" },
-  { icon: "🛒", label: "Every order you place", points: "+10 pts" },
-  { icon: "⭐", label: "Leaving a review", points: "+5 pts" },
-  { icon: "🌱", label: "Creating your first listing", points: "+15 pts" },
+  { Icon: Handshake, label: "Friend signs up with your code", points: "+25 pts (them) +50 pts (you)" },
+  { Icon: ShoppingCart, label: "Every order you place", points: "+10 pts" },
+  { Icon: Star, label: "Leaving a review", points: "+5 pts" },
+  { Icon: Leaf, label: "Creating your first listing", points: "+15 pts" },
 ];
 
 export default function Referral() {
@@ -57,7 +58,7 @@ export default function Referral() {
         <Body>
           {/* Hero */}
           <HeroCard>
-            <HeroEmoji>🎁</HeroEmoji>
+            <HeroEmoji><Gift size={40} color="#4a7c45" /></HeroEmoji>
             <HeroTitle>Earn points together</HeroTitle>
             <HeroSub>
               Share your referral link. When a friend joins, you both earn bonus points redeemable on future orders.
@@ -74,7 +75,7 @@ export default function Referral() {
             <CodeBox>
               <CodeText>{info?.referral_code ? referralLink : "Loading…"}</CodeText>
               <CopyBtn onClick={handleCopy} $copied={copied}>
-                {copied ? "✓ Copied!" : "Copy"}
+                {copied ? <><Check size={13} style={{marginRight:3}} />Copied!</> : "Copy"}
               </CopyBtn>
             </CodeBox>
             <CodeNote>
@@ -89,7 +90,7 @@ export default function Referral() {
                 Share on WhatsApp
               </ShareBtn>
               <ShareBtn onClick={handleCopy}>
-                {copied ? "✓ Link Copied!" : "📋 Copy Link"}
+                {copied ? <><Check size={13} style={{marginRight:3}} />Link Copied!</> : <><Clipboard size={14} style={{marginRight:4}} />Copy Link</>}
               </ShareBtn>
             </ShareRow>
           </Card>
@@ -111,7 +112,7 @@ export default function Referral() {
             <CardLabel>How you earn points</CardLabel>
             {REWARDS.map((r) => (
               <RewardRow key={r.label}>
-                <RewardIcon>{r.icon}</RewardIcon>
+                <RewardIcon><r.Icon size={20} color="#4a7c45" /></RewardIcon>
                 <RewardText>
                   <RewardLabel>{r.label}</RewardLabel>
                   <RewardPts>{r.points}</RewardPts>

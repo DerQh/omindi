@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { TreePine, Package, Hourglass, MapPin, Phone, Check, Leaf, BarChart2, Settings, MailOpen } from "lucide-react";
 import styled, { keyframes, css } from "styled-components";
 import AppNavbar from "./AppNavbar";
 import { useAuth } from "../../context/AuthContext";
@@ -1146,25 +1147,25 @@ const Dashboard = () => {
     switch (status) {
       case "pending":
         return [
-          { label: "✅ Confirm Order",    status: "confirmed",  variant: "primary" },
-          { label: "✗ Cancel",           status: "cancelled",  variant: "danger"  },
+          { label: "Confirm Order",    status: "confirmed",  variant: "primary" },
+          { label: "Cancel",           status: "cancelled",  variant: "danger"  },
         ];
       case "confirmed":
         return [
-          { label: "⚙️ Mark as Processing", status: "processing", variant: "primary" },
-          { label: "✗ Cancel",              status: "cancelled",  variant: "danger"  },
+          { label: "Mark as Processing", status: "processing", variant: "primary" },
+          { label: "Cancel",              status: "cancelled",  variant: "danger"  },
         ];
       case "processing":
         return [
-          { label: "🚚 Mark as Shipped", status: "shipped",   variant: "primary" },
+          { label: "Mark as Shipped", status: "shipped",   variant: "primary" },
         ];
       case "shipped":
         return [
-          { label: "📦 Mark as Delivered", status: "delivered", variant: "primary" },
+          { label: "Mark as Delivered", status: "delivered", variant: "primary" },
         ];
       case "delivering":
         return [
-          { label: "📦 Mark as Delivered", status: "delivered", variant: "primary" },
+          { label: "Mark as Delivered", status: "delivered", variant: "primary" },
         ];
       case "delivered":
         return [
@@ -1199,7 +1200,7 @@ const Dashboard = () => {
         {/* HOLIDAY MODE ACTIVE BANNER */}
         {profile?.on_holiday && (
           <HolidayActiveBanner>
-            <span style={{ fontSize: "1.2rem" }}>🌴</span>
+            <TreePine size={20} color="#4a7c45" />
             <div>
               <strong>Holiday mode is ON.</strong> Your listings are hidden from buyers.
               {profile.holiday_until && ` Back on ${new Date(profile.holiday_until).toLocaleDateString("en-KE", { day: "numeric", month: "long" })}.`}
@@ -1241,7 +1242,7 @@ const Dashboard = () => {
 
           <StatCard $color={C.blue} $delay="0.07s">
             <StatIcon $bg={C.blueLight} $color={C.blue}>
-              📦
+              <Package size={20} />
             </StatIcon>
             <StatLabel>Orders Received</StatLabel>
             <StatValue>{stats?.totalOrders ?? 0}</StatValue>
@@ -1250,7 +1251,7 @@ const Dashboard = () => {
 
           <StatCard $color={C.gold} $delay="0.14s">
             <StatIcon $bg={C.goldLight} $color={C.gold}>
-              ⏳
+              <Hourglass size={20} />
             </StatIcon>
             <StatLabel>Pending Orders</StatLabel>
             <StatValue>{stats?.pendingOrders ?? 0}</StatValue>
@@ -1354,7 +1355,7 @@ const Dashboard = () => {
                 </>
               ) : filteredOrders.length === 0 ? (
                 <EmptyState>
-                  <EmptyIcon>📭</EmptyIcon>
+                  <EmptyIcon><MailOpen size={36} color="#4a7c45" /></EmptyIcon>
                   {statusFilter === "all"
                     ? "No orders received yet."
                     : `No ${statusFilter} orders.`}
@@ -1383,9 +1384,9 @@ const Dashboard = () => {
                           </OrderDate>
                         </OrderIdRow>
                         <OrderMeta>
-                          <span>📍 {order.delivery_address}</span>
+                          <span><MapPin size={13} style={{marginRight:4,verticalAlign:"middle"}} />{order.delivery_address}</span>
                           <MetaDot>·</MetaDot>
-                          <span>📞 {order.mobile_no}</span>
+                          <span><Phone size={13} style={{marginRight:4,verticalAlign:"middle"}} />{order.mobile_no}</span>
                           <MetaDot>·</MetaDot>
                           <span>
                             {paymentLabels[order.payment_method] ??
@@ -1423,7 +1424,7 @@ const Dashboard = () => {
                                 return (
                                   <Step key={step} $done={done || current}>
                                     <StepDot $done={done} $current={current}>
-                                      {done ? "✓" : i + 1}
+                                      {done ? <Check size={12} /> : i + 1}
                                     </StepDot>
                                     <StepLabel $done={done} $current={current}>
                                       {step}
@@ -1523,7 +1524,7 @@ const Dashboard = () => {
               </>
             ) : listings.length === 0 ? (
               <EmptyState>
-                <EmptyIcon>🌱</EmptyIcon>
+                <EmptyIcon><Leaf size={36} color="#4a7c45" /></EmptyIcon>
                 <p>No listings yet.</p>
                 <SmallBtn
                   style={{ margin: "8px auto 0", display: "block" }}
@@ -1596,7 +1597,7 @@ const Dashboard = () => {
           <>
             {/* Holiday Mode */}
             <SettingsCard>
-              <SettingsTitle>🌴 Holiday Mode</SettingsTitle>
+              <SettingsTitle><TreePine size={16} style={{marginRight:6,verticalAlign:"middle"}} />Holiday Mode</SettingsTitle>
               <SettingsSub>
                 Turn this on when you're away. Your listings will be hidden from buyers until you return.
               </SettingsSub>
@@ -1639,12 +1640,12 @@ const Dashboard = () => {
               <SaveSettingsBtn disabled={savingHoliday} onClick={saveHolidayMode}>
                 {savingHoliday ? "Saving…" : "Save Changes"}
               </SaveSettingsBtn>
-              {holidaySaved && <SuccessBanner>✓ Holiday settings saved.</SuccessBanner>}
+              {holidaySaved && <SuccessBanner><Check size={13} style={{marginRight:4}} />Holiday settings saved.</SuccessBanner>}
             </SettingsCard>
 
             {/* Export Orders */}
             <SettingsCard>
-              <SettingsTitle>📊 Export Orders</SettingsTitle>
+              <SettingsTitle><BarChart2 size={16} style={{marginRight:6,verticalAlign:"middle"}} />Export Orders</SettingsTitle>
               <SettingsSub>
                 Download all your orders as a CSV file for record-keeping or accounting.
               </SettingsSub>
@@ -1655,7 +1656,7 @@ const Dashboard = () => {
 
             {/* Quick links */}
             <SettingsCard>
-              <SettingsTitle>⚙️ Account</SettingsTitle>
+              <SettingsTitle><Settings size={16} style={{marginRight:6,verticalAlign:"middle"}} />Account</SettingsTitle>
               <SettingsSub>Manage your profile and preferences.</SettingsSub>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 <SaveSettingsBtn onClick={() => navigate("/edit-profile")}>Edit Profile</SaveSettingsBtn>

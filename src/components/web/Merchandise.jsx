@@ -8,6 +8,7 @@ import { useShopItem } from "../../hooks/useShopAdmin";
 import { useShopItemReviews, useHasReviewedShopItem, useAddShopItemReview } from "../../hooks/useReviews";
 import { useUser } from "../../hooks/useUser";
 import { supabase } from "../../../supabase";
+import { Star, Heart, ShoppingCart, Truck, RotateCcw, Lock, Smartphone, Check, X, Leaf } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ const renderStars = (rating, interactive = false, hover = 0, onClick) =>
         onMouseLeave={interactive ? () => onClick("hover", 0) : undefined}
         onClick={interactive ? () => onClick("set", i + 1) : undefined}
       >
-        {filled ? "★" : "☆"}
+        <Star size={16} fill={filled ? "#f59e0b" : "none"} stroke="#f59e0b" />
       </StarIcon>
     );
   });
@@ -1433,7 +1434,7 @@ function Merchandise() {
         <Navbar />
         <Page>
           <NotFoundWrap>
-            <div style={{ fontSize: "3rem", marginBottom: 16 }}>🌿</div>
+            <div style={{ marginBottom: 16 }}><Leaf size={48} color="#4a7c45" /></div>
             <h2 style={{ color: "#1a2e1a", marginBottom: 8 }}>
               Product not found
             </h2>
@@ -1475,7 +1476,7 @@ function Merchandise() {
       return;
     }
     setCartMsg({
-      text: `✓ Added ${quantity} × ${product.name} (${selectedColor}, ${selectedSize}) to your cart.`,
+      text: `Added ${quantity} × ${product.name} (${selectedColor}, ${selectedSize}) to your cart.`,
       error: false,
     });
   };
@@ -1728,10 +1729,10 @@ function Merchandise() {
                   Buy Now
                 </BuyNowBtn>
                 <WishBtn onClick={() => setWishlist((w) => !w)}>
-                  {wishlist ? "❤️" : "🤍"} Save
+                  <Heart size={16} fill={wishlist ? "#dc2626" : "none"} stroke={wishlist ? "#dc2626" : "currentColor"} style={{marginRight:4}} />Save
                 </WishBtn>
               </CtaRow>
-              <AddBtn onClick={handleAddToCart} style={{ marginTop: -8 }}>🛒 Add to Cart</AddBtn>
+              <AddBtn onClick={handleAddToCart} style={{ marginTop: -8 }}><ShoppingCart size={16} style={{marginRight:6}} />Add to Cart</AddBtn>
 
               {/* Cart feedback toast */}
               {cartMsg.text &&
@@ -1744,15 +1745,15 @@ function Merchandise() {
               {/* Trust badges */}
               <TrustRow>
                 <TrustBadge>
-                  <TrustIcon>🚚</TrustIcon>
+                  <TrustIcon><Truck size={16} /></TrustIcon>
                   <TrustText>Free delivery over Kes 3,000</TrustText>
                 </TrustBadge>
                 <TrustBadge>
-                  <TrustIcon>↩</TrustIcon>
+                  <TrustIcon><RotateCcw size={16} /></TrustIcon>
                   <TrustText>14-day easy returns</TrustText>
                 </TrustBadge>
                 <TrustBadge>
-                  <TrustIcon>🔒</TrustIcon>
+                  <TrustIcon><Lock size={16} /></TrustIcon>
                   <TrustText>Secure M-Pesa checkout</TrustText>
                 </TrustBadge>
               </TrustRow>
@@ -1832,7 +1833,7 @@ function Merchandise() {
                                   {r.profiles?.full_name || "Customer"}
                                 </ShopReviewName>
                                 <ShopReviewStars>
-                                  {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
+                                  {Array.from({length:5},(_,i)=><Star key={i} size={12} fill={i<r.rating?"#f59e0b":"none"} stroke="#f59e0b" />)}
                                 </ShopReviewStars>
                               </ShopReviewHeader>
                               {r.comment && <ShopReviewText>{r.comment}</ShopReviewText>}
@@ -1850,7 +1851,7 @@ function Merchandise() {
                     {/* Already reviewed */}
                     {hasReviewedShop && (
                       <StatusMsg style={{ marginBottom: 16 }}>
-                        ✓ You've already reviewed this product.
+                        <Check size={14} style={{marginRight:4,verticalAlign:"middle"}} />You've already reviewed this product.
                       </StatusMsg>
                     )}
 
@@ -1933,7 +1934,7 @@ function Merchandise() {
                 <ModalHeader>
                   <ModalTitle>Complete your purchase</ModalTitle>
                   <ModalSub>No account needed — M-Pesa payment only</ModalSub>
-                  <ModalClose onClick={closeBuyModal} aria-label="Close">✕</ModalClose>
+                  <ModalClose onClick={closeBuyModal} aria-label="Close"><X size={16} /></ModalClose>
                 </ModalHeader>
 
                 <ModalBody>
@@ -1993,11 +1994,11 @@ function Merchandise() {
                   {stkError && <StkErrorMsg>{stkError}</StkErrorMsg>}
 
                   <PayBtn onClick={handleBuyNow}>
-                    📱 Pay Kes {(product.price * quantity).toLocaleString()} via M-Pesa
+                    <Smartphone size={16} style={{marginRight:6}} />Pay Kes {(product.price * quantity).toLocaleString()} via M-Pesa
                   </PayBtn>
 
                   <p style={{ margin: 0, fontSize: "0.75rem", color: "#aac4aa", textAlign: "center" }}>
-                    🔒 Secured by Safaricom M-Pesa · No card required
+                    <Lock size={12} style={{marginRight:4,verticalAlign:"middle"}} />Secured by Safaricom M-Pesa · No card required
                   </p>
                 </ModalBody>
               </>
@@ -2015,7 +2016,7 @@ function Merchandise() {
 
             {buyStep === "stk_sent" && (
               <>
-                <ModalClose onClick={closeBuyModal} aria-label="Close" style={{ top: 12, right: 12 }}>✕</ModalClose>
+                <ModalClose onClick={closeBuyModal} aria-label="Close" style={{ top: 12, right: 12 }}><X size={16} /></ModalClose>
                 <StkWrap>
                   {/* Countdown SVG ring */}
                   <StkRingWrap>
@@ -2035,7 +2036,7 @@ function Merchandise() {
                     <CountdownNum $urgent={stkSecondsLeft <= 15}>{stkSecondsLeft}</CountdownNum>
                   </StkRingWrap>
 
-                  <StkPhone>📱</StkPhone>
+                  <StkPhone><Smartphone size={36} color="#16a34a" /></StkPhone>
 
                   <StkTitle>Check your phone</StkTitle>
                   <StkNote>
@@ -2077,7 +2078,7 @@ function Merchandise() {
                   <ConfettiPiece key={i} $color={p.color} $left={p.left} $delay={p.delay} $size={p.size} />
                 ))}
 
-                <SuccessCircle>✓</SuccessCircle>
+                <SuccessCircle><Check size={28} color="white" /></SuccessCircle>
 
                 <div>
                   <ConfirmedTitle>Payment confirmed!</ConfirmedTitle>

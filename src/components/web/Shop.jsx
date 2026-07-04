@@ -12,6 +12,7 @@ import {
   useDeleteShopItem,
 } from "../../hooks/useShopAdmin";
 import AddShopItem from "./AddShopItem";
+import { Star, Leaf, Truck, RotateCcw, Lock, Trash2 } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -37,9 +38,9 @@ const badgeConfig = {
 };
 
 const renderStars = (rating) =>
-  Array.from({ length: 5 }, (_, i) =>
-    i < Math.floor(rating) ? "★" : i < rating ? "★" : "☆",
-  ).join("");
+  Array.from({ length: 5 }, (_, i) => (
+    <Star key={i} size={13} fill={i < rating ? "#f59e0b" : "none"} stroke="#f59e0b" />
+  ));
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -818,28 +819,28 @@ function Shop() {
       <StatsStrip>
         <StatsInner>
           <StatItem>
-            <StatIconBox>🌿</StatIconBox>
+            <StatIconBox><Leaf size={20} /></StatIconBox>
             <StatText>
               <StatVal>100% Authentic</StatVal>
               <StatDesc>Official Afarmer™__TM__ products only</StatDesc>
             </StatText>
           </StatItem>
           <StatItem>
-            <StatIconBox>🚚</StatIconBox>
+            <StatIconBox><Truck size={20} /></StatIconBox>
             <StatText>
               <StatVal>Free Delivery</StatVal>
               <StatDesc>On orders over Kes 3,000</StatDesc>
             </StatText>
           </StatItem>
           <StatItem>
-            <StatIconBox>↩</StatIconBox>
+            <StatIconBox><RotateCcw size={20} /></StatIconBox>
             <StatText>
               <StatVal>Easy Returns</StatVal>
               <StatDesc>14-day hassle-free returns</StatDesc>
             </StatText>
           </StatItem>
           <StatItem>
-            <StatIconBox>🔒</StatIconBox>
+            <StatIconBox><Lock size={20} /></StatIconBox>
             <StatText>
               <StatVal>Secure Checkout</StatVal>
               <StatDesc>M-Pesa, card & cash on delivery</StatDesc>
@@ -918,7 +919,7 @@ function Shop() {
                         deleteItem(product.id);
                       }}
                     >
-                      🗑 Remove
+                      <Trash2 size={13} style={{marginRight:3}} />Remove
                     </AdminDeleteBtn>
                   )}
                   <HoverOverlay>
@@ -997,7 +998,7 @@ function Shop() {
                       deleteItem(product.id);
                     }}
                   >
-                    🗑 Remove
+                    <Trash2 size={13} style={{marginRight:3}} />Remove
                   </AdminDeleteBtn>
                 )}
                 <HoverOverlay>

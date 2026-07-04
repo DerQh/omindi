@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import { Store, Megaphone, Handshake } from "lucide-react";
 import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
@@ -15,17 +16,17 @@ const fadeUp = keyframes`
 
 const BENEFITS = [
   {
-    icon: "🏪",
+    Icon: Store,
     title: "One Hub for Your Whole Market",
     text: "Create a profile for your farmers market, list all your vendors, upcoming events, and seasonal highlights — all in one discoverable place.",
   },
   {
-    icon: "📣",
+    Icon: Megaphone,
     title: "Promote Beyond Market Day",
     text: "Stay connected with your community year-round. Post event updates, new vendor arrivals, and seasonal produce guides that keep shoppers coming back.",
   },
   {
-    icon: "🤝",
+    Icon: Handshake,
     title: "Connect Vendors & Shoppers",
     text: "Help vendors build direct relationships with buyers. Shoppers can follow their favourite stalls, message sellers, and plan their visits ahead of time.",
   },
@@ -109,7 +110,7 @@ const ForMarketers = () => {
           <BenefitsGrid>
             {BENEFITS.map((b) => (
               <BenefitCard key={b.title}>
-                <BenefitIcon>{b.icon}</BenefitIcon>
+                <BenefitIcon>{b.Icon ? <b.Icon size={24} /> : b.icon}</BenefitIcon>
                 <BenefitTitle>{b.title}</BenefitTitle>
                 <BenefitText>{b.text}</BenefitText>
               </BenefitCard>

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
+import { PenLine, Search, Handshake, Cherry, Tractor, Flower2, ChefHat, Leaf, Package, Store, BookOpen } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -16,19 +17,19 @@ const fadeUp = keyframes`
 
 const HOW_IT_WORKS = [
   {
-    icon: "✏️",
+    Icon: PenLine,
     img: "/create.png",
     title: "Create",
     text: "Promote your farm events to the local community. Create free listings for tours, U-pick days, workshops, seasonal festivals, and more.",
   },
   {
-    icon: "🔍",
+    Icon: Search,
     img: "/discover.png",
     title: "Discover",
     text: "Find local farm events near you. Browse seasonal experiences, hands-on workshops, and community festivals — all in one place.",
   },
   {
-    icon: "🤝",
+    Icon: Handshake,
     img: "/connect.png",
     title: "Connect",
     text: "Attend events, follow your favourite farms, and build meaningful connections with local growers and your wider community.",
@@ -36,14 +37,14 @@ const HOW_IT_WORKS = [
 ];
 
 const EVENT_TYPES = [
-  { icon: "🍓", label: "U-Pick Days" },
-  { icon: "🚜", label: "Farm Tours" },
-  { icon: "🌸", label: "Seasonal Festivals" },
-  { icon: "👨‍🍳", label: "Cooking Workshops" },
-  { icon: "🌱", label: "Planting Classes" },
-  { icon: "🍯", label: "Honey & Harvest Days" },
-  { icon: "🎪", label: "Farmers Markets" },
-  { icon: "📚", label: "Educational Events" },
+  { Icon: Cherry, label: "U-Pick Days" },
+  { Icon: Tractor, label: "Farm Tours" },
+  { Icon: Flower2, label: "Seasonal Festivals" },
+  { Icon: ChefHat, label: "Cooking Workshops" },
+  { Icon: Leaf, label: "Planting Classes" },
+  { Icon: Package, label: "Honey & Harvest Days" },
+  { Icon: Store, label: "Farmers Markets" },
+  { Icon: BookOpen, label: "Educational Events" },
 ];
 
 const FAQS = [
@@ -158,7 +159,7 @@ const Agritourism = () => {
           <EventTypesGrid>
             {EVENT_TYPES.map((e) => (
               <EventTypeCard key={e.label}>
-                <EventTypeIcon>{e.icon}</EventTypeIcon>
+                <EventTypeIcon><e.Icon size={24} /></EventTypeIcon>
                 <EventTypeLabel>{e.label}</EventTypeLabel>
               </EventTypeCard>
             ))}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
+import { ShoppingCart, MessageCircle, Heart, TrendingDown, Leaf, User, Bell } from "lucide-react";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "../../context/AuthContext";
@@ -488,12 +489,12 @@ const EmptyDesc = styled.p`
 
 // Maps notification type to icon + background colour
 const NOTIF_META = {
-  order: { icon: "🛒", iconBg: "#eef9f0" },
-  inquiry: { icon: "💬", iconBg: "#e5f4ff" },
-  favorite: { icon: "❤️", iconBg: "#fdf0f0" },
-  price: { icon: "📉", iconBg: "#f0f7ee" },
-  system: { icon: "🌿", iconBg: "#eef9f0" },
-  follow: { icon: "👤", iconBg: "#f0f4ff" },
+  order: { Icon: ShoppingCart, iconBg: "#eef9f0" },
+  inquiry: { Icon: MessageCircle, iconBg: "#e5f4ff" },
+  favorite: { Icon: Heart, iconBg: "#fdf0f0" },
+  price: { Icon: TrendingDown, iconBg: "#f0f7ee" },
+  system: { Icon: Leaf, iconBg: "#eef9f0" },
+  follow: { Icon: User, iconBg: "#f0f4ff" },
 };
 
 const FILTERS = [
@@ -507,36 +508,12 @@ const FILTERS = [
 
 // Per-filter empty state messages
 const EMPTY_MSG = {
-  All: {
-    icon: "🔔",
-    title: "No notifications yet",
-    desc: "You're all caught up!",
-  },
-  Orders: {
-    icon: "🛒",
-    title: "No order notifications",
-    desc: "Order updates will appear here.",
-  },
-  Inquiries: {
-    icon: "💬",
-    title: "No inquiries yet",
-    desc: "Buyer messages about your listings will show here.",
-  },
-  Saved: {
-    icon: "❤️",
-    title: "No saves yet",
-    desc: "When buyers save your listings you'll see it here.",
-  },
-  System: {
-    icon: "🌿",
-    title: "No system notifications",
-    desc: "Platform updates and alerts will appear here.",
-  },
-  Follows: {
-    icon: "👤",
-    title: "No follow notifications",
-    desc: "When someone follows you, it will appear here.",
-  },
+  All: { Icon: Bell, title: "No notifications yet", desc: "You're all caught up!" },
+  Orders: { Icon: ShoppingCart, title: "No order notifications", desc: "Order updates will appear here." },
+  Inquiries: { Icon: MessageCircle, title: "No inquiries yet", desc: "Buyer messages about your listings will show here." },
+  Saved: { Icon: Heart, title: "No saves yet", desc: "When buyers save your listings you'll see it here." },
+  System: { Icon: Leaf, title: "No system notifications", desc: "Platform updates and alerts will appear here." },
+  Follows: { Icon: User, title: "No follow notifications", desc: "When someone follows you, it will appear here." },
 };
 
 const paymentLabels = {
@@ -823,7 +800,7 @@ const Notifications = () => {
 
           {!isLoading && !hasAny && (
             <EmptyWrap>
-              <EmptyIcon>{emptyMsg.icon}</EmptyIcon>
+              <EmptyIcon>{emptyMsg.Icon && <emptyMsg.Icon size={36} color="#4a7c45" />}</EmptyIcon>
               <EmptyTitle>{emptyMsg.title}</EmptyTitle>
               <EmptyDesc>{emptyMsg.desc}</EmptyDesc>
             </EmptyWrap>
@@ -840,7 +817,7 @@ const Notifications = () => {
                   <NotifCard>
                     {items.map((n) => {
                       const meta = NOTIF_META[n.type] ?? {
-                        icon: "🔔",
+                        Icon: Bell,
                         iconBg: "#f0f7ee",
                       };
                       const isOpen = expandedId === n.id;
@@ -856,7 +833,7 @@ const Notifications = () => {
                                   onError={(e) => { e.target.style.display = "none"; }}
                                 />
                               ) : (
-                                meta.icon
+                                meta.Icon ? <meta.Icon size={20} /> : null
                               )}
                             </IconWrap>
                             <NotifContent>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { formatPrice } from "../../utils";
+import { Banknote, Smartphone, CreditCard, Landmark, Wallet, Check, Phone, Truck, Home, X, Hourglass, Leaf } from "lucide-react";
 import AppNavbar from "./AppNavbar";
 import styled, { keyframes, createGlobalStyle } from "styled-components";
 
@@ -32,19 +33,19 @@ const PAYMENT_LABELS = {
   bank: "Bank Transfer",
 };
 
-const PAYMENT_ICONS = {
-  cash: "💵",
-  mpesa: "📱",
-  card: "💳",
-  mobile: "📲",
-  bank: "🏦",
+const PAYMENT_ICON_MAP = {
+  cash: Banknote,
+  mpesa: Smartphone,
+  card: CreditCard,
+  mobile: Smartphone,
+  bank: Landmark,
 };
 
 const STEPS = [
-  { icon: "✓", label: "Order Placed" },
-  { icon: "📞", label: "Seller Confirms" },
-  { icon: "🚚", label: "Out for Delivery" },
-  { icon: "🏠", label: "Delivered" },
+  { Icon: Check, label: "Order Placed" },
+  { Icon: Phone, label: "Seller Confirms" },
+  { Icon: Truck, label: "Out for Delivery" },
+  { Icon: Home, label: "Delivered" },
 ];
 
 // ─── Print styles ─────────────────────────────────────────────────────────────
@@ -143,7 +144,7 @@ const OrderConfirmation = () => {
       <Page>
         {/* ── Hero ── */}
         <Hero>
-          <CheckCircle>✓</CheckCircle>
+          <CheckCircle><Check size={28} color="white" /></CheckCircle>
           <HeroTitle>Order Placed!</HeroTitle>
           <HeroSub>Thank you — the seller will contact you shortly.</HeroSub>
           {shortId && <OrderIdBadge>Order #{shortId}</OrderIdBadge>}
@@ -157,7 +158,7 @@ const OrderConfirmation = () => {
             <Timeline>
               {STEPS.map((step, i) => (
                 <Step key={i}>
-                  <StepDot $done={i === 0}>{i === 0 ? "✓" : step.icon}</StepDot>
+                  <StepDot $done={i === 0}><step.Icon size={14} /></StepDot>
                   {i < STEPS.length - 1 && <StepLine />}
                   <StepLabel $done={i === 0}>{step.label}</StepLabel>
                 </Step>
@@ -235,7 +236,7 @@ const OrderConfirmation = () => {
             <DeliveryCard>
               <DeliveryRow>
                 <DeliveryLabel>
-                  {PAYMENT_ICONS[paymentMethod] ?? "💰"} Payment
+                  {(() => { const I = PAYMENT_ICON_MAP[paymentMethod] ?? Wallet; return <I size={14} style={{marginRight:4,verticalAlign:"middle"}} />; })()} Payment
                 </DeliveryLabel>
                 <DeliveryValue>
                   {PAYMENT_LABELS[paymentMethod] ?? paymentMethod}
@@ -289,7 +290,7 @@ const OrderConfirmation = () => {
                   onClick={() => setShowReceipt(false)}
                   title="Close"
                 >
-                  ✕
+                  <X size={18} />
                 </ReceiptCloseX>
                 <ReceiptLogoRow>
                   <ReceiptLogoImg src="/afarmer.webp" alt="Omindi" />
@@ -298,7 +299,7 @@ const OrderConfirmation = () => {
                     <ReceiptBrandSub>Alendu, Kisumu · Kenya</ReceiptBrandSub>
                   </ReceiptLogoText>
                   <ReceiptStatusBadge $cash={paymentMethod === "cash"}>
-                    {paymentMethod === "cash" ? "⏳ Pending" : "✓ Paid"}
+                    {paymentMethod === "cash" ? <><Hourglass size={12} style={{marginRight:3}} /> Pending</> : <><Check size={12} style={{marginRight:3}} /> Paid</>}
                   </ReceiptStatusBadge>
                 </ReceiptLogoRow>
                 <ReceiptTitle>TAX INVOICE</ReceiptTitle>
@@ -422,7 +423,7 @@ const OrderConfirmation = () => {
               </ReceiptBody>
 
               <ReceiptFooter>
-                <span>🌿</span>
+                <Leaf size={14} color="#4a7c45" />
                 <span>Thank you for supporting local farmers!</span>
                 <span>omindi.farm</span>
               </ReceiptFooter>

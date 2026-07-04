@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Handshake, ClipboardList, MessageCircle, CheckCircle2 } from "lucide-react";
 import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
@@ -14,17 +15,17 @@ const fadeUp = keyframes`
 
 const FEATURES = [
   {
-    icon: "🤝",
+    Icon: Handshake,
     title: "Direct Buyer Relationships",
     text: "Build long-term wholesale relationships with restaurants, retailers, and food brands. Cut out the middlemen and negotiate directly.",
   },
   {
-    icon: "📋",
+    Icon: ClipboardList,
     title: "One Profile, Two Markets",
     text: "Your single AFARMER™ profile works for both retail and wholesale buyers. Manage everything from one dashboard.",
   },
   {
-    icon: "💬",
+    Icon: MessageCircle,
     title: "Direct Messaging",
     text: "Wholesale buyers can reach you directly through in-app messaging to discuss quantities, pricing, and delivery schedules.",
   },
@@ -137,7 +138,7 @@ function Wholesale() {
           <FeaturesGrid>
             {FEATURES.map((f) => (
               <FeatureCard key={f.title}>
-                <FeatureIcon>{f.icon}</FeatureIcon>
+                <FeatureIcon>{f.Icon ? <f.Icon size={24} /> : f.icon}</FeatureIcon>
                 <FeatureTitle>{f.title}</FeatureTitle>
                 <FeatureText>{f.text}</FeatureText>
               </FeatureCard>
@@ -240,7 +241,7 @@ function Wholesale() {
           <FormRight>
             {submitted ? (
               <SuccessCard>
-                <SuccessIcon>✅</SuccessIcon>
+                <SuccessIcon><CheckCircle2 size={32} color="#16a34a" /></SuccessIcon>
                 <SuccessTitle>You're on the list!</SuccessTitle>
                 <SuccessSub>
                   We'll be in touch with next steps and early access details.

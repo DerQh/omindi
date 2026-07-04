@@ -6,6 +6,7 @@ import { useEditProfile } from "../../hooks/useEditProfile";
 import { useProfile } from "../../hooks/useProfile";
 import { useAuth } from "../../context/AuthContext";
 import LoadingComponent from "./Loading";
+import { Leaf, Camera } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -375,9 +376,9 @@ const EditProfile = () => {
               {preview ? (
                 <AvatarImg src={preview} alt="Profile preview" />
               ) : (
-                <AvatarPlaceholder>🌿</AvatarPlaceholder>
+                <AvatarPlaceholder><Leaf size={36} color="#4a7c45" /></AvatarPlaceholder>
               )}
-              <CameraOverlay>📷</CameraOverlay>
+              <CameraOverlay><Camera size={18} color="white" /></CameraOverlay>
             </AvatarWrap>
             <AvatarHint>
               {preview ? "Tap to change photo" : "Tap to add a profile photo"}

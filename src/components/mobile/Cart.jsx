@@ -10,6 +10,7 @@ import {
   useUpdateCartItem,
 } from "../../hooks/useCart";
 import { useUser } from "../../hooks/useUser";
+import { Lock, ShoppingCart, Check } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(8px); }
@@ -81,7 +82,7 @@ const Cart = () => {
       <Page>
         <Header><RoundBack onClick={() => navigate(-1)}>←</RoundBack></Header>
         <EmptyWrap>
-          <EmptyIcon>🔐</EmptyIcon>
+          <EmptyIcon><Lock size={36} color="#4a7c45" /></EmptyIcon>
           <EmptyTitle>Sign in to see your cart</EmptyTitle>
           <EmptyDesc>Your cart is saved to your account. Log in to view or manage your items.</EmptyDesc>
           <BrowseBtn onClick={() => navigate("/login")} style={{ marginBottom: 12 }}>
@@ -132,7 +133,7 @@ const Cart = () => {
 
         {cartItems.length === 0 ? (
           <EmptyWrap>
-            <EmptyIcon>🛒</EmptyIcon>
+            <EmptyIcon><ShoppingCart size={36} color="#4a7c45" /></EmptyIcon>
             <EmptyTitle>Your cart is empty</EmptyTitle>
             <EmptyDesc>Add fresh produce from local farmers.</EmptyDesc>
             <BrowseBtn onClick={() => navigate("/list")}>
@@ -239,7 +240,7 @@ const Cart = () => {
                       }}
                       $applied={promoApplied}
                     >
-                      {promoApplied ? "Applied ✓" : "Apply"}
+                      {promoApplied ? <><Check size={13} style={{marginRight:3}} />Applied</> : "Apply"}
                     </PromoApply>
                   </PromoRow>
 

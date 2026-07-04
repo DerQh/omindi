@@ -10,6 +10,7 @@ import { useUser } from "../../hooks/useUser";
 import { useSavedSearches, useSaveSearch, useDeleteSavedSearch } from "../../hooks/useSavedSearches";
 import { useLanguage } from "../../context/LanguageContext";
 import { formatPrice } from "../../utils";
+import { AlertTriangle, X, Bookmark, FolderOpen, Search, Leaf } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(12px); }
@@ -176,7 +177,7 @@ const List = () => {
         <AppNavbar />
         <ErrorWrap>
           <ErrorCard>
-            <span>⚠️</span>
+            <AlertTriangle size={20} />
             <p>Something went wrong loading listings.</p>
           </ErrorCard>
         </ErrorWrap>
@@ -268,7 +269,7 @@ const List = () => {
                     setShowSuggestions(false);
                   }}
                 >
-                  ✕
+                  <X size={14} />
                 </ClearBtn>
               )}
               {showSuggestions && suggestions.length > 0 && (
@@ -320,12 +321,12 @@ const List = () => {
                     }
                     title={t.saveSearch}
                   >
-                    🔖 {t.saveSearch}
+                    <Bookmark size={14} style={{marginRight:4}} /> {t.saveSearch}
                   </SaveSearchBtn>
                 )}
                 {user_id && savedSearches.length > 0 && (
                   <SaveSearchBtn onClick={() => setShowSavedPanel((p) => !p)} title={t.savedSearchesTitle}>
-                    📂 {t.savedSearches} ({savedSearches.length})
+                    <FolderOpen size={14} style={{marginRight:4}} /> {t.savedSearches} ({savedSearches.length})
                   </SaveSearchBtn>
                 )}
                 <AddListingBtn onClick={() => navigate("/newlist")}>
@@ -347,13 +348,13 @@ const List = () => {
                         setShowSavedPanel(false);
                       }}
                     >
-                      🔍 {s.label}
+                      <Search size={13} style={{marginRight:4}} /> {s.label}
                       {s.category && s.category !== "All" && <span style={{ color: "#7b8f7f", fontWeight: 500 }}> · {s.category}</span>}
                     </SavedLabel>
                     <SavedDeleteBtn
                       onClick={() => deleteSavedSearch({ id: s.id, user_id })}
                       title="Remove"
-                    >✕</SavedDeleteBtn>
+                    ><X size={13} /></SavedDeleteBtn>
                   </SavedRow>
                 ))}
               </SavedPanel>
@@ -397,7 +398,7 @@ const List = () => {
               </>
             ) : (
               <EmptyState>
-                <EmptyIcon>🌾</EmptyIcon>
+                <EmptyIcon><Leaf size={36} color="#4a7c45" /></EmptyIcon>
                 <EmptyTitle>{t.noListingsFound}</EmptyTitle>
                 <EmptyDesc>
                   {hasFilters

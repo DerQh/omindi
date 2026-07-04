@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { formatPrice } from "../../utils";
+import { Star, Leaf, RefreshCw, Check, Camera, Search } from "lucide-react";
 import { useListing } from "../../hooks/useEditListing";
 import { useListings } from "../../hooks/useListings";
 import AppNavbar from "./AppNavbar";
@@ -42,7 +43,7 @@ const toastIn = keyframes`
 const renderStars = (rating) =>
   Array.from({ length: 5 }, (_, i) => (
     <StarIcon key={i} $filled={i < Math.round(rating)}>
-      {i < Math.round(rating) ? "★" : "☆"}
+      <Star size={14} fill={i < Math.round(rating) ? "#f59e0b" : "none"} stroke="#f59e0b" />
     </StarIcon>
   ));
 
@@ -219,7 +220,7 @@ const ListingDetail = () => {
         <AppNavbar />
         <NotFoundWrap>
           <NotFoundCard>
-            <span>🔍</span>
+            <Search size={28} color="#4a7c45" />
             <p>Listing not found.</p>
             <BackBtn onClick={() => navigate(-1)}>Go back</BackBtn>
           </NotFoundCard>
@@ -242,11 +243,11 @@ const ListingDetail = () => {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowRecurringModal(false); }}>
           <div style={{ background: "white", borderRadius: "24px 24px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 520 }}>
-            <p style={{ margin: "0 0 4px", fontSize: "1.05rem", fontWeight: 800, color: "#1a2e1a" }}>🔄 Set Recurring Order</p>
+            <p style={{ margin: "0 0 4px", fontSize: "1.05rem", fontWeight: 800, color: "#1a2e1a", display: "flex", alignItems: "center", gap: 6 }}><RefreshCw size={16} /> Set Recurring Order</p>
             <p style={{ margin: "0 0 20px", fontSize: "0.83rem", color: "#7b8f7f" }}>Get {listing.title} delivered automatically.</p>
             {recurringDone ? (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
-                <div style={{ fontSize: "2rem", marginBottom: 10 }}>✅</div>
+                <div style={{ marginBottom: 10 }}><Check size={32} color="#2f5a2a" /></div>
                 <p style={{ fontWeight: 700, color: "#2f5a2a" }}>Recurring order set!</p>
                 <p style={{ fontSize: "0.83rem", color: "#7b8f7f" }}>You can manage it under Dashboard → Settings → Recurring Orders.</p>
                 <button onClick={() => setShowRecurringModal(false)} style={{ marginTop: 14, background: "#2f5a2a", color: "white", border: "none", borderRadius: 10, padding: "10px 22px", fontWeight: 700, cursor: "pointer" }}>Done</button>
@@ -317,7 +318,7 @@ const ListingDetail = () => {
                     onError={(e) => { e.target.src = "/afarmer.webp"; }}
                   />
                 ) : (
-                  <NoImage>🌱</NoImage>
+                  <NoImage><Leaf size={36} color="#4a7c45" /></NoImage>
                 )}
                 {!isSeller && (
                   <FloatHeart $saved={isFavourited} onClick={handleFav} aria-label={isFavourited ? "Remove bookmark" : "Bookmark listing"}>
@@ -353,7 +354,7 @@ const ListingDetail = () => {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
                   {listing.badges.map((b) => (
                     <span key={b} style={{ fontSize: "0.72rem", fontWeight: 700, padding: "3px 10px", borderRadius: 999, background: "#eef7ee", color: "#2f5a2a", border: "1px solid #cde5cf" }}>
-                      ✓ {b}
+                      <Check size={12} style={{marginRight:3}} /> {b}
                     </span>
                   ))}
                 </div>
@@ -484,7 +485,7 @@ const ListingDetail = () => {
                         onClick={() => { setShowRecurringModal(true); setRecurringDone(false); }}
                         style={{ background: "#eef7ee", color: "#2f5a2a" }}
                       >
-                        🔄 {t.recurring}
+                        <RefreshCw size={14} style={{marginRight:4}} /> {t.recurring}
                       </InquiryBtn>
                     </CtaSecRow>
                   </>
@@ -525,7 +526,7 @@ const ListingDetail = () => {
                     </SellerName>
                     <SellerMeta>
                       {sellerRating?.count > 0
-                        ? `⭐ ${sellerRating.avg} · ${sellerRating.count} review${sellerRating.count !== 1 ? "s" : ""}`
+                        ? `★ ${sellerRating.avg} · ${sellerRating.count} review${sellerRating.count !== 1 ? "s" : ""}`
                         : "No reviews yet"}
                     </SellerMeta>
                   </SellerInfo>
@@ -608,7 +609,7 @@ const ListingDetail = () => {
                         </SellerName>
                         <SellerMeta>
                           {sellerRating?.count > 0
-                            ? `⭐ ${sellerRating.avg} · ${sellerRating.count} review${sellerRating.count !== 1 ? "s" : ""}`
+                            ? `★ ${sellerRating.avg} · ${sellerRating.count} review${sellerRating.count !== 1 ? "s" : ""}`
                             : "No reviews yet"}
                         </SellerMeta>
                       </SellerInfo>
@@ -628,7 +629,7 @@ const ListingDetail = () => {
                           <RatingBig>{avg.toFixed(1)}</RatingBig>
                           <RatingSummaryRight>
                             <RatingStarsLarge>
-                              {"★".repeat(Math.round(avg))}{"☆".repeat(5 - Math.round(avg))}
+                              {Array.from({length:5},(_,i)=><Star key={i} size={18} fill={i<Math.round(avg)?"#f59e0b":"none"} stroke="#f59e0b" />)}
                             </RatingStarsLarge>
                             <RatingCount2>
                               {reviews.length} review{reviews.length !== 1 ? "s" : ""}
@@ -669,7 +670,7 @@ const ListingDetail = () => {
                               onMouseLeave={() => setHoverStar(0)}
                               onClick={() => setReviewRating(n)}
                             >
-                              ★
+                              <Star size={20} fill={n <= (hoverStar || reviewRating) ? "#f59e0b" : "none"} stroke="#f59e0b" />
                             </StarBtn>
                           ))}
                         </StarBtnRow>
@@ -694,7 +695,7 @@ const ListingDetail = () => {
                               setReviewImage(f);
                               setReviewImagePreview(URL.createObjectURL(f));
                             }} />
-                            📷 {t.addPhoto}
+                            <Camera size={14} style={{marginRight:4}} /> {t.addPhoto}
                           </label>
                         )}
 
@@ -744,7 +745,7 @@ const ListingDetail = () => {
 
                     {reviews.length === 0 ? (
                       <NoReviews>
-                        <NoReviewsIcon>🌱</NoReviewsIcon>
+                        <NoReviewsIcon><Leaf size={28} color="#4a7c45" /></NoReviewsIcon>
                         {t.noReviews}
                       </NoReviews>
                     ) : (
@@ -765,7 +766,7 @@ const ListingDetail = () => {
                                 {r.profiles?.full_name || r.profiles?.farm_name || "Buyer"}
                               </ReviewerName>
                               <ReviewStars>
-                                {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
+                                {Array.from({length:5},(_,i)=><Star key={i} size={12} fill={i<r.rating?"#f59e0b":"none"} stroke="#f59e0b" />)}
                               </ReviewStars>
                             </ReviewHeader>
                             {r.comment && <ReviewText>{r.comment}</ReviewText>}

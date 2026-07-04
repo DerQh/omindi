@@ -8,6 +8,7 @@ import {
 } from "../../hooks/useFavListings";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, memo } from "react";
+import { Leaf } from "lucide-react";
 
 // Renders a single listing card with image, price, details, and a favourite toggle button.
 function ListingCardTestBase({ listingItem, handleCardClick, user_id, index }) {
@@ -42,7 +43,7 @@ function ListingCardTestBase({ listingItem, handleCardClick, user_id, index }) {
             decoding="async"
           />
         ) : (
-          <NoImage>🌱</NoImage>
+          <NoImage><Leaf size={32} color="#4a7c45" /></NoImage>
         )}
 
         {/* Only shown when the listing is out of stock */}

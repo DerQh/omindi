@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useOrder } from "../../hooks/useOrders";
 import { formatSmartDate } from "../../hooks/dateFormat";
 import LoadingComponent from "./Loading";
+import { ShoppingCart, Check } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(14px); }
@@ -415,7 +416,7 @@ const MyOrders = () => {
 
           {!isLoading && filtered.length === 0 && (
             <EmptyWrap>
-              <EmptyIcon>🛒</EmptyIcon>
+              <EmptyIcon><ShoppingCart size={36} color="#4a7c45" /></EmptyIcon>
               <EmptyTitle>{filter === "all" ? "No orders yet" : `No ${STATUS[filter]?.label ?? filter} orders`}</EmptyTitle>
               <EmptyDesc>Browse the marketplace and place your first order.</EmptyDesc>
               <BrowseBtn onClick={() => navigate("/list")}>Browse Listings</BrowseBtn>
@@ -458,7 +459,7 @@ const MyOrders = () => {
                           {STEP_ORDER.map((s, i) => (
                             <Step key={s} $done={i <= step}>
                               <StepDot $done={i < step} $current={i === step}>
-                                {i < step ? "✓" : i + 1}
+                                {i < step ? <Check size={12} /> : i + 1}
                               </StepDot>
                               <StepLabel $current={i === step}>{s}</StepLabel>
                             </Step>

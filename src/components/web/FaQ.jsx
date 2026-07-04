@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { ShoppingCart, ClipboardList, Calendar, Scale, Factory, X } from "lucide-react";
 import SEO from "./SEO";
 import { Helmet } from "react-helmet-async";
 import styled, { keyframes, css } from "styled-components";
@@ -21,7 +22,7 @@ const CATEGORIES = [
   {
     id: "buying-selling",
     label: "Buying & Selling",
-    icon: "🛒",
+    Icon: ShoppingCart,
     faqs: [
       {
         q: "Is there a fee to buy or sell on AFARMER™__TM__?",
@@ -52,7 +53,7 @@ const CATEGORIES = [
   {
     id: "listings",
     label: "Listings & Profiles",
-    icon: "📋",
+    Icon: ClipboardList,
     faqs: [
       {
         q: "How many listings can I post for free?",
@@ -71,7 +72,7 @@ const CATEGORIES = [
   {
     id: "events",
     label: "Events & Agritourism",
-    icon: "📅",
+    Icon: Calendar,
     faqs: [
       {
         q: "What types of events can I list on AFARMER™?",
@@ -102,7 +103,7 @@ const CATEGORIES = [
   {
     id: "legal",
     label: "Legal & Safety",
-    icon: "⚖️",
+    Icon: Scale,
     faqs: [
       {
         q: "Am I legally allowed to sell raw milk, unwashed eggs, or similar products?",
@@ -117,7 +118,7 @@ const CATEGORIES = [
   {
     id: "wholesale",
     label: "Wholesale",
-    icon: "🏭",
+    Icon: Factory,
     faqs: [
       {
         q: "How does wholesale work on AFARMER™?",
@@ -161,7 +162,7 @@ function FAQ() {
           results.push({
             ...faq,
             catLabel: cat.label,
-            catIcon: cat.icon,
+            CatIcon: cat.Icon,
             catId: cat.id,
             idx,
           });
@@ -206,7 +207,7 @@ function FAQ() {
                 setSearch(e.target.value);
               }}
             />
-            {search && <ClearBtn onClick={() => setSearch("")}>✕</ClearBtn>}
+            {search && <ClearBtn onClick={() => setSearch("")}><X size={14} /></ClearBtn>}
           </SearchRow>
         </HeroInner>
       </Hero>
@@ -233,7 +234,7 @@ function FAQ() {
                 {searchResults.map((r, i) => (
                   <SearchResultItem key={i}>
                     <ResultCategoryBadge>
-                      {r.catIcon} {r.catLabel}
+                      {r.CatIcon && <r.CatIcon size={14} />} {r.catLabel}
                     </ResultCategoryBadge>
                     <ResultQuestion>{r.q}</ResultQuestion>
                     <ResultAnswer>{r.a}</ResultAnswer>
@@ -268,7 +269,7 @@ function FAQ() {
             {/* FAQ accordion */}
             <Content>
               <ContentHeader>
-                <ContentIcon>{currentCategory.icon}</ContentIcon>
+                <ContentIcon>{currentCategory.Icon && <currentCategory.Icon size={20} />}</ContentIcon>
                 <div>
                   <ContentTitle>{currentCategory.label}</ContentTitle>
                   <ContentMeta>

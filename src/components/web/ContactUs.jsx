@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
+import { Mail, Phone, MapPin, Share2, Check, Lock } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(16px); }
@@ -19,7 +20,7 @@ const popIn = keyframes`
 
 const CONTACT_CARDS = [
   {
-    icon: "📧",
+    Icon: Mail,
     title: "Email Us",
     value: "washingtonomindi@gmail.com",
     note: "We reply within 1–2 business days",
@@ -27,7 +28,7 @@ const CONTACT_CARDS = [
     actionLabel: "Send email",
   },
   {
-    icon: "📞",
+    Icon: Phone,
     title: "Call Us",
     value: "+254 700 000 000",
     note: "Mon – Fri, 8 am – 5 pm EAT",
@@ -35,7 +36,7 @@ const CONTACT_CARDS = [
     actionLabel: "Call now",
   },
   {
-    icon: "📍",
+    Icon: MapPin,
     title: "Location",
     value: "Ondusi, Kisumu - Kenya",
     note: "Serving farmers across the country",
@@ -46,7 +47,7 @@ const CONTACT_CARDS = [
 
 const SOCIAL_LINKS = [
   { label: "Twitter / X", href: "#", icon: "𝕏" },
-  { label: "Instagram", href: "#", icon: "📸" },
+  { label: "Instagram", href: "#", Icon: Share2 },
   { label: "Facebook", href: "#", icon: "f" },
   { label: "LinkedIn", href: "#", icon: "in" },
 ];
@@ -168,7 +169,7 @@ function ContactUs() {
         <CardsInner>
           {CONTACT_CARDS.map((c) => (
             <ContactCard key={c.title}>
-              <ContactCardIcon>{c.icon}</ContactCardIcon>
+              <ContactCardIcon><c.Icon size={24} /></ContactCardIcon>
               <ContactCardBody>
                 <ContactCardTitle>{c.title}</ContactCardTitle>
                 <ContactCardValue>{c.value}</ContactCardValue>
@@ -205,7 +206,7 @@ function ContactUs() {
                 "General feedback & suggestions",
               ].map((item) => (
                 <InfoItem key={item}>
-                  <InfoCheck>✓</InfoCheck>
+                  <InfoCheck><Check size={14} /></InfoCheck>
                   <span>{item}</span>
                 </InfoItem>
               ))}
@@ -218,7 +219,7 @@ function ContactUs() {
               <SocialLinks>
                 {SOCIAL_LINKS.map((s) => (
                   <SocialLink key={s.label} href={s.href} title={s.label}>
-                    {s.icon}
+                    {s.Icon ? <s.Icon size={16} /> : s.icon}
                   </SocialLink>
                 ))}
               </SocialLinks>
@@ -235,7 +236,7 @@ function ContactUs() {
             {submitted ? (
               <SuccessCard>
                 <SuccessCircle>
-                  <SuccessCheckmark>✓</SuccessCheckmark>
+                  <SuccessCheckmark><Check size={20} /></SuccessCheckmark>
                 </SuccessCircle>
                 <SuccessTitle>Message Received!</SuccessTitle>
                 <SuccessSub>
@@ -382,7 +383,7 @@ function ContactUs() {
                       {sending ? "Sending…" : "Send Message"}
                     </SubmitBtn>
                     <ReplyNote>
-                      🔒 &nbsp;Your information is never shared with third
+                      <Lock size={12} style={{marginRight:4}} />Your information is never shared with third
                       parties.
                     </ReplyNote>
                   </form>

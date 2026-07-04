@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import styled, { keyframes, css } from "styled-components";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
+import { X, Leaf, Check } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -187,7 +188,7 @@ function News() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            {search && <ClearBtn onClick={() => setSearch("")}>✕</ClearBtn>}
+            {search && <ClearBtn onClick={() => setSearch("")}><X size={14} /></ClearBtn>}
           </SearchRow>
         </HeroInner>
       </Hero>
@@ -257,7 +258,7 @@ function News() {
 
           {filtered.length === 0 ? (
             <EmptyState>
-              <EmptyIcon>🌿</EmptyIcon>
+              <EmptyIcon><Leaf size={36} color="#4a7c45" /></EmptyIcon>
               <EmptyTitle>No articles found</EmptyTitle>
               <EmptyText>Try a different search term or category.</EmptyText>
               <EmptyClear
@@ -307,11 +308,11 @@ function News() {
             once a week. Unsubscribe any time.
           </NewsletterSub>
           <NewsletterBullets>
-            <NewsletterBullet>✓ &nbsp;Platform release notes</NewsletterBullet>
+            <NewsletterBullet><Check size={13} style={{marginRight:4}} />Platform release notes</NewsletterBullet>
             <NewsletterBullet>
-              ✓ &nbsp;Farming tips & market trends
+              <Check size={13} style={{marginRight:4}} />Farming tips & market trends
             </NewsletterBullet>
-            <NewsletterBullet>✓ &nbsp;Community spotlights</NewsletterBullet>
+            <NewsletterBullet><Check size={13} style={{marginRight:4}} />Community spotlights</NewsletterBullet>
           </NewsletterBullets>
         </NewsletterLeft>
         <NewsletterRight>

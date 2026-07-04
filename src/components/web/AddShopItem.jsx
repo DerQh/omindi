@@ -1,6 +1,7 @@
 import { useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useAddShopItem } from "../../hooks/useShopAdmin";
+import { X, Image, AlertTriangle } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -284,7 +285,7 @@ export default function AddShopItem({ onClose }) {
 
         <ModalHeader>
           <ModalTitle>Add Shop Item</ModalTitle>
-          <CloseBtn onClick={onClose}>✕</CloseBtn>
+          <CloseBtn onClick={onClose}><X size={16} /></CloseBtn>
         </ModalHeader>
 
         <Form onSubmit={handleSubmit}>
@@ -392,7 +393,7 @@ export default function AddShopItem({ onClose }) {
                 <ImagePreview src={preview} alt="preview" />
               ) : (
                 <>
-                  <UploadIcon>🖼️</UploadIcon>
+                  <UploadIcon><Image size={32} color="#9ca3af" /></UploadIcon>
                   <UploadHint>Click to upload a product photo</UploadHint>
                   <UploadHint style={{ fontSize: "0.72rem" }}>JPG, PNG or WebP</UploadHint>
                 </>
@@ -412,14 +413,14 @@ export default function AddShopItem({ onClose }) {
                 onClick={() => { setPreview(null); set("image", null); }}
                 style={{ marginTop: 8, fontSize: "0.78rem", color: "#a32d2d", background: "none", border: "none", cursor: "pointer" }}
               >
-                ✕ Remove image
+                <X size={12} style={{marginRight:3}} />Remove image
               </button>
             )}
           </SectionBlock>
 
           {isError && (
             <ErrorMsg>
-              ⚠️ {error?.message ?? "Failed to save. Please try again."}
+              <AlertTriangle size={14} style={{marginRight:6,verticalAlign:"middle"}} />{error?.message ?? "Failed to save. Please try again."}
             </ErrorMsg>
           )}
 

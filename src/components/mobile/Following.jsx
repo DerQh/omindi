@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useFollowedSellers, useUnfollow } from "../../hooks/useFollows";
 import { useFavoriteListings, useFavoriteDelete } from "../../hooks/useFavListings";
+import { MapPin, Calendar, Check, Heart, Leaf, Star } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -657,7 +658,9 @@ const followData = {
 
 const renderStars = (rating) => {
   const full = Math.round(rating);
-  return Array.from({ length: 5 }, (_, i) => (i < full ? "★" : "☆")).join("");
+  return Array.from({ length: 5 }, (_, i) => (
+    <Star key={i} size={12} fill={i < full ? "#f59e0b" : "none"} stroke="#f59e0b" />
+  ));
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -724,7 +727,7 @@ const Following = () => {
               {
                 key: "events",
                 label: "Events",
-                icon: "📅",
+                Icon: Calendar,
                 count: followData.events.length,
               },
               {
@@ -733,13 +736,13 @@ const Following = () => {
                 icon: "",
                 count: favoriteListings.length,
               },
-            ].map(({ key, label, icon, count }) => (
+            ].map(({ key, label, Icon, count }) => (
               <Tab
                 key={key}
                 $active={activeTab === key}
                 onClick={() => setActiveTab(key)}
               >
-                {icon} {label}
+                {Icon && <Icon size={14} style={{marginRight:4,verticalAlign:"middle"}} />}{label}
                 <TabCount $active={activeTab === key}>{count}</TabCount>
               </Tab>
             ))}
@@ -754,7 +757,7 @@ const Following = () => {
             </SectionLabel>
             {isLoadingSellers ? null : followedSellers.length === 0 ? (
               <EmptyState>
-                <EmptyIcon>🌱</EmptyIcon>
+                <EmptyIcon><Leaf size={36} color="#4a7c45" /></EmptyIcon>
                 <EmptyTitle>Not following anyone yet</EmptyTitle>
                 <EmptyDesc>Visit a seller's profile and tap Follow to see them here.</EmptyDesc>
               </EmptyState>
@@ -779,7 +782,7 @@ const Following = () => {
                         <SellerFullName>{seller.full_name}</SellerFullName>
                       )}
                       {seller.location && (
-                        <SellerLocationPill>📍 {seller.location}</SellerLocationPill>
+                        <SellerLocationPill><MapPin size={12} style={{marginRight:3}} />{seller.location}</SellerLocationPill>
                       )}
                       <SellerDesc>
                         {seller.description || "No bio yet."}
@@ -818,14 +821,14 @@ const Following = () => {
                   </EventCover>
                   <EventBody>
                     <EventTitle>{event.title}</EventTitle>
-                    <LocationPill>📍 {event.location}</LocationPill>
+                    <LocationPill><MapPin size={12} style={{marginRight:3}} />{event.location}</LocationPill>
                     <EventDesc>{event.description}</EventDesc>
                     <InterestedBtn
                       $active={interested.has(event.id)}
                       onClick={() => toggleInterested(event.id)}
                     >
                       {interested.has(event.id)
-                        ? "✓ Interested"
+                        ? <><Check size={13} style={{marginRight:4}} />Interested</>
                         : "Mark as Interested"}
                     </InterestedBtn>
                   </EventBody>
@@ -841,7 +844,7 @@ const Following = () => {
             <SectionLabel>{favoriteListings.length} saved listing{favoriteListings.length !== 1 ? "s" : ""}</SectionLabel>
             {favoriteListings.length === 0 ? (
               <EmptyState>
-                <EmptyIcon>💔</EmptyIcon>
+                <EmptyIcon><Heart size={36} color="#dc2626" /></EmptyIcon>
                 <EmptyTitle>No saved listings</EmptyTitle>
                 <EmptyDesc>Browse listings and tap the heart to save them here.</EmptyDesc>
               </EmptyState>
@@ -855,7 +858,7 @@ const Following = () => {
                     <FavCover>
                       {item.image_url && <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" />}
                       <PriceBadge>Kes {formatPrice(item.price)}/{item.unit}</PriceBadge>
-                      <HeartBtn onClick={(e) => handleRemoveFav(e, item.id)}>❤️</HeartBtn>
+                      <HeartBtn onClick={(e) => handleRemoveFav(e, item.id)}><Heart size={16} fill="#dc2626" stroke="#dc2626" /></HeartBtn>
                     </FavCover>
                     <FavBody>
                       <FavTitle>{item.title}</FavTitle>

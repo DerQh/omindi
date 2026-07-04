@@ -4,6 +4,7 @@ import AppNavbar from "./AppNavbar";
 import styled, { keyframes } from "styled-components";
 import { useListing, useEditListing } from "../../hooks/useEditListing";
 import LoadingComponent from "./Loading";
+import { Camera } from "lucide-react";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(14px); }
@@ -314,7 +315,7 @@ export function EditListing() {
                   onDrop={handleDrop}
                   onClick={() => document.getElementById("imageUpload").click()}
                 >
-                  <DropIcon>📷</DropIcon>
+                  <DropIcon><Camera size={28} color="#4a7c45" /></DropIcon>
                   <DropText>Tap to upload a photo</DropText>
                   <DropHint>or drag and drop · JPG, PNG, WEBP</DropHint>
                 </DropZone>

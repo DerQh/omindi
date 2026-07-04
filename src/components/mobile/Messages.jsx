@@ -13,6 +13,7 @@ import {
   useSendMessage,
 } from "../../hooks/useMessages";
 import { formatSmartDate } from "../../hooks/dateFormat";
+import { X, MessageCircle, Trash2 } from "lucide-react";
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 
@@ -780,7 +781,7 @@ const Messages = () => {
                 />
                 {search && (
                   <ClearSearchBtn onClick={() => setSearch("")}>
-                    ✕
+                    <X size={16} />
                   </ClearSearchBtn>
                 )}
               </SearchWrap>
@@ -798,7 +799,7 @@ const Messages = () => {
 
               {!isLoading && filteredConvs.length === 0 && (
                 <EmptyWrap>
-                  <EmptyIcon>💬</EmptyIcon>
+                  <EmptyIcon><MessageCircle size={36} color="#4a7c45" /></EmptyIcon>
                   <EmptyTitle>
                     {search ? "No results" : "No conversations yet"}
                   </EmptyTitle>
@@ -886,7 +887,7 @@ const Messages = () => {
                     </ConfirmDeleteRow>
                   ) : (
                     <DeleteConvBtn onClick={() => setConfirmDeleteId(activeId)}>
-                      🗑
+                      <Trash2 size={16} />
                     </DeleteConvBtn>
                   )}
                 </ChatHeader>
@@ -894,7 +895,7 @@ const Messages = () => {
                 <ChatBody>
                   {messages.length === 0 && (
                     <EmptyWrap>
-                      <EmptyIcon>👋</EmptyIcon>
+                      <EmptyIcon><MessageCircle size={36} color="#4a7c45" /></EmptyIcon>
                       <EmptyTitle>Say hello to {otherPerson.name}!</EmptyTitle>
                       <EmptyDesc>
                         No messages yet — start the conversation below.
@@ -956,7 +957,7 @@ const Messages = () => {
                                   onClick={() => deleteMessage(msg.id)}
                                   title="Delete message"
                                 >
-                                  ✕
+                                  <X size={16} />
                                 </DeleteMsgBtn>
                               )}
                             </BubbleMeta>
@@ -982,7 +983,7 @@ const Messages = () => {
               </>
             ) : (
               <EmptyWrap>
-                <EmptyIcon>💬</EmptyIcon>
+                <EmptyIcon><MessageCircle size={36} color="#4a7c45" /></EmptyIcon>
                 <EmptyTitle>No conversation selected</EmptyTitle>
                 <EmptyDesc>
                   Pick a conversation from the left to start chatting.
