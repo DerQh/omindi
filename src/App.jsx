@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
+import { Analytics } from "@vercel/analytics/react";
 import ProtectedRoutes from "./components/mobile/ProtectedRoutes";
 import { ScrollToTop } from "./components/mobile/ScrollTop";
 import BackToTop from "./components/mobile/BackToTop";
@@ -156,6 +157,7 @@ function App() {
             </Suspense>
           </BrowserRouter>
           <BackToTop />
+          <Analytics />
         </>
       </QueryClientProvider>
     </HelmetProvider>
