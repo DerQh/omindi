@@ -5,6 +5,7 @@ import { Helmet } from "react-helmet-async";
 import styled, { keyframes } from "styled-components";
 import Navbar from "./Navbar";
 import FooterContainer from "./Footer";
+import { supabase } from "../../../supabase";
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -73,6 +74,8 @@ function Wholesale() {
     captchaAnswer: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const [openFaq, setOpenFaq] = useState(null);
 
   const handleChange = (e) => {
@@ -80,7 +83,7 @@ function Wholesale() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (String(formData.captchaAnswer).trim() !== "45") {
       alert("Incorrect captcha answer. Hint: 9 × 5 = ?");
@@ -90,7 +93,30 @@ function Wholesale() {
       alert("Email addresses do not match.");
       return;
     }
-    console.log("Waitlist form submitted:", formData);
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const institution = [formData.companyName, formData.companyWebsite]
+      .filter(Boolean)
+      .join(" — ");
+
+    const { error } = await supabase.from("wholesale_inquiries").insert({
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      email: formData.email,
+      institution: institution || null,
+      interest: formData.interestedItems || null,
+    });
+
+    setSubmitting(false);
+
+    if (error) {
+      console.error("Wholesale inquiry insert error:", error);
+      setSubmitError("Something went wrong submitting your application. Please try again.");
+      return;
+    }
+
     setSubmitted(true);
   };
 
@@ -347,7 +373,15 @@ function Wholesale() {
                     />
                   </Field>
 
-                  <SubmitBtn type="submit">Submit Application</SubmitBtn>
+                  {submitError && (
+                    <p style={{ color: "#dc2626", fontSize: "0.9rem", marginTop: "-8px" }}>
+                      {submitError}
+                    </p>
+                  )}
+
+                  <SubmitBtn type="submit" disabled={submitting}>
+                    {submitting ? "Submitting…" : "Submit Application"}
+                  </SubmitBtn>
                 </form>
               </FormCard>
             )}

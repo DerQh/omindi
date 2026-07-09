@@ -1941,7 +1941,7 @@ function Merchandise() {
                   {/* Order summary */}
                   <OrderSummaryCard>
                     <OrderThumb>
-                      <img src={product.image} alt={product.name} />
+                      <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
                     </OrderThumb>
                     <OrderInfo>
                       <OrderName>{product.name}</OrderName>

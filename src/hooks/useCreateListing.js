@@ -27,7 +27,6 @@ export function useCreateListing() {
       if (!user) throw new Error("Not authenticated");
 
       let imageUrl = null;
-      console.log("Current user in useCreateListing:", user);
 
       // ✅ Upload image
       if (image) {
@@ -81,14 +80,13 @@ export function useCreateListing() {
           badges:      badges ?? [],
           price_tiers: price_tiers ?? [],
         })
-        .select(); // 🔥 THIS IS IMPORTANT FOR DEBUGGING
+        .select();
 
       if (error) {
-        console.log("Insert error:", error);
+        console.error("Insert error:", error);
         throw error;
       }
 
-      console.log("Insert success:", data);
       return data;
     },
 

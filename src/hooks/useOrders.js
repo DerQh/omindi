@@ -147,7 +147,7 @@ export function useAddOrderItems() {
         .select();
 
       if (error) {
-        console.log("Insert Order Items Error:", error);
+        console.error("Insert Order Items Error:", error);
         throw error;
       }
       return data;

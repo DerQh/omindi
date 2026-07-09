@@ -57,7 +57,7 @@ export function useCreateComment() {
         .select();
 
       if (error) {
-        console.log("Insert error:", error);
+        console.error("Insert error:", error);
         throw error;
       }
 

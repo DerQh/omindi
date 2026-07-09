@@ -136,9 +136,7 @@ function App() {
                 <Route path="/agritourism"        element={<Agritourism />} />
                 <Route path="/pricing"            element={<Pricing />} />
                 <Route path="/wholesale"          element={<Wholesale />} />
-                <Route path="/localsourcing"      element={<LocalSourcing />}>
-                  <Route path="test" element={<h1>TEST PAGE</h1>} />
-                </Route>
+                <Route path="/localsourcing"      element={<LocalSourcing />} />
                 <Route path="/contactus"          element={<ContactUs />} />
                 <Route path="/sign-up"            element={<PublicRoute><SignupLogin /></PublicRoute>} />
                 <Route path="/login"              element={<PublicRoute><SignupLogin /></PublicRoute>} />

@@ -14,11 +14,10 @@ export function useAddItem() {
           listing_id,
           quantity: Number(quantity) || 1,
         })
-        .select(); // 🔥 THIS IS IMPORTANT FOR DEBUGGING
+        .select();
 
       if (error) {
-        // REMOVE LIKE
-        console.log("Insert error:", error);
+        console.error("Insert error:", error);
         throw error;
       }
       return data;
@@ -65,10 +64,9 @@ export function useCartItemDelete() {
         .eq("listing_id", listing_id);
 
       if (error) {
-        console.log("Delete error:", error);
+        console.error("Delete error:", error);
         throw error;
       }
-      // console.log("Delete:", data);
       return data;
     },
     onSuccess: (data, variables) => {
@@ -89,10 +87,9 @@ export function useCartItemsAllDelete() {
         .eq("user_id", user_id);
 
       if (error) {
-        console.log("Delete error:", error);
+        console.error("Delete error:", error);
         throw error;
       }
-      // console.log("Delete:", data);
       return data;
     },
     onSuccess: (data, variables) => {
@@ -113,10 +110,9 @@ export function useCartItemDeleteId() {
         .eq("id", item_id);
 
       if (error) {
-        console.log("Delete error:", error);
+        console.error("Delete error:", error);
         throw error;
       }
-      // console.log("Delete:", data);
       return data;
     },
     onSuccess: (data, variables) => {
