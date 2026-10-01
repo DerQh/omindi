@@ -346,10 +346,12 @@ ListingDetail.jsx → "Subscribe" / RecurringOrders.jsx
     ├─ useToggleRecurringOrder()    → UPDATE recurring_orders SET active
     └─ useDeleteRecurringOrder()    → DELETE recurring_orders WHERE id
 
-Fulfillment: a cron Edge Function (not yet implemented) should run daily,
+Fulfillment: Edge Function `process-recurring-orders`, triggered daily by an
+external cron-job.org schedule (not Supabase pg_cron — unreliable on this project):
     → SELECT recurring_orders WHERE active = true AND next_order_date <= today
-    → auto-create orders + order_items
+    → auto-create orders + order_items (skips if listing unavailable/unapproved)
     → advance next_order_date by frequency interval
+    → notifies the buyer
 ```
 
 ---
@@ -405,3 +407,4 @@ auth.users
 | `mpesa-stk-query`      | Client poll (fallback)   | Checks STK push status when callback missed  |
 | `create-payment-intent`| Client invoke            | Creates Stripe PaymentIntent for card payments|
 | `send-order-email`     | After order insert       | Sends confirmation email to buyer            |
+| `process-recurring-orders` | cron-job.org (daily) | Fulfills due `recurring_orders` into new orders |
